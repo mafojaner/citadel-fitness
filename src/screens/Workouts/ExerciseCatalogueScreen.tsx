@@ -19,6 +19,14 @@ const CATEGORIES: { label: string; value: Category | 'all' }[] = [
   { label: 'Cardio', value: 'cardio' },
 ];
 
+const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyphMap>> = {
+  chest: 'barbell-outline',
+  back: 'body-outline',
+  legs: 'walk-outline',
+  cardio: 'heart-outline',
+};
+const DEFAULT_CATEGORY_ICON: keyof typeof Ionicons.glyphMap = 'fitness-outline';
+
 export function ExerciseCatalogueScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
@@ -26,6 +34,20 @@ export function ExerciseCatalogueScreen() {
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [query, setQuery] = useState('');
+
+  const isSearching = query.trim().length > 0;
+  const showCategoryGrid = !isSearching && activeCategory === 'all';
+
+  const categoryCards = useMemo(() => {
+    const counts = new Map<Category, number>();
+    for (const e of exercises) {
+      counts.set(e.category, (counts.get(e.category) ?? 0) + 1);
+    }
+    return CATEGORIES.filter((c) => c.value !== 'all').map((c) => ({
+      ...c,
+      count: counts.get(c.value as Category) ?? 0,
+    }));
+  }, [exercises]);
 
   const filtered = useMemo(() => {
     return exercises.filter((e) => {
@@ -87,6 +109,30 @@ export function ExerciseCatalogueScreen() {
         <Card>
           <Text style={{ color: colors.danger }}>{error}</Text>
         </Card>
+      ) : showCategoryGrid ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          {categoryCards.map((c) => (
+            <Pressable
+              key={c.value}
+              onPress={() => setActiveCategory(c.value)}
+              style={{ width: '47%' }}
+            >
+              <Card>
+                <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
+                  <Ionicons
+                    name={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
+                    size={32}
+                    color={colors.primary}
+                  />
+                  <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
+                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                    {c.count} exercise{c.count === 1 ? '' : 's'}
+                  </Text>
+                </View>
+              </Card>
+            </Pressable>
+          ))}
+        </View>
       ) : filtered.length === 0 ? (
         <Card>
           <Text style={[typography.body, { color: colors.textSecondary }]}>
