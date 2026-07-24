@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 
@@ -12,6 +13,9 @@ export function AccountScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
   const session = useAuthStore((s) => s.session);
   const signOut = useAuthStore((s) => s.signOut);
+  const name = useProfileStore((s) => s.name);
+  const displayName = name || session?.user.email || 'Signed in user';
+  const initial = displayName[0]?.toUpperCase();
 
   return (
     <ScreenContainer>
@@ -23,12 +27,14 @@ export function AccountScreen() {
               height: 56,
               borderRadius: 28,
               backgroundColor: colors.primaryMuted,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-          />
+          >
+            <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '700' }}>{initial}</Text>
+          </View>
           <View>
-            <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-              {session?.user.email ?? 'Signed in user'}
-            </Text>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>{displayName}</Text>
             <Text style={[typography.caption, { color: colors.textMuted }]}>
               {session?.user.email ?? ''}
             </Text>

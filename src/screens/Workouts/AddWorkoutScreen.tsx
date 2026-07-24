@@ -8,6 +8,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { useExercises } from '../../hooks/useExercises';
 import { saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -24,6 +25,7 @@ export function AddWorkoutScreen() {
   const removeExercise = useWorkoutDraftStore((s) => s.removeExercise);
   const reset = useWorkoutDraftStore((s) => s.reset);
   const userId = useAuthStore((s) => s.session?.user.id);
+  const units = useProfileStore((s) => s.preferences.units);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +72,9 @@ export function AddWorkoutScreen() {
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <Text style={[typography.caption, { color: colors.textMuted, width: 48 }]}>Set</Text>
               <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
-              <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Weight</Text>
+              <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+                Weight ({units})
+              </Text>
               <View style={{ width: 24 }} />
             </View>
 

@@ -6,6 +6,7 @@ import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
@@ -13,6 +14,7 @@ export function DayDetailScreen() {
   const { colors, spacing, typography } = useTheme();
   const route = useRoute<RouteProp<WorkoutsStackParamList, 'DayDetail'>>();
   const userId = useAuthStore((s) => s.session?.user.id);
+  const units = useProfileStore((s) => s.preferences.units);
   const [exercises, setExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +58,7 @@ export function DayDetailScreen() {
                 </Text>
                 {exercise.sets.map((set) => (
                   <Text key={set.id} style={[typography.caption, { color: colors.textSecondary }]}>
-                    Set {set.setNumber} — {set.reps} reps @ {set.weight} lb
+                    Set {set.setNumber} — {set.reps} reps @ {set.weight} {units}
                   </Text>
                 ))}
               </View>

@@ -17,7 +17,7 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
 function monthRange(dateString: string) {
   const [year, month] = dateString.split('-').map(Number);
   const start = `${year}-${String(month).padStart(2, '0')}-01`;
-  const end = new Date(year, month, 0).toISOString().slice(0, 10);
+  const end = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
   return { start, end };
 }
 
