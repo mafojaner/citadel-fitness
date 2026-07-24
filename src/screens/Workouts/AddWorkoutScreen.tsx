@@ -85,6 +85,7 @@ export function AddWorkoutScreen() {
                   placeholderTextColor={colors.textMuted}
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     borderColor: colors.border,
                     borderWidth: 1,
                     borderRadius: radius.sm,
@@ -100,6 +101,7 @@ export function AddWorkoutScreen() {
                   placeholderTextColor={colors.textMuted}
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     borderColor: colors.border,
                     borderWidth: 1,
                     borderRadius: radius.sm,
