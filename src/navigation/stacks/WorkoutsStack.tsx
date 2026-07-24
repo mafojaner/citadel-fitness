@@ -11,7 +11,7 @@ import { stackScreenOptions } from '../screenOptions';
 export type WorkoutsStackParamList = {
   Workouts: undefined;
   AddWorkout: undefined;
-  ExerciseCatalogue: { initialCategory?: Category } | undefined;
+  ExerciseCatalogue: { initialCategory?: Category; standalone?: boolean } | undefined;
   DayDetail: { date: string };
 };
 

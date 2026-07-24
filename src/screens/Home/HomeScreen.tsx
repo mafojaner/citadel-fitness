@@ -24,8 +24,7 @@ export function HomeScreen() {
 
   const onSelectCategory = (category: Category) => {
     resetDraft();
-    navigation.navigate('AddWorkout');
-    navigation.navigate('ExerciseCatalogue', { initialCategory: category });
+    navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
   };
 
   return (

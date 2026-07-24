@@ -10,7 +10,7 @@ import { stackScreenOptions } from '../screenOptions';
 export type HomeStackParamList = {
   Home: undefined;
   AddWorkout: undefined;
-  ExerciseCatalogue: { initialCategory?: Category } | undefined;
+  ExerciseCatalogue: { initialCategory?: Category; standalone?: boolean } | undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();

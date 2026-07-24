@@ -48,7 +48,11 @@ export function ExerciseCatalogueScreen() {
 
   const onSelect = (exercise: (typeof exercises)[number]) => {
     addExercise(exercise);
-    navigation.goBack();
+    if (route.params?.standalone) {
+      navigation.replace('AddWorkout');
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (
