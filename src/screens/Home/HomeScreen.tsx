@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { ComingSoonCard } from '../../components/ComingSoonCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -42,17 +43,17 @@ export function HomeScreen() {
         }}
       />
 
-      <Card title="Activity Summary">
-        <Text style={[typography.body, { color: colors.textSecondary }]}>
-          Streak and progress snapshot coming soon.
-        </Text>
-      </Card>
+      <ComingSoonCard
+        icon="flame-outline"
+        title="Activity Summary"
+        description="Your streaks, weekly frequency, and progress trends will show up here once you start logging workouts."
+      />
 
-      <Card title="Workout Summary">
-        <Text style={[typography.body, { color: colors.textSecondary }]}>
-          Recent and upcoming logged workouts will appear here.
-        </Text>
-      </Card>
+      <ComingSoonCard
+        icon="calendar-outline"
+        title="Workout Summary"
+        description="Your most recent and upcoming logged workouts will appear here."
+      />
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Browse by category</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
