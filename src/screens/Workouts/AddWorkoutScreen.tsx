@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useExercises } from '../../hooks/useExercises';
@@ -16,6 +17,7 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
 export function AddWorkoutScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
+  const { width } = useWindowDimensions();
   const { exercises: catalogue } = useExercises();
   const date = useWorkoutDraftStore((s) => s.date);
   const draftExercises = useWorkoutDraftStore((s) => s.exercises);
@@ -28,9 +30,18 @@ export function AddWorkoutScreen() {
   const units = useProfileStore((s) => s.preferences.units);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const finishedRef = useRef(false);
 
   const nameFor = (exerciseId: string) =>
     catalogue.find((e) => e.id === exerciseId)?.name ?? 'Exercise';
+
+  const finishAndLeave = () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    reset();
+    navigation.popToTop();
+  };
 
   const onConfirm = async () => {
     if (!userId || draftExercises.length === 0) return;
@@ -38,8 +49,9 @@ export function AddWorkoutScreen() {
     setError(null);
     try {
       await saveWorkout(userId, date, draftExercises);
-      reset();
-      navigation.popToTop();
+      finishedRef.current = false;
+      setShowConfetti(true);
+      setTimeout(finishAndLeave, 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save workout');
     } finally {
@@ -48,6 +60,7 @@ export function AddWorkoutScreen() {
   };
 
   return (
+    <>
     <ScreenContainer>
       <Text style={[typography.caption, { color: colors.textMuted }]}>{date}</Text>
 
@@ -158,5 +171,18 @@ export function AddWorkoutScreen() {
         </Text>
       </Pressable>
     </ScreenContainer>
+
+    {showConfetti ? (
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <ConfettiCannon
+          count={120}
+          origin={{ x: width / 2, y: -20 }}
+          colors={[colors.primary, colors.success, '#FFD166', colors.primaryMuted]}
+          fadeOut
+          onAnimationEnd={finishAndLeave}
+        />
+      </View>
+    ) : null}
+    </>
   );
 }
