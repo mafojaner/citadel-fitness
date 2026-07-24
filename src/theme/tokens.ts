@@ -47,10 +47,10 @@ export const lightColors = {
   primaryMuted: palette.primaryMuted,
   success: palette.success,
   danger: palette.danger,
-  tabInactive: '#6E7791',
-  navBackground: palette.ink900,
-  navText: palette.white,
-  navBorder: '#2A3140',
+  tabInactive: '#8A93A6',
+  navBackground: palette.white,
+  navText: palette.ink900,
+  navBorder: palette.ink100,
 };
 
 export const darkColors = {
@@ -67,7 +67,7 @@ export const darkColors = {
   tabInactive: palette.ink500,
   navBackground: '#05070C',
   navText: palette.white,
-  navBorder: '#05070C',
+  navBorder: '#1C2230',
 };
 
 export type ThemeColors = typeof lightColors;
