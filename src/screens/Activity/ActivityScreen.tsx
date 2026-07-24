@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { CATEGORY_FILTERS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
+import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 
@@ -14,9 +15,15 @@ export function ActivityScreen() {
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, loading } =
     useActivityAnalytics(activeCategory);
+  const units = useProfileStore((s) => s.preferences.units);
+  const [chartWidth, setChartWidth] = useState(0);
 
   const chartData = progressSeries.map((p) => ({ value: p.value, label: p.label }));
   const hasVolume = progressSeries.some((p) => p.value > 0);
+
+  const onChartAreaLayout = (e: LayoutChangeEvent) => {
+    setChartWidth(e.nativeEvent.layout.width);
+  };
 
   return (
     <ScreenContainer>
@@ -45,29 +52,38 @@ export function ActivityScreen() {
       </View>
 
       <Card title="Progress">
+        <Text style={[typography.caption, { color: colors.textMuted }]}>
+          Daily volume — reps × weight ({units}) logged over the last 7 days
+        </Text>
         {loading ? (
           <ActivityIndicator color={colors.primary} />
         ) : (
-          <>
-            <LineChart
-              data={chartData}
-              color={colors.primary}
-              thickness={2}
-              hideDataPoints={!hasVolume}
-              yAxisColor={colors.border}
-              xAxisColor={colors.border}
-              yAxisTextStyle={{ color: colors.textMuted }}
-              xAxisLabelTextStyle={{ color: colors.textMuted, fontSize: 11 }}
-              noOfSections={3}
-              height={160}
-            />
-            {!hasVolume ? (
-              <Text style={[typography.caption, { color: colors.textMuted }]}>
-                Volume (reps × weight) logged over the last 7 days will chart here.
-              </Text>
+          <View onLayout={onChartAreaLayout} style={{ width: '100%' }}>
+            {chartWidth > 0 ? (
+              <LineChart
+                data={chartData}
+                width={chartWidth - 55}
+                initialSpacing={10}
+                endSpacing={10}
+                spacing={(chartWidth - 55 - 20) / Math.max(chartData.length - 1, 1)}
+                color={colors.primary}
+                thickness={2}
+                hideDataPoints={!hasVolume}
+                yAxisColor={colors.border}
+                xAxisColor={colors.border}
+                yAxisTextStyle={{ color: colors.textMuted, fontSize: 10 }}
+                xAxisLabelTextStyle={{ color: colors.textMuted, fontSize: 11 }}
+                noOfSections={3}
+                height={160}
+              />
             ) : null}
-          </>
+          </View>
         )}
+        {!loading && !hasVolume ? (
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            Log a workout to start charting your volume.
+          </Text>
+        ) : null}
       </Card>
 
       <Card title="Analytics Summary">
@@ -99,7 +115,7 @@ export function ActivityScreen() {
                 Total volume this week
               </Text>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {totalVolumeThisWeek.toLocaleString()}
+                {totalVolumeThisWeek.toLocaleString()} {units}
               </Text>
             </View>
           </View>
