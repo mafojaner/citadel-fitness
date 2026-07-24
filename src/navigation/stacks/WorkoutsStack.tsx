@@ -5,12 +5,13 @@ import { DayDetailScreen } from '../../screens/Workouts/DayDetailScreen';
 import { ExerciseCatalogueScreen } from '../../screens/Workouts/ExerciseCatalogueScreen';
 import { WorkoutsScreen } from '../../screens/Workouts/WorkoutsScreen';
 import { useTheme } from '../../theme/useTheme';
+import type { Category } from '../../types/models';
 import { stackScreenOptions } from '../screenOptions';
 
 export type WorkoutsStackParamList = {
   Workouts: undefined;
   AddWorkout: undefined;
-  ExerciseCatalogue: undefined;
+  ExerciseCatalogue: { initialCategory?: Category } | undefined;
   DayDetail: { date: string };
 };
 

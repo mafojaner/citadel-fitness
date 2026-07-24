@@ -4,12 +4,13 @@ import { HomeScreen } from '../../screens/Home/HomeScreen';
 import { AddWorkoutScreen } from '../../screens/Workouts/AddWorkoutScreen';
 import { ExerciseCatalogueScreen } from '../../screens/Workouts/ExerciseCatalogueScreen';
 import { useTheme } from '../../theme/useTheme';
+import type { Category } from '../../types/models';
 import { stackScreenOptions } from '../screenOptions';
 
 export type HomeStackParamList = {
   Home: undefined;
   AddWorkout: undefined;
-  ExerciseCatalogue: undefined;
+  ExerciseCatalogue: { initialCategory?: Category } | undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();

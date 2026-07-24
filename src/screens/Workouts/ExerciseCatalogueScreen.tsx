@@ -1,38 +1,27 @@
-import { useNavigation } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
-const CATEGORIES: { label: string; value: Category | 'all' }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Chest', value: 'chest' },
-  { label: 'Back', value: 'back' },
-  { label: 'Legs', value: 'legs' },
-  { label: 'Cardio', value: 'cardio' },
-];
-
-const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyphMap>> = {
-  chest: 'barbell-outline',
-  back: 'body-outline',
-  legs: 'walk-outline',
-  cardio: 'heart-outline',
-};
-const DEFAULT_CATEGORY_ICON: keyof typeof Ionicons.glyphMap = 'fitness-outline';
-
 export function ExerciseCatalogueScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
+  const route = useRoute<RouteProp<WorkoutsStackParamList, 'ExerciseCatalogue'>>();
   const { exercises, loading, error } = useExercises();
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
+  const [activeCategory, setActiveCategory] = useState<Category | 'all'>(
+    route.params?.initialCategory ?? 'all'
+  );
   const [query, setQuery] = useState('');
 
   const isSearching = query.trim().length > 0;
@@ -43,7 +32,7 @@ export function ExerciseCatalogueScreen() {
     for (const e of exercises) {
       counts.set(e.category, (counts.get(e.category) ?? 0) + 1);
     }
-    return CATEGORIES.filter((c) => c.value !== 'all').map((c) => ({
+    return CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => ({
       ...c,
       count: counts.get(c.value as Category) ?? 0,
     }));
@@ -80,7 +69,7 @@ export function ExerciseCatalogueScreen() {
       />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {CATEGORIES.map((c) => {
+        {CATEGORY_FILTERS.map((c) => {
           const active = c.value === activeCategory;
           return (
             <Pressable
