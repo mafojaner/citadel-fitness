@@ -90,18 +90,32 @@ export async function saveWorkout(
 ): Promise<void> {
   if (exercises.length === 0) return;
 
-  const { data: workout, error: workoutError } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('workouts')
-    .insert({ user_id: userId, date })
     .select('id')
-    .single();
+    .eq('user_id', userId)
+    .eq('date', date)
+    .maybeSingle();
 
-  if (workoutError) throw workoutError;
+  if (existingError) throw existingError;
+
+  let workoutId = existing?.id;
+
+  if (!workoutId) {
+    const { data: workout, error: workoutError } = await supabase
+      .from('workouts')
+      .insert({ user_id: userId, date })
+      .select('id')
+      .single();
+
+    if (workoutError) throw workoutError;
+    workoutId = workout.id;
+  }
 
   const { data: loggedRows, error: loggedError } = await supabase
     .from('logged_exercises')
     .insert(
-      exercises.map((e) => ({ workout_id: workout.id, exercise_id: e.exerciseId }))
+      exercises.map((e) => ({ workout_id: workoutId, exercise_id: e.exerciseId }))
     )
     .select('id, exercise_id')
     .order('id');
