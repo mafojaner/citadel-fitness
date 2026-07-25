@@ -31,6 +31,8 @@ export function ProfileIconButton() {
             height: SIZE,
             borderRadius: SIZE / 2,
             backgroundColor: colors.surface,
+            borderWidth: 1.5,
+            borderColor: 'rgba(255, 90, 54, 0.55)',
           }}
         />
       ) : (
