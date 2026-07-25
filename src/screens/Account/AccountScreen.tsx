@@ -65,6 +65,15 @@ export function AccountScreen() {
         </Card>
       </Pressable>
 
+      <Pressable onPress={() => navigation.navigate('ChangePassword')}>
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="lock-closed" colors={gradients.pulse} size={36} />
+            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Change password</Text>
+          </View>
+        </Card>
+      </Pressable>
+
       <Pressable
         onPress={() => signOut()}
         style={({ pressed }) => ({

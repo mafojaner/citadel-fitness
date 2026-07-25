@@ -3,6 +3,7 @@
     "name": "Citadel Fitness",
     "slug": "citadel-fitness",
     "version": "1.0.0",
+    "scheme": "citadelfitness",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",

@@ -1,26 +1,34 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
-import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
 
-export function SignInScreen() {
+interface ResetPasswordScreenProps {
+  onDone: () => void;
+}
+
+export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
   const { colors, spacing, radius, typography } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+  const canSubmit = password.length >= 6 && password === confirmPassword;
+
   const onSubmit = async () => {
+    if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) setError(signInError.message);
+    const { error: updateError } = await supabase.auth.updateUser({ password });
     setSubmitting(false);
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    onDone();
   };
 
   return (
@@ -33,28 +41,13 @@ export function SignInScreen() {
         gap: spacing.md,
       }}
     >
-      <Text style={[typography.title, { color: colors.textPrimary }]}>Citadel Fitness</Text>
-      <Text style={[typography.body, { color: colors.textSecondary }]}>Sign in to continue</Text>
+      <Text style={[typography.title, { color: colors.textPrimary }]}>Set a new password</Text>
+      <Text style={[typography.body, { color: colors.textSecondary }]}>
+        Choose a new password for your account.
+      </Text>
 
       <TextInput
-        placeholder="Email"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
-
-      <TextInput
-        placeholder="Password"
+        placeholder="New password"
         placeholderTextColor={colors.textMuted}
         secureTextEntry
         value={password}
@@ -69,23 +62,31 @@ export function SignInScreen() {
         }}
       />
 
-      {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
-
-      <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={{ color: colors.primary, textAlign: 'right' }}>Forgot password?</Text>
-      </Pressable>
-
-      <GradientButton
-        label={submitting ? 'Signing in...' : 'Sign in'}
-        loading={submitting}
-        onPress={onSubmit}
+      <TextInput
+        placeholder="Confirm new password"
+        placeholderTextColor={colors.textMuted}
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: mismatch ? colors.danger : colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
       />
 
-      <Pressable onPress={() => navigation.navigate('SignUp')}>
-        <Text style={{ color: colors.primary, textAlign: 'center' }}>
-          Don't have an account? Sign up
-        </Text>
-      </Pressable>
+      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don't match</Text> : null}
+      {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+
+      <GradientButton
+        label={submitting ? 'Saving...' : 'Save new password'}
+        loading={submitting}
+        disabled={!canSubmit}
+        onPress={onSubmit}
+      />
     </View>
   );
 }

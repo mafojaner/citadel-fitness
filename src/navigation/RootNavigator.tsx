@@ -1,7 +1,9 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
+import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
@@ -22,6 +24,7 @@ export function RootNavigator() {
   const isInitializing = useAuthStore((s) => s.isInitializing);
   const loadProfile = useProfileStore((s) => s.load);
   const resetProfile = useProfileStore((s) => s.reset);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (session?.user.id) {
@@ -30,6 +33,23 @@ export function RootNavigator() {
       resetProfile();
     }
   }, [session?.user.id, loadProfile, resetProfile]);
+
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (passwordRecovery) {
+    return (
+      <NavigationContainer>
+        <ResetPasswordScreen onDone={() => setPasswordRecovery(false)} />
+      </NavigationContainer>
+    );
+  }
 
   if (isInitializing) {
     return (
