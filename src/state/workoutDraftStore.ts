@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { WorkoutDetailExercise } from '../lib/workouts';
 import type { Exercise, LoggedExercise, SetEntry } from '../types/models';
 
 interface WorkoutDraftState {
@@ -10,6 +11,7 @@ interface WorkoutDraftState {
   updateSet: (loggedExerciseId: string, setId: string, patch: Partial<SetEntry>) => void;
   removeSet: (loggedExerciseId: string, setId: string) => void;
   reset: (date?: string) => void;
+  loadFromExisting: (date: string, exercises: WorkoutDetailExercise[]) => void;
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10);
@@ -77,4 +79,21 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>((set) => ({
 
   reset: (date) =>
     set({ date: date ?? new Date().toISOString().slice(0, 10), exercises: [] }),
+
+  loadFromExisting: (date, exercises) =>
+    set({
+      date,
+      exercises: exercises.map((e) => ({
+        id: e.id,
+        exerciseId: e.exerciseId,
+        sets: e.sets.map((s) => ({
+          id: s.id,
+          setNumber: s.setNumber,
+          reps: s.reps,
+          weight: s.weight,
+          durationMinutes: s.durationMinutes,
+          distance: s.distance,
+        })),
+      })),
+    }),
 }));

@@ -130,6 +130,13 @@ export async function saveWorkout(
 
     if (workoutError) throw workoutError;
     workoutId = workout.id;
+  } else {
+    const { error: clearError } = await supabase
+      .from('logged_exercises')
+      .delete()
+      .eq('workout_id', workoutId);
+
+    if (clearError) throw clearError;
   }
 
   const { data: loggedRows, error: loggedError } = await supabase
@@ -166,4 +173,9 @@ export async function saveWorkout(
     const { error: setsError } = await supabase.from('set_entries').insert(setRows);
     if (setsError) throw setsError;
   }
+}
+
+export async function deleteWorkoutForDate(userId: string, date: string): Promise<void> {
+  const { error } = await supabase.from('workouts').delete().eq('user_id', userId).eq('date', date);
+  if (error) throw error;
 }

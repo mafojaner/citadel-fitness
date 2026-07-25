@@ -1,8 +1,10 @@
 import type { RouteProp } from '@react-navigation/native';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -12,9 +14,11 @@ import {
   DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
-import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
+import { confirmAsync } from '../../lib/confirm';
+import { deleteWorkoutForDate, fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -22,11 +26,14 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
 export function DayDetailScreen() {
   const { colors, spacing, typography } = useTheme();
   const route = useRoute<RouteProp<WorkoutsStackParamList, 'DayDetail'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const userId = useAuthStore((s) => s.session?.user.id);
   const units = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
+  const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
   const [exercises, setExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,6 +44,28 @@ export function DayDetailScreen() {
         .finally(() => setLoading(false));
     }, [userId, route.params.date])
   );
+
+  const onEdit = () => {
+    if (!exercises || exercises.length === 0) return;
+    loadDraftFromExisting(route.params.date, exercises);
+    navigation.navigate('AddWorkout');
+  };
+
+  const onDelete = async () => {
+    if (!userId) return;
+    const confirmed = await confirmAsync(
+      'Delete workout?',
+      `This removes everything logged for ${route.params.date}. This can't be undone.`
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    try {
+      await deleteWorkoutForDate(userId, route.params.date);
+      setExercises([]);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const grouped = useMemo(() => {
     const map = new Map<Category, WorkoutDetailExercise[]>();
@@ -123,6 +152,23 @@ export function DayDetailScreen() {
           </Card>
         ))
       )}
+
+      {!loading && exercises && exercises.length > 0 ? (
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <GradientButton label="Edit" variant="outline" onPress={onEdit} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <GradientButton
+              label={deleting ? 'Deleting...' : 'Delete'}
+              variant="outline"
+              colors={['#E24444', '#B91C1C']}
+              loading={deleting}
+              onPress={onDelete}
+            />
+          </View>
+        </View>
+      ) : null}
     </ScreenContainer>
   );
 }

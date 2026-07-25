@@ -61,6 +61,7 @@ export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const resetDraft = useWorkoutDraftStore((s) => s.reset);
+  const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
   const userId = useAuthStore((s) => s.session?.user.id);
   const today = new Date().toISOString().slice(0, 10);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -100,7 +101,11 @@ export function WorkoutsScreen() {
   );
 
   const onEnterWorkout = () => {
-    resetDraft(selectedDate);
+    if (dayExercises && dayExercises.length > 0) {
+      loadDraftFromExisting(selectedDate, dayExercises);
+    } else {
+      resetDraft(selectedDate);
+    }
     navigation.navigate('AddWorkout');
   };
 
@@ -165,7 +170,10 @@ export function WorkoutsScreen() {
 
   return (
     <ScreenContainer>
-      <GradientButton label="Enter a workout" onPress={onEnterWorkout} />
+      <GradientButton
+        label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
+        onPress={onEnterWorkout}
+      />
 
       <View
         style={{
