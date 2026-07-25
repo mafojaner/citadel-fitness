@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
@@ -19,7 +21,7 @@ import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
-import type { Category } from '../../types/models';
+import type { Category, Exercise } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
 
 function formatShortDate(dateString: string, today: string) {
@@ -34,10 +36,12 @@ export function HomeScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const resetDraft = useWorkoutDraftStore((s) => s.reset);
+  const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
   const { currentStreakDays, workoutsThisWeek, loading: activityLoading } = useActivityAnalytics('all');
   const { workouts: recentWorkouts, loading: recentLoading } = useRecentWorkouts(3);
   const today = new Date().toISOString().slice(0, 10);
+  const [query, setQuery] = useState('');
 
   const categoryCounts = new Map<Category, number>();
   for (const e of exercises) {
@@ -49,11 +53,24 @@ export function HomeScreen() {
     navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
   };
 
+  const isSearching = query.trim().length > 0;
+  const searchResults = isSearching
+    ? exercises.filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()))
+    : [];
+
+  const onSelectSearchResult = (exercise: Exercise) => {
+    resetDraft();
+    addExercise(exercise);
+    navigation.navigate('AddWorkout');
+  };
+
   return (
     <ScreenContainer>
       <TextInput
-        placeholder="Search exercises, workouts..."
+        placeholder="Search exercises..."
         placeholderTextColor={colors.textMuted}
+        value={query}
+        onChangeText={setQuery}
         style={{
           backgroundColor: colors.surface,
           borderColor: colors.border,
@@ -64,6 +81,41 @@ export function HomeScreen() {
         }}
       />
 
+      {isSearching ? (
+        searchResults.length === 0 ? (
+          <Card>
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              No exercises match "{query.trim()}".
+            </Text>
+          </Card>
+        ) : (
+          <View style={{ gap: spacing.sm }}>
+            {searchResults.map((exercise) => (
+              <Pressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)}>
+                <Card>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                    <GradientIconBadge
+                      icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
+                      colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
+                      size={36}
+                    />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                        {exercise.name}
+                      </Text>
+                      <Text style={[typography.caption, { color: colors.textMuted }]}>
+                        {exercise.category}
+                      </Text>
+                    </View>
+                    <Ionicons name="add-circle" size={26} color={colors.primary} />
+                  </View>
+                </Card>
+              </Pressable>
+            ))}
+          </View>
+        )
+      ) : (
+        <>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
@@ -160,6 +212,8 @@ export function HomeScreen() {
           navigation.navigate('AddWorkout');
         }}
       />
+        </>
+      )}
     </ScreenContainer>
   );
 }

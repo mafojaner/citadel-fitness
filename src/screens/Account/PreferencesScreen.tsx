@@ -4,6 +4,11 @@ import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
+import {
+  cancelDailyReminder,
+  requestNotificationPermission,
+  scheduleDailyReminder,
+} from '../../lib/notifications';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore, type ThemeMode } from '../../state/themeStore';
@@ -59,6 +64,16 @@ export function PreferencesScreen() {
     if (!userId) return;
     setError(null);
     try {
+      if (notifications) {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+          setError('Notification permission was denied. Enable it in your device settings to get reminders.');
+          return;
+        }
+        await scheduleDailyReminder();
+      } else {
+        await cancelDailyReminder();
+      }
       await savePreferences(userId, { notifications });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save preference');
