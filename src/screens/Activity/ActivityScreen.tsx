@@ -1,13 +1,14 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { StatTile } from '../../components/StatTile';
 import { CATEGORY_FILTERS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 
 export function ActivityScreen() {
@@ -91,43 +92,33 @@ export function ActivityScreen() {
         ) : null}
       </Card>
 
-      <Card title="Analytics Summary">
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : (
-          <View style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <Ionicons name="flame-outline" size={20} color={colors.primary} />
-              <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-                Current streak
-              </Text>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {currentStreakDays} day{currentStreakDays === 1 ? '' : 's'}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-              <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-                This week
-              </Text>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {workoutsThisWeek} workout{workoutsThisWeek === 1 ? '' : 's'}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <Ionicons name={isMinutes ? 'time-outline' : 'barbell-outline'} size={20} color={colors.primary} />
-              <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-                {isMinutes ? 'Total cardio time this week' : 'Total volume this week'}
-              </Text>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {isMinutes
-                  ? `${totalVolumeThisWeek.toLocaleString()} min`
-                  : `${totalVolumeThisWeek.toLocaleString()} ${units}`}
-              </Text>
-            </View>
-          </View>
-        )}
-      </Card>
+      <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
+      {loading ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          <StatTile
+            icon="flame"
+            gradientColors={gradients.flame}
+            value={`${currentStreakDays}`}
+            label={`Day${currentStreakDays === 1 ? '' : 's'} streak`}
+          />
+          <StatTile
+            icon="calendar"
+            gradientColors={gradients.calendar}
+            value={`${workoutsThisWeek}`}
+            label={`Workout${workoutsThisWeek === 1 ? '' : 's'} this week`}
+          />
+          <StatTile
+            icon={isMinutes ? 'time' : 'barbell'}
+            gradientColors={isMinutes ? gradients.pulse : gradients.volume}
+            value={
+              isMinutes ? `${totalVolumeThisWeek.toLocaleString()}` : totalVolumeThisWeek.toLocaleString()
+            }
+            label={isMinutes ? 'Cardio min this week' : `${units} volume this week`}
+          />
+        </View>
+      )}
     </ScreenContainer>
   );
 }

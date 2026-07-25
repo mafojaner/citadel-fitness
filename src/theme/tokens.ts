@@ -71,3 +71,12 @@ export const darkColors = {
 };
 
 export type ThemeColors = typeof lightColors;
+
+// Accent gradients for stat badges — deliberately vivid against the
+// otherwise neutral card surfaces, shared across light and dark theme.
+export const gradients = {
+  flame: ['#FF5A36', '#FF3D81'],
+  calendar: ['#FF5A36', '#8B5CF6'],
+  pulse: ['#FF5A36', '#22D3EE'],
+  volume: ['#FF8A36', '#FFC837'],
+} as const;

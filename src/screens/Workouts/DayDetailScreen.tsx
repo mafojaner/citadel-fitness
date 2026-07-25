@@ -3,12 +3,24 @@ import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { StatChip } from '../../components/StatChip';
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
 import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
+import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
+
+const CATEGORY_GRADIENTS: Partial<Record<Category, readonly [string, string, ...string[]]>> = {
+  chest: gradients.volume,
+  back: gradients.calendar,
+  legs: gradients.flame,
+  cardio: gradients.pulse,
+};
 
 export function DayDetailScreen() {
   const { colors, spacing, typography } = useTheme();
@@ -30,7 +42,7 @@ export function DayDetailScreen() {
   );
 
   const grouped = useMemo(() => {
-    const map = new Map<string, WorkoutDetailExercise[]>();
+    const map = new Map<Category, WorkoutDetailExercise[]>();
     for (const e of exercises ?? []) {
       const list = map.get(e.category) ?? [];
       list.push(e);
@@ -51,20 +63,63 @@ export function DayDetailScreen() {
         </Card>
       ) : (
         grouped.map(([category, categoryExercises]) => (
-          <Card key={category} title={category[0].toUpperCase() + category.slice(1)}>
+          <Card key={category}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <GradientIconBadge
+                icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+                colors={CATEGORY_GRADIENTS[category] ?? gradients.volume}
+                size={40}
+              />
+              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                {category[0].toUpperCase() + category.slice(1)}
+              </Text>
+            </View>
+
             {categoryExercises.map((exercise) => (
-              <View key={exercise.id} style={{ gap: spacing.xs }}>
-                <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+              <View
+                key={exercise.id}
+                style={{
+                  gap: spacing.sm,
+                  paddingTop: spacing.sm,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.border,
+                }}
+              >
+                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
                   {exercise.exerciseName}
                 </Text>
                 {exercise.sets.map((set) => (
-                  <Text key={set.id} style={[typography.caption, { color: colors.textSecondary }]}>
-                    {exercise.type === 'cardio'
-                      ? `Set ${set.setNumber} — ${set.durationMinutes} min${
-                          set.distance ? ` · ${set.distance} ${distanceUnit}` : ''
-                        }`
-                      : `Set ${set.setNumber} — ${set.reps} reps @ ${set.weight} ${units}`}
-                  </Text>
+                  <View key={set.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: colors.primaryMuted,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 11 }}>
+                        {set.setNumber}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, flex: 1 }}>
+                      {exercise.type === 'cardio' ? (
+                        <>
+                          <StatChip icon="time-outline" value={`${set.durationMinutes} min`} />
+                          {set.distance ? (
+                            <StatChip icon="navigate-outline" value={`${set.distance} ${distanceUnit}`} />
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <StatChip icon="repeat-outline" value={`${set.reps} reps`} />
+                          <StatChip icon="barbell-outline" value={`${set.weight} ${units}`} />
+                        </>
+                      )}
+                    </View>
+                  </View>
                 ))}
               </View>
             ))}
