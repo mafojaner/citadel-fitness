@@ -1,15 +1,24 @@
 import { supabase } from './supabase';
+import type { ArticleCategory } from '../types/models';
 
 export interface ProfilePreferences {
   units: 'lb' | 'kg';
   distanceUnit: 'mi' | 'km';
   notifications: boolean;
+  /** Which newsletter categories may raise a notification when published. */
+  articleNotifications: Record<ArticleCategory, boolean>;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
   units: 'lb',
   distanceUnit: 'mi',
   notifications: true,
+  articleNotifications: {
+    splits: true,
+    exercise: true,
+    nutrition: true,
+    recovery: true,
+  },
 };
 
 export interface RawProfile {

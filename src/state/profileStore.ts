@@ -35,7 +35,16 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({
         name: profile.name,
         avatarUrl: profile.avatarUrl,
-        preferences: { ...DEFAULT_PREFERENCES, ...profile.preferences },
+        preferences: {
+          ...DEFAULT_PREFERENCES,
+          ...profile.preferences,
+          // Nested record needs its own merge, otherwise a profile saved
+          // before a category existed would drop that category's default.
+          articleNotifications: {
+            ...DEFAULT_PREFERENCES.articleNotifications,
+            ...(profile.preferences?.articleNotifications ?? {}),
+          },
+        },
         loaded: true,
       });
     } finally {

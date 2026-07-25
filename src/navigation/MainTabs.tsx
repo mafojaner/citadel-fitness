@@ -4,18 +4,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import { ActivityStack } from './stacks/ActivityStack';
 import { HomeStack } from './stacks/HomeStack';
+import { NewsletterStack } from './stacks/NewsletterStack';
 import { WorkoutsStack } from './stacks/WorkoutsStack';
 
 export type MainTabsParamList = {
   Home: undefined;
   Workouts: undefined;
   Activity: undefined;
+  Learn: undefined;
 };
 
 const TAB_ICONS: Record<keyof MainTabsParamList, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Workouts: 'barbell',
   Activity: 'stats-chart',
+  Learn: 'book',
 };
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -46,6 +49,7 @@ export function MainTabs() {
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Workouts" component={WorkoutsStack} />
       <Tab.Screen name="Activity" component={ActivityStack} />
+      <Tab.Screen name="Learn" component={NewsletterStack} />
     </Tab.Navigator>
   );
 }

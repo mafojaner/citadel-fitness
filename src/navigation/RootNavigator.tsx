@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
+import { useArticleNotifications } from '../hooks/useArticleNotifications';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
@@ -25,6 +26,11 @@ export function RootNavigator() {
   const loadProfile = useProfileStore((s) => s.load);
   const resetProfile = useProfileStore((s) => s.reset);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const profileLoaded = useProfileStore((s) => s.loaded);
+
+  // Only once a session exists and preferences have loaded, so the check
+  // respects the user's actual category toggles rather than the defaults.
+  useArticleNotifications(Boolean(session) && profileLoaded);
 
   useEffect(() => {
     if (session?.user.id) {

@@ -36,3 +36,15 @@ export interface UserProfile {
   name: string;
   preferences: Record<string, unknown>;
 }
+
+export type ArticleCategory = 'splits' | 'exercise' | 'nutrition' | 'recovery';
+
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  body: string;
+  category: ArticleCategory;
+  readMinutes: number;
+  publishedAt: string;
+}

@@ -5,6 +5,11 @@ import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import {
+  ARTICLE_CATEGORY_GRADIENTS,
+  ARTICLE_CATEGORY_ICONS,
+  ARTICLE_CATEGORY_LABELS,
+} from '../../constants/articles';
+import {
   cancelDailyReminder,
   requestNotificationPermission,
   scheduleDailyReminder,
@@ -12,6 +17,7 @@ import {
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore, type ThemeMode } from '../../state/themeStore';
+import type { ArticleCategory } from '../../types/models';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
@@ -57,6 +63,18 @@ export function PreferencesScreen() {
       await savePreferences(userId, { distanceUnit });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save distance unit');
+    }
+  };
+
+  const onToggleArticleCategory = async (category: ArticleCategory, value: boolean) => {
+    if (!userId) return;
+    setError(null);
+    try {
+      await savePreferences(userId, {
+        articleNotifications: { ...preferences.articleNotifications, [category]: value },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save preference');
     }
   };
 
@@ -123,6 +141,42 @@ export function PreferencesScreen() {
             thumbColor={colors.surface}
           />
         </View>
+      </Card>
+
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <GradientIconBadge icon="book" colors={gradients.calendar} size={32} />
+          <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+            Newsletter alerts
+          </Text>
+        </View>
+        <Text style={[typography.caption, { color: colors.textMuted }]}>
+          {preferences.notifications
+            ? 'Which categories should notify you when something new is published.'
+            : 'Turn on workout reminders above to enable newsletter alerts.'}
+        </Text>
+        {(Object.keys(ARTICLE_CATEGORY_LABELS) as ArticleCategory[]).map((category) => (
+          <View
+            key={category}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}
+          >
+            <GradientIconBadge
+              icon={ARTICLE_CATEGORY_ICONS[category]}
+              colors={ARTICLE_CATEGORY_GRADIENTS[category]}
+              size={28}
+            />
+            <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
+              {ARTICLE_CATEGORY_LABELS[category]}
+            </Text>
+            <Switch
+              value={preferences.notifications && preferences.articleNotifications[category]}
+              disabled={!preferences.notifications}
+              onValueChange={(value) => onToggleArticleCategory(category, value)}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.surface}
+            />
+          </View>
+        ))}
       </Card>
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
