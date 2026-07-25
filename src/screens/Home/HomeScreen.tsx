@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -38,8 +39,17 @@ export function HomeScreen() {
   const resetDraft = useWorkoutDraftStore((s) => s.reset);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
-  const { currentStreakDays, workoutsThisWeek, loading: activityLoading } = useActivityAnalytics('all');
-  const { workouts: recentWorkouts, loading: recentLoading } = useRecentWorkouts(3);
+  const {
+    currentStreakDays,
+    workoutsThisWeek,
+    loading: activityLoading,
+    error: activityError,
+  } = useActivityAnalytics('all');
+  const {
+    workouts: recentWorkouts,
+    loading: recentLoading,
+    error: recentError,
+  } = useRecentWorkouts(3);
   const today = new Date().toISOString().slice(0, 10);
   const [query, setQuery] = useState('');
 
@@ -123,6 +133,10 @@ export function HomeScreen() {
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
             {activityLoading ? (
               <ActivityIndicator color={colors.primary} />
+            ) : activityError ? (
+              <Text style={[typography.caption, { color: colors.danger }]}>
+                Couldn't load your activity.
+              </Text>
             ) : currentStreakDays === 0 && workoutsThisWeek === 0 ? (
               <Text style={[typography.caption, { color: colors.textSecondary }]}>
                 Log your first workout to start a streak.
@@ -145,6 +159,8 @@ export function HomeScreen() {
 
         {recentLoading ? (
           <ActivityIndicator color={colors.primary} />
+        ) : recentError ? (
+          <ErrorNotice message={recentError} />
         ) : recentWorkouts.length === 0 ? (
           <Text style={[typography.body, { color: colors.textSecondary }]}>
             No workouts logged yet. Tap "Log workout" to get started.

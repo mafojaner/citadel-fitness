@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Text, View, type LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
+import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatTile } from '../../components/StatTile';
@@ -15,8 +16,15 @@ import type { Category } from '../../types/models';
 export function ActivityScreen() {
   const { colors, spacing, typography } = useTheme();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
-  const { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, metric, loading } =
-    useActivityAnalytics(activeCategory);
+  const {
+    progressSeries,
+    workoutsThisWeek,
+    currentStreakDays,
+    totalVolumeThisWeek,
+    metric,
+    loading,
+    error,
+  } = useActivityAnalytics(activeCategory);
   const units = useProfileStore((s) => s.preferences.units);
   const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
@@ -42,13 +50,15 @@ export function ActivityScreen() {
         ))}
       </View>
 
+      {error ? <ErrorNotice message={error} /> : null}
+
       <Card title="Progress">
         <Text style={[typography.caption, { color: colors.textMuted }]}>
           {isMinutes
             ? 'Daily cardio minutes logged over the last 7 days'
             : `Daily volume — reps × weight (${units}) logged over the last 7 days`}
         </Text>
-        {loading ? (
+        {error ? null : loading ? (
           <ActivityIndicator color={colors.primary} />
         ) : (
           <View onLayout={onChartAreaLayout} style={{ width: '100%' }}>
@@ -81,7 +91,7 @@ export function ActivityScreen() {
             ) : null}
           </View>
         )}
-        {!loading && !hasVolume ? (
+        {!loading && !error && !hasVolume ? (
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             {isMinutes
               ? 'Log a cardio session to start charting your minutes.'
@@ -91,7 +101,7 @@ export function ActivityScreen() {
       </Card>
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
-      {loading ? (
+      {error ? null : loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>

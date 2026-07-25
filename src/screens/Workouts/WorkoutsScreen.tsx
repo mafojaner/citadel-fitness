@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import { Card } from '../../components/Card';
+import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientNumberBadge } from '../../components/GradientNumberBadge';
@@ -68,13 +69,18 @@ export function WorkoutsScreen() {
   const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [dayExercises, setDayExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadMonth = useCallback(
     async (dateString: string) => {
       if (!userId) return;
       const { start, end } = monthRange(dateString);
-      const dates = await fetchWorkoutDatesInRange(userId, start, end);
-      setMarkedDates(dates);
+      try {
+        const dates = await fetchWorkoutDatesInRange(userId, start, end);
+        setMarkedDates(dates);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load your workout calendar');
+      }
     },
     [userId]
   );
@@ -83,9 +89,13 @@ export function WorkoutsScreen() {
     async (dateString: string) => {
       if (!userId) return;
       setLoading(true);
+      setError(null);
       try {
         const result = await fetchWorkoutForDate(userId, dateString);
         setDayExercises(result);
+      } catch (err) {
+        setDayExercises(null);
+        setError(err instanceof Error ? err.message : 'Failed to load this day');
       } finally {
         setLoading(false);
       }
@@ -93,12 +103,12 @@ export function WorkoutsScreen() {
     [userId]
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadMonth(selectedDate);
-      loadDay(selectedDate);
-    }, [loadMonth, loadDay, selectedDate])
-  );
+  const reload = useCallback(() => {
+    loadMonth(selectedDate);
+    loadDay(selectedDate);
+  }, [loadMonth, loadDay, selectedDate]);
+
+  useFocusEffect(reload);
 
   const onEnterWorkout = () => {
     if (dayExercises && dayExercises.length > 0) {
@@ -175,6 +185,8 @@ export function WorkoutsScreen() {
         onPress={onEnterWorkout}
       />
 
+      {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
+
       <View
         style={{
           shadowColor: gradients.calendar[1],
@@ -226,6 +238,10 @@ export function WorkoutsScreen() {
 
           {loading ? (
             <ActivityIndicator color={colors.primary} />
+          ) : error ? (
+            <Text style={[typography.body, { color: colors.danger }]}>
+              Couldn't load this day.
+            </Text>
           ) : summary.length === 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />

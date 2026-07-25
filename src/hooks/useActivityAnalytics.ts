@@ -16,15 +16,23 @@ export function useActivityAnalytics(category: Category | 'all') {
   const userId = useAuthStore((s) => s.session?.user.id);
   const [data, setData] = useState<ActivityAnalytics>(EMPTY);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       if (!userId) return;
       let cancelled = false;
       setLoading(true);
+      setError(null);
       fetchActivityAnalytics(userId, category)
         .then((result) => {
           if (!cancelled) setData(result);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setData(EMPTY);
+            setError(err instanceof Error ? err.message : 'Failed to load activity data');
+          }
         })
         .finally(() => {
           if (!cancelled) setLoading(false);
@@ -35,5 +43,5 @@ export function useActivityAnalytics(category: Category | 'all') {
     }, [userId, category])
   );
 
-  return { ...data, loading };
+  return { ...data, loading, error };
 }

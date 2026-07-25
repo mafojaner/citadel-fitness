@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -34,16 +35,22 @@ export function DayDetailScreen() {
   const [exercises, setExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!userId) return;
-      setLoading(true);
-      fetchWorkoutForDate(userId, route.params.date)
-        .then(setExercises)
-        .finally(() => setLoading(false));
-    }, [userId, route.params.date])
-  );
+  const load = useCallback(() => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    fetchWorkoutForDate(userId, route.params.date)
+      .then(setExercises)
+      .catch((err) => {
+        setExercises(null);
+        setError(err instanceof Error ? err.message : 'Failed to load this workout');
+      })
+      .finally(() => setLoading(false));
+  }, [userId, route.params.date]);
+
+  useFocusEffect(load);
 
   const onEdit = () => {
     if (!exercises || exercises.length === 0) return;
@@ -59,9 +66,12 @@ export function DayDetailScreen() {
     );
     if (!confirmed) return;
     setDeleting(true);
+    setError(null);
     try {
       await deleteWorkoutForDate(userId, route.params.date);
       setExercises([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete this workout');
     } finally {
       setDeleting(false);
     }
@@ -81,6 +91,8 @@ export function DayDetailScreen() {
     <ScreenContainer>
       {loading ? (
         <ActivityIndicator color={colors.primary} />
+      ) : error ? (
+        <ErrorNotice message={error} onRetry={load} />
       ) : !exercises || exercises.length === 0 ? (
         <Card title={route.params.date}>
           <Text style={[typography.body, { color: colors.textSecondary }]}>
