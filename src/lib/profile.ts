@@ -2,10 +2,15 @@ import { supabase } from './supabase';
 
 export interface ProfilePreferences {
   units: 'lb' | 'kg';
+  distanceUnit: 'mi' | 'km';
   notifications: boolean;
 }
 
-export const DEFAULT_PREFERENCES: ProfilePreferences = { units: 'lb', notifications: true };
+export const DEFAULT_PREFERENCES: ProfilePreferences = {
+  units: 'lb',
+  distanceUnit: 'mi',
+  notifications: true,
+};
 
 export interface RawProfile {
   name: string;

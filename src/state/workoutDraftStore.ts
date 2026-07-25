@@ -25,7 +25,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>((set) => ({
         {
           id: makeId(),
           exerciseId: exercise.id,
-          sets: [{ id: makeId(), setNumber: 1, reps: 0, weight: 0 }],
+          sets: [{ id: makeId(), setNumber: 1, reps: 0, weight: 0, durationMinutes: 0, distance: 0 }],
         },
       ],
     })),
@@ -43,7 +43,14 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>((set) => ({
               ...e,
               sets: [
                 ...e.sets,
-                { id: makeId(), setNumber: e.sets.length + 1, reps: 0, weight: 0 },
+                {
+                  id: makeId(),
+                  setNumber: e.sets.length + 1,
+                  reps: 0,
+                  weight: 0,
+                  durationMinutes: 0,
+                  distance: 0,
+                },
               ],
             }
           : e

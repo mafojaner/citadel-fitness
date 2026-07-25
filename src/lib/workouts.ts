@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
-import type { Category, Exercise, LoggedExercise } from '../types/models';
+import type { Category, Exercise, ExerciseType, LoggedExercise } from '../types/models';
 
 export async function fetchExercises(): Promise<Exercise[]> {
   const { data, error } = await supabase
     .from('exercises')
-    .select('id, name, category')
+    .select('id, name, category, type')
     .order('category')
     .order('name');
 
@@ -33,12 +33,14 @@ interface DbSetEntry {
   set_number: number;
   reps: number;
   weight: number;
+  duration_minutes: number | null;
+  distance: number | null;
 }
 
 interface DbLoggedExercise {
   id: string;
   exercise_id: string;
-  exercises: { name: string; category: Category } | null;
+  exercises: { name: string; category: Category; type: ExerciseType } | null;
   set_entries: DbSetEntry[];
 }
 
@@ -47,7 +49,15 @@ export interface WorkoutDetailExercise {
   exerciseId: string;
   exerciseName: string;
   category: Category;
-  sets: { id: string; setNumber: number; reps: number; weight: number }[];
+  type: ExerciseType;
+  sets: {
+    id: string;
+    setNumber: number;
+    reps: number;
+    weight: number;
+    durationMinutes: number;
+    distance: number;
+  }[];
 }
 
 export async function fetchWorkoutForDate(
@@ -66,7 +76,9 @@ export async function fetchWorkoutForDate(
 
   const { data, error } = await supabase
     .from('logged_exercises')
-    .select('id, exercise_id, exercises ( name, category ), set_entries ( id, set_number, reps, weight )')
+    .select(
+      'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, duration_minutes, distance )'
+    )
     .eq('workout_id', workout.id)
     .returns<DbLoggedExercise[]>();
 
@@ -77,9 +89,17 @@ export async function fetchWorkoutForDate(
     exerciseId: row.exercise_id,
     exerciseName: row.exercises?.name ?? 'Unknown exercise',
     category: row.exercises?.category ?? 'chest',
+    type: row.exercises?.type ?? 'strength',
     sets: [...row.set_entries]
       .sort((a, b) => a.set_number - b.set_number)
-      .map((s) => ({ id: s.id, setNumber: s.set_number, reps: s.reps, weight: s.weight })),
+      .map((s) => ({
+        id: s.id,
+        setNumber: s.set_number,
+        reps: s.reps,
+        weight: s.weight,
+        durationMinutes: s.duration_minutes ?? 0,
+        distance: s.distance ?? 0,
+      })),
   }));
 }
 
@@ -137,6 +157,8 @@ export async function saveWorkout(
       set_number: s.setNumber,
       reps: s.reps,
       weight: s.weight,
+      duration_minutes: s.durationMinutes || null,
+      distance: s.distance || null,
     }));
   });
 

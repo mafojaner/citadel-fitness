@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Category } from '../types/models';
+import type { Category, ExerciseType } from '../types/models';
 
 function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -16,10 +16,11 @@ function addDays(dateString: string, delta: number): string {
 interface DbSetEntry {
   reps: number;
   weight: number;
+  duration_minutes: number | null;
 }
 
 interface DbLoggedExercise {
-  exercises: { category: Category } | null;
+  exercises: { category: Category; type: ExerciseType } | null;
   set_entries: DbSetEntry[];
 }
 
@@ -38,6 +39,8 @@ export interface ActivityAnalytics {
   workoutsThisWeek: number;
   currentStreakDays: number;
   totalVolumeThisWeek: number;
+  /** 'minutes' when scoped to the cardio category, 'volume' (reps x weight) otherwise. */
+  metric: 'volume' | 'minutes';
 }
 
 const HISTORY_DAYS = 60;
@@ -48,10 +51,13 @@ export async function fetchActivityAnalytics(
 ): Promise<ActivityAnalytics> {
   const today = toISODate(new Date());
   const startDate = addDays(today, -HISTORY_DAYS);
+  const metric: 'volume' | 'minutes' = category === 'cardio' ? 'minutes' : 'volume';
 
   const { data, error } = await supabase
     .from('workouts')
-    .select('date, logged_exercises ( exercises ( category ), set_entries ( reps, weight ) )')
+    .select(
+      'date, logged_exercises ( exercises ( category, type ), set_entries ( reps, weight, duration_minutes ) )'
+    )
     .eq('user_id', userId)
     .gte('date', startDate)
     .lte('date', today)
@@ -68,8 +74,11 @@ export async function fetchActivityAnalytics(
       if (!matches) continue;
 
       activeDates.add(workout.date);
-      const volume = logged.set_entries.reduce((sum, s) => sum + s.reps * s.weight, 0);
-      volumeByDate.set(workout.date, (volumeByDate.get(workout.date) ?? 0) + volume);
+      const value =
+        metric === 'minutes'
+          ? logged.set_entries.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0)
+          : logged.set_entries.reduce((sum, s) => sum + s.reps * s.weight, 0);
+      volumeByDate.set(workout.date, (volumeByDate.get(workout.date) ?? 0) + value);
     }
   }
 
@@ -93,7 +102,7 @@ export async function fetchActivityAnalytics(
     cursor = addDays(cursor, -1);
   }
 
-  return { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek };
+  return { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, metric };
 }
 
 export interface RecentWorkoutSummary {

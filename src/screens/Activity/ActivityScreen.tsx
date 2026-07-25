@@ -13,9 +13,10 @@ import type { Category } from '../../types/models';
 export function ActivityScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
-  const { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, loading } =
+  const { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, metric, loading } =
     useActivityAnalytics(activeCategory);
   const units = useProfileStore((s) => s.preferences.units);
+  const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
 
   const chartData = progressSeries.map((p) => ({ value: p.value, label: p.label }));
@@ -53,7 +54,9 @@ export function ActivityScreen() {
 
       <Card title="Progress">
         <Text style={[typography.caption, { color: colors.textMuted }]}>
-          Daily volume — reps × weight ({units}) logged over the last 7 days
+          {isMinutes
+            ? 'Daily cardio minutes logged over the last 7 days'
+            : `Daily volume — reps × weight (${units}) logged over the last 7 days`}
         </Text>
         {loading ? (
           <ActivityIndicator color={colors.primary} />
@@ -81,7 +84,9 @@ export function ActivityScreen() {
         )}
         {!loading && !hasVolume ? (
           <Text style={[typography.caption, { color: colors.textMuted }]}>
-            Log a workout to start charting your volume.
+            {isMinutes
+              ? 'Log a cardio session to start charting your minutes.'
+              : 'Log a workout to start charting your volume.'}
           </Text>
         ) : null}
       </Card>
@@ -110,12 +115,14 @@ export function ActivityScreen() {
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <Ionicons name="barbell-outline" size={20} color={colors.primary} />
+              <Ionicons name={isMinutes ? 'time-outline' : 'barbell-outline'} size={20} color={colors.primary} />
               <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-                Total volume this week
+                {isMinutes ? 'Total cardio time this week' : 'Total volume this week'}
               </Text>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {totalVolumeThisWeek.toLocaleString()} {units}
+                {isMinutes
+                  ? `${totalVolumeThisWeek.toLocaleString()} min`
+                  : `${totalVolumeThisWeek.toLocaleString()} ${units}`}
               </Text>
             </View>
           </View>

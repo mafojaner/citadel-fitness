@@ -9,6 +9,7 @@ const EMPTY: ActivityAnalytics = {
   workoutsThisWeek: 0,
   currentStreakDays: 0,
   totalVolumeThisWeek: 0,
+  metric: 'volume',
 };
 
 export function useActivityAnalytics(category: Category | 'all') {

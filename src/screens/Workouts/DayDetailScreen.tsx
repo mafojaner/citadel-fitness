@@ -15,6 +15,7 @@ export function DayDetailScreen() {
   const route = useRoute<RouteProp<WorkoutsStackParamList, 'DayDetail'>>();
   const userId = useAuthStore((s) => s.session?.user.id);
   const units = useProfileStore((s) => s.preferences.units);
+  const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [exercises, setExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +59,11 @@ export function DayDetailScreen() {
                 </Text>
                 {exercise.sets.map((set) => (
                   <Text key={set.id} style={[typography.caption, { color: colors.textSecondary }]}>
-                    Set {set.setNumber} — {set.reps} reps @ {set.weight} {units}
+                    {exercise.type === 'cardio'
+                      ? `Set ${set.setNumber} — ${set.durationMinutes} min${
+                          set.distance ? ` · ${set.distance} ${distanceUnit}` : ''
+                        }`
+                      : `Set ${set.setNumber} — ${set.reps} reps @ ${set.weight} ${units}`}
                   </Text>
                 ))}
               </View>

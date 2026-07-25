@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pressable, Switch, Text, View } from 'react-native';
+import { Switch, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore, type ThemeMode } from '../../state/themeStore';
@@ -18,8 +19,13 @@ const UNIT_OPTIONS: { label: string; value: 'lb' | 'kg' }[] = [
   { label: 'kg', value: 'kg' },
 ];
 
+const DISTANCE_UNIT_OPTIONS: { label: string; value: 'mi' | 'km' }[] = [
+  { label: 'mi', value: 'mi' },
+  { label: 'km', value: 'km' },
+];
+
 export function PreferencesScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, typography } = useTheme();
   const mode = useThemeStore((s) => s.mode);
   const setMode = useThemeStore((s) => s.setMode);
   const userId = useAuthStore((s) => s.session?.user.id);
@@ -37,6 +43,16 @@ export function PreferencesScreen() {
     }
   };
 
+  const onChangeDistanceUnit = async (distanceUnit: 'mi' | 'km') => {
+    if (!userId || distanceUnit === preferences.distanceUnit) return;
+    setError(null);
+    try {
+      await savePreferences(userId, { distanceUnit });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save distance unit');
+    }
+  };
+
   const onToggleNotifications = async (notifications: boolean) => {
     if (!userId) return;
     setError(null);
@@ -50,67 +66,19 @@ export function PreferencesScreen() {
   return (
     <ScreenContainer>
       <Card title="Theme">
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {THEME_OPTIONS.map((option) => {
-            const active = option.value === mode;
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => setMode(option.value)}
-                style={{
-                  flex: 1,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radius.pill,
-                  alignItems: 'center',
-                  backgroundColor: active ? colors.primary : colors.background,
-                  borderWidth: 1,
-                  borderColor: active ? colors.primary : colors.border,
-                }}
-              >
-                <Text
-                  style={[
-                    typography.body,
-                    { color: active ? colors.surface : colors.textSecondary, fontWeight: active ? '700' : '400' },
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedControl options={THEME_OPTIONS} value={mode} onChange={setMode} />
       </Card>
 
       <Card title="Weight units">
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {UNIT_OPTIONS.map((option) => {
-            const active = option.value === preferences.units;
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => onChangeUnits(option.value)}
-                style={{
-                  flex: 1,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radius.pill,
-                  alignItems: 'center',
-                  backgroundColor: active ? colors.primary : colors.background,
-                  borderWidth: 1,
-                  borderColor: active ? colors.primary : colors.border,
-                }}
-              >
-                <Text
-                  style={[
-                    typography.body,
-                    { color: active ? colors.surface : colors.textSecondary, fontWeight: active ? '700' : '400' },
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedControl options={UNIT_OPTIONS} value={preferences.units} onChange={onChangeUnits} />
+      </Card>
+
+      <Card title="Distance units">
+        <SegmentedControl
+          options={DISTANCE_UNIT_OPTIONS}
+          value={preferences.distanceUnit}
+          onChange={onChangeDistanceUnit}
+        />
       </Card>
 
       <Card title="Notifications">

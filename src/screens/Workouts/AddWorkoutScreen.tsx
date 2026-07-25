@@ -28,13 +28,15 @@ export function AddWorkoutScreen() {
   const reset = useWorkoutDraftStore((s) => s.reset);
   const userId = useAuthStore((s) => s.session?.user.id);
   const units = useProfileStore((s) => s.preferences.units);
+  const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const finishedRef = useRef(false);
 
-  const nameFor = (exerciseId: string) =>
-    catalogue.find((e) => e.id === exerciseId)?.name ?? 'Exercise';
+  const catalogueFor = (exerciseId: string) => catalogue.find((e) => e.id === exerciseId);
+  const nameFor = (exerciseId: string) => catalogueFor(exerciseId)?.name ?? 'Exercise';
+  const isCardio = (exerciseId: string) => catalogueFor(exerciseId)?.type === 'cardio';
 
   const finishAndLeave = () => {
     if (finishedRef.current) return;
@@ -71,72 +73,131 @@ export function AddWorkoutScreen() {
           </Text>
         </Card>
       ) : (
-        draftExercises.map((exercise) => (
-          <Card key={exercise.id}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {nameFor(exercise.exerciseId)}
-              </Text>
-              <Pressable onPress={() => removeExercise(exercise.id)} hitSlop={8}>
-                <Ionicons name="trash-outline" size={20} color={colors.danger} />
-              </Pressable>
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <Text style={[typography.caption, { color: colors.textMuted, width: 48 }]}>Set</Text>
-              <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
-              <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
-                Weight ({units})
-              </Text>
-              <View style={{ width: 24 }} />
-            </View>
-
-            {exercise.sets.map((set) => (
-              <View key={set.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Text style={{ color: colors.textSecondary, width: 48 }}>{set.setNumber}</Text>
-                <TextInput
-                  keyboardType="numeric"
-                  value={set.reps === 0 ? '' : String(set.reps)}
-                  onChangeText={(t) => updateSet(exercise.id, set.id, { reps: Number(t) || 0 })}
-                  placeholder="0"
-                  placeholderTextColor={colors.textMuted}
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                    borderRadius: radius.sm,
-                    padding: spacing.sm,
-                    color: colors.textPrimary,
-                  }}
-                />
-                <TextInput
-                  keyboardType="numeric"
-                  value={set.weight === 0 ? '' : String(set.weight)}
-                  onChangeText={(t) => updateSet(exercise.id, set.id, { weight: Number(t) || 0 })}
-                  placeholder="0"
-                  placeholderTextColor={colors.textMuted}
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    borderColor: colors.border,
-                    borderWidth: 1,
-                    borderRadius: radius.sm,
-                    padding: spacing.sm,
-                    color: colors.textPrimary,
-                  }}
-                />
-                <Pressable onPress={() => removeSet(exercise.id, set.id)} hitSlop={8}>
-                  <Ionicons name="close-circle" size={22} color={colors.textMuted} />
+        draftExercises.map((exercise) => {
+          const cardio = isCardio(exercise.exerciseId);
+          return (
+            <Card key={exercise.id}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                  {nameFor(exercise.exerciseId)}
+                </Text>
+                <Pressable onPress={() => removeExercise(exercise.id)} hitSlop={8}>
+                  <Ionicons name="trash-outline" size={20} color={colors.danger} />
                 </Pressable>
               </View>
-            ))}
 
-            <Pressable onPress={() => addSet(exercise.id)}>
-              <Text style={{ color: colors.primary, fontWeight: '600' }}>+ Add set</Text>
-            </Pressable>
-          </Card>
-        ))
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                <Text style={[typography.caption, { color: colors.textMuted, width: 48 }]}>Set</Text>
+                {cardio ? (
+                  <>
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+                      Duration (min)
+                    </Text>
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+                      Distance ({distanceUnit})
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+                      Weight ({units})
+                    </Text>
+                  </>
+                )}
+                <View style={{ width: 24 }} />
+              </View>
+
+              {exercise.sets.map((set) => (
+                <View key={set.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Text style={{ color: colors.textSecondary, width: 48 }}>{set.setNumber}</Text>
+                  {cardio ? (
+                    <>
+                      <TextInput
+                        keyboardType="numeric"
+                        value={set.durationMinutes === 0 ? '' : String(set.durationMinutes)}
+                        onChangeText={(t) =>
+                          updateSet(exercise.id, set.id, { durationMinutes: Number(t) || 0 })
+                        }
+                        placeholder="0"
+                        placeholderTextColor={colors.textMuted}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: radius.sm,
+                          padding: spacing.sm,
+                          color: colors.textPrimary,
+                        }}
+                      />
+                      <TextInput
+                        keyboardType="numeric"
+                        value={set.distance === 0 ? '' : String(set.distance)}
+                        onChangeText={(t) => updateSet(exercise.id, set.id, { distance: Number(t) || 0 })}
+                        placeholder="0"
+                        placeholderTextColor={colors.textMuted}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: radius.sm,
+                          padding: spacing.sm,
+                          color: colors.textPrimary,
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <TextInput
+                        keyboardType="numeric"
+                        value={set.reps === 0 ? '' : String(set.reps)}
+                        onChangeText={(t) => updateSet(exercise.id, set.id, { reps: Number(t) || 0 })}
+                        placeholder="0"
+                        placeholderTextColor={colors.textMuted}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: radius.sm,
+                          padding: spacing.sm,
+                          color: colors.textPrimary,
+                        }}
+                      />
+                      <TextInput
+                        keyboardType="numeric"
+                        value={set.weight === 0 ? '' : String(set.weight)}
+                        onChangeText={(t) => updateSet(exercise.id, set.id, { weight: Number(t) || 0 })}
+                        placeholder="0"
+                        placeholderTextColor={colors.textMuted}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          borderColor: colors.border,
+                          borderWidth: 1,
+                          borderRadius: radius.sm,
+                          padding: spacing.sm,
+                          color: colors.textPrimary,
+                        }}
+                      />
+                    </>
+                  )}
+                  <Pressable onPress={() => removeSet(exercise.id, set.id)} hitSlop={8}>
+                    <Ionicons name="close-circle" size={22} color={colors.textMuted} />
+                  </Pressable>
+                </View>
+              ))}
+
+              <Pressable onPress={() => addSet(exercise.id)}>
+                <Text style={{ color: colors.primary, fontWeight: '600' }}>
+                  + Add {cardio ? 'session' : 'set'}
+                </Text>
+              </Pressable>
+            </Card>
+          );
+        })
       )}
 
       <Pressable

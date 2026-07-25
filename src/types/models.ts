@@ -1,9 +1,12 @@
 export type Category = 'chest' | 'back' | 'legs' | 'cardio' | string;
 
+export type ExerciseType = 'strength' | 'cardio';
+
 export interface Exercise {
   id: string;
   name: string;
   category: Category;
+  type: ExerciseType;
 }
 
 export interface SetEntry {
@@ -11,6 +14,8 @@ export interface SetEntry {
   setNumber: number;
   reps: number;
   weight: number;
+  durationMinutes: number;
+  distance: number;
 }
 
 export interface LoggedExercise {
