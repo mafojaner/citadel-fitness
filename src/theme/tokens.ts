@@ -80,4 +80,5 @@ export const gradients = {
   pulse: ['#FF5A36', '#22D3EE'],
   volume: ['#FF8A36', '#FFC837'],
   identity: ['#8B5CF6', '#FF5A36'],
+  action: ['#FF8A65', '#FF5A36'],
 } as const;

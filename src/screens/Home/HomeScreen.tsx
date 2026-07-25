@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -152,23 +153,13 @@ export function HomeScreen() {
         })}
       </View>
 
-      <Pressable
+      <GradientButton
+        label="Log workout"
         onPress={() => {
           resetDraft();
           navigation.navigate('AddWorkout');
         }}
-        style={({ pressed }) => ({
-          backgroundColor: colors.primary,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <View>
-          <Text style={{ color: colors.surface, fontWeight: '700' }}>Log workout</Text>
-        </View>
-      </Pressable>
+      />
     </ScreenContainer>
   );
 }

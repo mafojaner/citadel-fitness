@@ -1,7 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
@@ -87,21 +88,7 @@ export function ProfileSettingsScreen() {
         />
         {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
         {saved ? <Text style={{ color: colors.success }}>Saved</Text> : null}
-        <Pressable
-          onPress={onSave}
-          disabled={!dirty || saving}
-          style={({ pressed }) => ({
-            backgroundColor: colors.primary,
-            borderRadius: radius.md,
-            padding: spacing.md,
-            alignItems: 'center',
-            opacity: pressed || saving || !dirty ? 0.6 : 1,
-          })}
-        >
-          <Text style={{ color: colors.surface, fontWeight: '700' }}>
-            {saving ? 'Saving...' : 'Save'}
-          </Text>
-        </Pressable>
+        <GradientButton label={saving ? 'Saving...' : 'Save'} loading={saving} disabled={!dirty} onPress={onSave} />
       </Card>
     </ScreenContainer>
   );

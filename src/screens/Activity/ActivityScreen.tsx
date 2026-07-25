@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
+import { ActivityIndicator, Text, View, type LayoutChangeEvent } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
+import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatTile } from '../../components/StatTile';
 import { CATEGORY_FILTERS } from '../../constants/categories';
@@ -12,7 +13,7 @@ import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 
 export function ActivityScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const { progressSeries, workoutsThisWeek, currentStreakDays, totalVolumeThisWeek, metric, loading } =
     useActivityAnalytics(activeCategory);
@@ -22,6 +23,7 @@ export function ActivityScreen() {
 
   const chartData = progressSeries.map((p) => ({ value: p.value, label: p.label }));
   const hasVolume = progressSeries.some((p) => p.value > 0);
+  const chartAccent = isMinutes ? gradients.pulse[1] : colors.primary;
 
   const onChartAreaLayout = (e: LayoutChangeEvent) => {
     setChartWidth(e.nativeEvent.layout.width);
@@ -30,27 +32,14 @@ export function ActivityScreen() {
   return (
     <ScreenContainer>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {CATEGORY_FILTERS.map((c) => {
-          const active = c.value === activeCategory;
-          return (
-            <Pressable
-              key={c.value}
-              onPress={() => setActiveCategory(c.value)}
-              style={{
-                paddingVertical: spacing.xs,
-                paddingHorizontal: spacing.md,
-                borderRadius: radius.pill,
-                backgroundColor: active ? colors.primary : colors.surface,
-                borderWidth: 1,
-                borderColor: active ? colors.primary : colors.border,
-              }}
-            >
-              <Text style={{ color: active ? colors.surface : colors.textSecondary }}>
-                {c.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {CATEGORY_FILTERS.map((c) => (
+          <GradientPill
+            key={c.value}
+            label={c.label}
+            active={c.value === activeCategory}
+            onPress={() => setActiveCategory(c.value)}
+          />
+        ))}
       </View>
 
       <Card title="Progress">
@@ -70,9 +59,18 @@ export function ActivityScreen() {
                 initialSpacing={10}
                 endSpacing={10}
                 spacing={(chartWidth - 55 - 20) / Math.max(chartData.length - 1, 1)}
-                color={colors.primary}
-                thickness={2}
+                color={chartAccent}
+                thickness={3}
+                curved
+                isAnimated
+                animationDuration={700}
+                areaChart
+                startFillColor={chartAccent}
+                endFillColor={chartAccent}
+                startOpacity={0.32}
+                endOpacity={0.02}
                 hideDataPoints={!hasVolume}
+                dataPointsColor={chartAccent}
                 yAxisColor={colors.border}
                 xAxisColor={colors.border}
                 yAxisTextStyle={{ color: colors.textMuted, fontSize: 10 }}

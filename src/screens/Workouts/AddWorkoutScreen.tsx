@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Card } from '../../components/Card';
+import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import {
@@ -232,37 +233,20 @@ export function AddWorkoutScreen() {
         })
       )}
 
-      <Pressable
+      <GradientButton
+        label="+ Add exercise"
+        variant="outline"
         onPress={() => navigation.navigate('ExerciseCatalogue')}
-        style={({ pressed }) => ({
-          borderColor: colors.primary,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <Text style={{ color: colors.primary, fontWeight: '700' }}>+ Add exercise</Text>
-      </Pressable>
+      />
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 
-      <Pressable
+      <GradientButton
+        label={saving ? 'Saving...' : 'Confirm'}
+        loading={saving}
+        disabled={draftExercises.length === 0}
         onPress={onConfirm}
-        disabled={saving || draftExercises.length === 0}
-        style={({ pressed }) => ({
-          backgroundColor: colors.primary,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed || saving || draftExercises.length === 0 ? 0.6 : 1,
-        })}
-      >
-        <Text style={{ color: colors.surface, fontWeight: '700' }}>
-          {saving ? 'Saving...' : 'Confirm'}
-        </Text>
-      </Pressable>
+      />
     </ScreenContainer>
 
     {showConfetti ? (

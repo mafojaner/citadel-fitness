@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import {
   CATEGORY_FILTERS,
@@ -80,27 +81,14 @@ export function ExerciseCatalogueScreen() {
       />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {CATEGORY_FILTERS.map((c) => {
-          const active = c.value === activeCategory;
-          return (
-            <Pressable
-              key={c.value}
-              onPress={() => setActiveCategory(c.value)}
-              style={{
-                paddingVertical: spacing.xs,
-                paddingHorizontal: spacing.md,
-                borderRadius: radius.pill,
-                backgroundColor: active ? colors.primary : colors.surface,
-                borderWidth: 1,
-                borderColor: active ? colors.primary : colors.border,
-              }}
-            >
-              <Text style={{ color: active ? colors.surface : colors.textSecondary }}>
-                {c.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {CATEGORY_FILTERS.map((c) => (
+          <GradientPill
+            key={c.value}
+            label={c.label}
+            active={c.value === activeCategory}
+            onPress={() => setActiveCategory(c.value)}
+          />
+        ))}
       </View>
 
       {loading ? (

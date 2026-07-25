@@ -1,5 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
+import { GradientPill } from './GradientPill';
 
 interface SegmentedControlProps<T extends string> {
   options: { label: string; value: T }[];
@@ -12,37 +13,19 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
 }: SegmentedControlProps<T>) {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { spacing } = useTheme();
 
   return (
     <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-      {options.map((option) => {
-        const active = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            style={{
-              flex: 1,
-              paddingVertical: spacing.sm,
-              borderRadius: radius.pill,
-              alignItems: 'center',
-              backgroundColor: active ? colors.primary : colors.background,
-              borderWidth: 1,
-              borderColor: active ? colors.primary : colors.border,
-            }}
-          >
-            <Text
-              style={[
-                typography.body,
-                { color: active ? colors.surface : colors.textSecondary, fontWeight: active ? '700' : '400' },
-              ]}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+      {options.map((option) => (
+        <GradientPill
+          key={option.value}
+          label={option.label}
+          active={option.value === value}
+          onPress={() => onChange(option.value)}
+          flex
+        />
+      ))}
     </View>
   );
 }
