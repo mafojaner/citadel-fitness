@@ -1,16 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable } from 'react-native';
+import { Image, Pressable } from 'react-native';
+import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
 
 type RootStackParamList = {
   Account: undefined;
 };
 
+const SIZE = 30;
+
 export function ProfileIconButton() {
   const { colors, spacing } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const avatarUrl = useProfileStore((s) => s.avatarUrl);
 
   return (
     <Pressable
@@ -19,7 +23,19 @@ export function ProfileIconButton() {
       onPress={() => navigation.navigate('Account')}
       style={({ pressed }) => ({ marginRight: spacing.md, opacity: pressed ? 0.6 : 1 })}
     >
-      <Ionicons name="person-circle" size={30} color={colors.navText} />
+      {avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={{
+            width: SIZE,
+            height: SIZE,
+            borderRadius: SIZE / 2,
+            backgroundColor: colors.surface,
+          }}
+        />
+      ) : (
+        <Ionicons name="person-circle" size={SIZE} color={colors.navText} />
+      )}
     </Pressable>
   );
 }
