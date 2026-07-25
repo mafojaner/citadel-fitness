@@ -36,7 +36,7 @@ function formatShortDate(dateString: string, today: string) {
 export function HomeScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
-  const resetDraft = useWorkoutDraftStore((s) => s.reset);
+  const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
   const {
@@ -59,7 +59,7 @@ export function HomeScreen() {
   }
 
   const onSelectCategory = (category: Category) => {
-    resetDraft();
+    ensureDraftFor(today);
     navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
   };
 
@@ -69,7 +69,9 @@ export function HomeScreen() {
     : [];
 
   const onSelectSearchResult = (exercise: Exercise) => {
-    resetDraft();
+    // Append to today's draft rather than replacing it, so picking a second
+    // exercise (or returning to an unsaved workout) doesn't wipe the first.
+    ensureDraftFor(today);
     addExercise(exercise);
     navigation.navigate('AddWorkout');
   };
@@ -224,7 +226,7 @@ export function HomeScreen() {
       <GradientButton
         label="Log workout"
         onPress={() => {
-          resetDraft();
+          ensureDraftFor(today);
           navigation.navigate('AddWorkout');
         }}
       />

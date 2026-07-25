@@ -61,7 +61,7 @@ interface CalendarDayProps {
 export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
-  const resetDraft = useWorkoutDraftStore((s) => s.reset);
+  const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
   const userId = useAuthStore((s) => s.session?.user.id);
   const today = new Date().toISOString().slice(0, 10);
@@ -114,7 +114,8 @@ export function WorkoutsScreen() {
     if (dayExercises && dayExercises.length > 0) {
       loadDraftFromExisting(selectedDate, dayExercises);
     } else {
-      resetDraft(selectedDate);
+      // Keeps an unsaved draft for this day rather than discarding it.
+      ensureDraftFor(selectedDate);
     }
     navigation.navigate('AddWorkout');
   };

@@ -103,76 +103,37 @@ export async function fetchWorkoutForDate(
   }));
 }
 
-export async function saveWorkout(
-  userId: string,
-  date: string,
-  exercises: LoggedExercise[]
-): Promise<void> {
+/**
+ * Saves (or replaces) the workout for a given day.
+ *
+ * Delegates to the `save_workout` Postgres function so the delete-then-insert
+ * happens inside a single transaction. Doing it as separate client requests
+ * meant a failure partway through could destroy the existing day's data
+ * without writing the replacement. See
+ * supabase/migration_005_transactional_save_workout.sql.
+ *
+ * The user id is resolved from auth.uid() server-side, so it isn't passed in.
+ */
+export async function saveWorkout(date: string, exercises: LoggedExercise[]): Promise<void> {
   if (exercises.length === 0) return;
 
-  const { data: existing, error: existingError } = await supabase
-    .from('workouts')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .maybeSingle();
-
-  if (existingError) throw existingError;
-
-  let workoutId = existing?.id;
-
-  if (!workoutId) {
-    const { data: workout, error: workoutError } = await supabase
-      .from('workouts')
-      .insert({ user_id: userId, date })
-      .select('id')
-      .single();
-
-    if (workoutError) throw workoutError;
-    workoutId = workout.id;
-  } else {
-    const { error: clearError } = await supabase
-      .from('logged_exercises')
-      .delete()
-      .eq('workout_id', workoutId);
-
-    if (clearError) throw clearError;
-  }
-
-  const { data: loggedRows, error: loggedError } = await supabase
-    .from('logged_exercises')
-    .insert(
-      exercises.map((e) => ({ workout_id: workoutId, exercise_id: e.exerciseId }))
-    )
-    .select('id, exercise_id')
-    .order('id');
-
-  if (loggedError) throw loggedError;
-
-  const loggedByExerciseId = new Map<string, string[]>();
-  for (const row of loggedRows) {
-    const ids = loggedByExerciseId.get(row.exercise_id) ?? [];
-    ids.push(row.id);
-    loggedByExerciseId.set(row.exercise_id, ids);
-  }
-
-  const setRows = exercises.flatMap((e) => {
-    const loggedId = loggedByExerciseId.get(e.exerciseId)?.shift();
-    if (!loggedId) return [];
-    return e.sets.map((s) => ({
-      logged_exercise_id: loggedId,
+  const payload = exercises.map((e) => ({
+    exercise_id: e.exerciseId,
+    sets: e.sets.map((s) => ({
       set_number: s.setNumber,
       reps: s.reps,
       weight: s.weight,
       duration_minutes: s.durationMinutes || null,
       distance: s.distance || null,
-    }));
+    })),
+  }));
+
+  const { error } = await supabase.rpc('save_workout', {
+    p_date: date,
+    p_exercises: payload,
   });
 
-  if (setRows.length > 0) {
-    const { error: setsError } = await supabase.from('set_entries').insert(setRows);
-    if (setsError) throw setsError;
-  }
+  if (error) throw error;
 }
 
 export async function deleteWorkoutForDate(userId: string, date: string): Promise<void> {
