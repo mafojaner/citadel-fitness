@@ -1,10 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 
@@ -21,18 +24,20 @@ export function AccountScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <View
+          <LinearGradient
+            colors={gradients.identity}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
               width: 56,
               height: 56,
               borderRadius: 28,
-              backgroundColor: colors.primaryMuted,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: colors.primary, fontSize: 22, fontWeight: '700' }}>{initial}</Text>
-          </View>
+            <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700' }}>{initial}</Text>
+          </LinearGradient>
           <View>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{displayName}</Text>
             <Text style={[typography.caption, { color: colors.textMuted }]}>
@@ -44,13 +49,19 @@ export function AccountScreen() {
 
       <Pressable onPress={() => navigation.navigate('ProfileSettings')}>
         <Card>
-          <Text style={{ color: colors.textPrimary }}>Profile settings</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="person" colors={gradients.identity} size={36} />
+            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Profile settings</Text>
+          </View>
         </Card>
       </Pressable>
 
       <Pressable onPress={() => navigation.navigate('Preferences')}>
         <Card>
-          <Text style={{ color: colors.textPrimary }}>Preferences</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="options" colors={gradients.calendar} size={36} />
+            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Preferences</Text>
+          </View>
         </Card>
       </Pressable>
 

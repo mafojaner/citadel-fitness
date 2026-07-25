@@ -1,14 +1,22 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
+import { StatChip } from '../../components/StatChip';
+import {
+  CATEGORY_FILTERS,
+  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_ICON,
+} from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useExercises } from '../../hooks/useExercises';
 import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
@@ -57,18 +65,7 @@ export function HomeScreen() {
 
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: colors.primaryMuted,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="flame-outline" size={22} color={colors.primary} />
-          </View>
+          <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
           <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
             {activityLoading ? (
@@ -87,7 +84,12 @@ export function HomeScreen() {
         </View>
       </Card>
 
-      <Card title="Workout Summary">
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
+          <Text style={[typography.subheading, { color: colors.textPrimary }]}>Workout Summary</Text>
+        </View>
+
         {recentLoading ? (
           <ActivityIndicator color={colors.primary} />
         ) : recentWorkouts.length === 0 ? (
@@ -95,21 +97,26 @@ export function HomeScreen() {
             No workouts logged yet. Tap "Log workout" to get started.
           </Text>
         ) : (
-          <View style={{ gap: spacing.sm }}>
+          <View style={{ gap: spacing.sm, paddingTop: spacing.sm }}>
             {recentWorkouts.map((w) => (
               <View
                 key={w.date}
-                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingTop: spacing.sm,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.border,
+                }}
               >
-                <Text style={[typography.body, { color: colors.textPrimary }]}>
+                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
                   {formatShortDate(w.date, today)}
                 </Text>
-                <Text style={[typography.caption, { color: colors.textMuted }]}>
-                  {w.totalExercises} exercise{w.totalExercises === 1 ? '' : 's'}
-                  {w.categories.length > 0
-                    ? ` · ${w.categories.map((c) => c[0].toUpperCase() + c.slice(1)).join(', ')}`
-                    : ''}
-                </Text>
+                <StatChip
+                  icon="barbell-outline"
+                  value={`${w.totalExercises} exercise${w.totalExercises === 1 ? '' : 's'}`}
+                />
               </View>
             ))}
           </View>
@@ -128,10 +135,10 @@ export function HomeScreen() {
             >
               <Card>
                 <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-                  <Ionicons
-                    name={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                    size={32}
-                    color={colors.primary}
+                  <GradientIconBadge
+                    icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+                    colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    size={40}
                   />
                   <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
                   <Text style={[typography.caption, { color: colors.textMuted }]}>

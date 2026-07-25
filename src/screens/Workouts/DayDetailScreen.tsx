@@ -6,21 +6,18 @@ import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
-import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
+import {
+  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_ICON,
+} from '../../constants/categories';
 import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
-
-const CATEGORY_GRADIENTS: Partial<Record<Category, readonly [string, string, ...string[]]>> = {
-  chest: gradients.volume,
-  back: gradients.calendar,
-  legs: gradients.flame,
-  cardio: gradients.pulse,
-};
 
 export function DayDetailScreen() {
   const { colors, spacing, typography } = useTheme();
@@ -67,7 +64,7 @@ export function DayDetailScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <GradientIconBadge
                 icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                colors={CATEGORY_GRADIENTS[category] ?? gradients.volume}
+                colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
                 size={40}
               />
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>

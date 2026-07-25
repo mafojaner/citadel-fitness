@@ -5,11 +5,19 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
+import { StatChip } from '../../components/StatChip';
+import {
+  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_ICON,
+} from '../../constants/categories';
 import { fetchWorkoutForDate, fetchWorkoutDatesInRange, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -149,18 +157,7 @@ export function WorkoutsScreen() {
             <ActivityIndicator color={colors.primary} />
           ) : summary.length === 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: colors.primaryMuted,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="calendar-outline" size={22} color={colors.primary} />
-              </View>
+              <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
               <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
                 <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
                   No workout logged
@@ -174,26 +171,15 @@ export function WorkoutsScreen() {
             <View style={{ gap: spacing.sm }}>
               {summary.map(([category, count]) => (
                 <View key={category} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <Ionicons
-                    name={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                    size={18}
-                    color={colors.primary}
+                  <GradientIconBadge
+                    icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+                    colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    size={28}
                   />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {category[0].toUpperCase() + category.slice(1)}
                   </Text>
-                  <View
-                    style={{
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: radius.pill,
-                      backgroundColor: colors.primaryMuted,
-                    }}
-                  >
-                    <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>
-                      {count} exercise{count === 1 ? '' : 's'}
-                    </Text>
-                  </View>
+                  <StatChip icon="barbell-outline" value={`${count} exercise${count === 1 ? '' : 's'}`} />
                 </View>
               ))}
             </View>

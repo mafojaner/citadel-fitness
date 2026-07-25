@@ -5,8 +5,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { CATEGORY_FILTERS, CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from '../../constants/categories';
+import {
+  CATEGORY_FILTERS,
+  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_ICON,
+} from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
@@ -112,10 +119,10 @@ export function ExerciseCatalogueScreen() {
             >
               <Card>
                 <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-                  <Ionicons
-                    name={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
-                    size={32}
-                    color={colors.primary}
+                  <GradientIconBadge
+                    icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
+                    colors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    size={40}
                   />
                   <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
                   <Text style={[typography.caption, { color: colors.textMuted }]}>
@@ -137,8 +144,13 @@ export function ExerciseCatalogueScreen() {
           {filtered.map((exercise) => (
             <Pressable key={exercise.id} onPress={() => onSelect(exercise)}>
               <Card>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <GradientIconBadge
+                    icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
+                    colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    size={36}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                       {exercise.name}
                     </Text>

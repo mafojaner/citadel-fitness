@@ -1,9 +1,11 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 export function ProfileSettingsScreen() {
@@ -45,18 +47,20 @@ export function ProfileSettingsScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <View
+          <LinearGradient
+            colors={gradients.identity}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
               width: 72,
               height: 72,
               borderRadius: 36,
-              backgroundColor: colors.primaryMuted,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: colors.primary, fontSize: 28, fontWeight: '700' }}>{initial}</Text>
-          </View>
+            <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '700' }}>{initial}</Text>
+          </LinearGradient>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             Avatar upload coming soon
           </Text>

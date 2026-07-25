@@ -5,7 +5,14 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Card } from '../../components/Card';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import {
+  CATEGORY_GRADIENTS,
+  CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_ICON,
+} from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
 import { saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
@@ -78,9 +85,19 @@ export function AddWorkoutScreen() {
           return (
             <Card key={exercise.id}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                  {nameFor(exercise.exerciseId)}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 }}>
+                  <GradientIconBadge
+                    icon={CATEGORY_ICONS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_ICON}
+                    colors={
+                      CATEGORY_GRADIENTS[catalogueFor(exercise.exerciseId)?.category ?? ''] ??
+                      DEFAULT_CATEGORY_GRADIENT
+                    }
+                    size={36}
+                  />
+                  <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
+                    {nameFor(exercise.exerciseId)}
+                  </Text>
+                </View>
                 <Pressable onPress={() => removeExercise(exercise.id)} hitSlop={8}>
                   <Ionicons name="trash-outline" size={20} color={colors.danger} />
                 </Pressable>
@@ -110,7 +127,22 @@ export function AddWorkoutScreen() {
 
               {exercise.sets.map((set) => (
                 <View key={set.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <Text style={{ color: colors.textSecondary, width: 48 }}>{set.setNumber}</Text>
+                  <View style={{ width: 48 }}>
+                    <View
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: 13,
+                        backgroundColor: colors.primaryMuted,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>
+                        {set.setNumber}
+                      </Text>
+                    </View>
+                  </View>
                   {cardio ? (
                     <>
                       <TextInput
