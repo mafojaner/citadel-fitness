@@ -1,9 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { uploadAvatar } from '../../lib/profile';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
@@ -16,11 +19,15 @@ export function ProfileSettingsScreen() {
   const storedName = useProfileStore((s) => s.name);
   const loaded = useProfileStore((s) => s.loaded);
   const saveName = useProfileStore((s) => s.saveName);
+  const avatarUrl = useProfileStore((s) => s.avatarUrl);
+  const setAvatarUrl = useProfileStore((s) => s.setAvatarUrl);
 
   const [name, setName] = useState(storedName);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
     if (loaded) setName(storedName);
@@ -44,27 +51,101 @@ export function ProfileSettingsScreen() {
     }
   };
 
+  const onPickAvatar = async () => {
+    if (!userId) return;
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setAvatarError('Photo library permission is required to change your avatar.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+
+    setUploadingAvatar(true);
+    setAvatarError(null);
+    try {
+      const asset = result.assets[0];
+      const url = await uploadAvatar(userId, asset.uri, asset.mimeType);
+      setAvatarUrl(url);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <ScreenContainer>
       <Card>
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <LinearGradient
-            colors={gradients.identity}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 36,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '700' }}>{initial}</Text>
-          </LinearGradient>
+          <Pressable onPress={onPickAvatar} disabled={uploadingAvatar}>
+            <View style={{ width: 72, height: 72 }}>
+              {avatarUrl ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={{ width: 72, height: 72, borderRadius: 36 }}
+                />
+              ) : (
+                <LinearGradient
+                  colors={gradients.identity}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 36,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '700' }}>{initial}</Text>
+                </LinearGradient>
+              )}
+              {uploadingAvatar ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    width: 72,
+                    height: 72,
+                    borderRadius: 36,
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ActivityIndicator color="#FFFFFF" />
+                </View>
+              ) : (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: -2,
+                    bottom: -2,
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    backgroundColor: colors.primary,
+                    borderWidth: 2,
+                    borderColor: colors.surface,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="camera" size={13} color="#FFFFFF" />
+                </View>
+              )}
+            </View>
+          </Pressable>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
-            Avatar upload coming soon
+            {uploadingAvatar ? 'Uploading...' : 'Tap to change photo'}
           </Text>
+          {avatarError ? <Text style={{ color: colors.danger }}>{avatarError}</Text> : null}
         </View>
       </Card>
 

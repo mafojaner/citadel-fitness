@@ -9,17 +9,20 @@ import {
 
 interface ProfileState {
   name: string;
+  avatarUrl: string | null;
   preferences: ProfilePreferences;
   loaded: boolean;
   loading: boolean;
   load: (userId: string) => Promise<void>;
   saveName: (userId: string, name: string) => Promise<void>;
   savePreferences: (userId: string, patch: Partial<ProfilePreferences>) => Promise<void>;
+  setAvatarUrl: (url: string) => void;
   reset: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   name: '',
+  avatarUrl: null,
   preferences: DEFAULT_PREFERENCES,
   loaded: false,
   loading: false,
@@ -31,6 +34,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const profile = await fetchProfile(userId);
       set({
         name: profile.name,
+        avatarUrl: profile.avatarUrl,
         preferences: { ...DEFAULT_PREFERENCES, ...profile.preferences },
         loaded: true,
       });
@@ -50,5 +54,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     set({ preferences: merged });
   },
 
-  reset: () => set({ name: '', preferences: DEFAULT_PREFERENCES, loaded: false, loading: false }),
+  setAvatarUrl: (url) => set({ avatarUrl: url }),
+
+  reset: () =>
+    set({ name: '', avatarUrl: null, preferences: DEFAULT_PREFERENCES, loaded: false, loading: false }),
 }));

@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -17,6 +17,7 @@ export function AccountScreen() {
   const session = useAuthStore((s) => s.session);
   const signOut = useAuthStore((s) => s.signOut);
   const name = useProfileStore((s) => s.name);
+  const avatarUrl = useProfileStore((s) => s.avatarUrl);
   const displayName = name || session?.user.email || 'Signed in user';
   const initial = displayName[0]?.toUpperCase();
 
@@ -24,20 +25,24 @@ export function AccountScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <LinearGradient
-            colors={gradients.identity}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700' }}>{initial}</Text>
-          </LinearGradient>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56, borderRadius: 28 }} />
+          ) : (
+            <LinearGradient
+              colors={gradients.identity}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700' }}>{initial}</Text>
+            </LinearGradient>
+          )}
           <View>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{displayName}</Text>
             <Text style={[typography.caption, { color: colors.textMuted }]}>
