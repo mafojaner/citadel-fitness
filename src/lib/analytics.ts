@@ -13,6 +13,24 @@ export function addDays(dateString: string, delta: number): string {
   return toISODate(new Date(Date.UTC(year, month - 1, day + delta)));
 }
 
+/**
+ * Today's date in the device's own local timezone — deliberately NOT
+ * toISODate(new Date()), which reads UTC. For anyone not near UTC+0 that's
+ * a different calendar day for part of every day (e.g. 9pm in Los Angeles
+ * is already past midnight UTC), so the app would show "today" as
+ * tomorrow, mis-attribute a just-logged workout to the wrong date, and
+ * throw off streaks and weekly totals. This is the one place "now" should
+ * become a date string; addDays/toISODate stay UTC-based since they do
+ * pure calendar math on a date that's already been resolved.
+ */
+export function todayISO(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function daySpan(startDate: string, endDate: string): number {
   const [sy, sm, sd] = startDate.split('-').map(Number);
   const [ey, em, ed] = endDate.split('-').map(Number);
@@ -103,7 +121,7 @@ export async function fetchActivitySummary(
   userId: string,
   category: Category | 'all'
 ): Promise<ActivitySummary> {
-  const today = toISODate(new Date());
+  const today = todayISO();
   const startDate = addDays(today, -STREAK_LOOKBACK_DAYS);
   const metric = metricForCategory(category);
 

@@ -21,6 +21,7 @@ import {
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useExercises } from '../../hooks/useExercises';
 import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
+import { todayISO } from '../../lib/analytics';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -58,7 +59,7 @@ export function HomeScreen() {
     loading: recentLoading,
     error: recentError,
   } = useRecentWorkouts(3);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const [query, setQuery] = useState('');
 
   const categoryCounts = new Map<Category, number>();

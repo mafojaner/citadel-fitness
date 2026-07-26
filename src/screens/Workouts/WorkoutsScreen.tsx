@@ -17,6 +17,7 @@ import {
   DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
+import { todayISO } from '../../lib/analytics';
 import { fetchWorkoutForDate, fetchWorkoutDatesInRange, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -64,7 +65,7 @@ export function WorkoutsScreen() {
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
   const userId = useAuthStore((s) => s.session?.user.id);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const [selectedDate, setSelectedDate] = useState(today);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [dayExercises, setDayExercises] = useState<WorkoutDetailExercise[] | null>(null);

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { todayISO } from '../lib/analytics';
 import type { WorkoutDetailExercise } from '../lib/workouts';
 import type { Exercise, LoggedExercise, SetEntry } from '../types/models';
 
@@ -28,7 +29,7 @@ const makeId = () => Math.random().toString(36).slice(2, 10);
 export const useWorkoutDraftStore = create<WorkoutDraftState>()(
   persist(
     (set) => ({
-      date: new Date().toISOString().slice(0, 10),
+      date: todayISO(),
       exercises: [],
 
       addExercise: (exercise) =>
@@ -91,7 +92,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
         })),
 
       reset: (date) =>
-        set({ date: date ?? new Date().toISOString().slice(0, 10), exercises: [] }),
+        set({ date: date ?? todayISO(), exercises: [] }),
 
       /**
        * Opens the draft for a day without discarding work in progress.

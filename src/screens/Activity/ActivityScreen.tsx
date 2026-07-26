@@ -19,7 +19,7 @@ import { StatTile } from '../../components/StatTile';
 import { CATEGORY_FILTERS, CATEGORY_GRADIENTS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useProgressSeries } from '../../hooks/useProgressSeries';
-import { addDays, toISODate } from '../../lib/analytics';
+import { addDays, todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import { gradients } from '../../theme/tokens';
@@ -53,7 +53,7 @@ export function ActivityScreen() {
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
   const [optionsOpen, setOptionsOpen] = useState(false);
 
-  const today = toISODate(new Date());
+  const today = todayISO();
   const [customRange, setCustomRange] = useState({ start: addDays(today, -6), end: today });
 
   const { start, end } =
