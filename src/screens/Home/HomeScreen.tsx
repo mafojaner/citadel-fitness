@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
@@ -24,6 +26,12 @@ import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
+import type { MainTabsParamList } from '../../navigation/MainTabs';
+
+type HomeNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<HomeStackParamList>,
+  BottomTabNavigationProp<MainTabsParamList>
+>;
 
 function formatShortDate(dateString: string, today: string) {
   if (dateString === today) return 'Today';
@@ -35,7 +43,7 @@ function formatShortDate(dateString: string, today: string) {
 
 export function HomeScreen() {
   const { colors, spacing, radius, typography } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<HomeNavigationProp>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
@@ -128,71 +136,89 @@ export function HomeScreen() {
         )
       ) : (
         <>
-      <Card>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
-          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-            <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
-            {activityLoading ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : activityError ? (
-              <Text style={[typography.caption, { color: colors.danger }]}>
-                Couldn't load your activity.
-              </Text>
-            ) : currentStreakDays === 0 && workoutsThisWeek === 0 ? (
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                Log your first workout to start a streak.
-              </Text>
-            ) : (
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                {currentStreakDays} day{currentStreakDays === 1 ? '' : 's'} streak · {workoutsThisWeek}{' '}
-                workout{workoutsThisWeek === 1 ? '' : 's'} this week
-              </Text>
-            )}
-          </View>
-        </View>
-      </Card>
-
-      <Card>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
-          <Text style={[typography.subheading, { color: colors.textPrimary }]}>Workout Summary</Text>
-        </View>
-
-        {recentLoading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : recentError ? (
-          <ErrorNotice message={recentError} />
-        ) : recentWorkouts.length === 0 ? (
-          <Text style={[typography.body, { color: colors.textSecondary }]}>
-            No workouts logged yet. Tap "Log workout" to get started.
-          </Text>
-        ) : (
-          <View style={{ gap: spacing.sm, paddingTop: spacing.sm }}>
-            {recentWorkouts.map((w) => (
-              <View
-                key={w.date}
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: spacing.sm,
-                  borderTopWidth: 1,
-                  borderTopColor: colors.border,
-                }}
-              >
-                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
-                  {formatShortDate(w.date, today)}
+      <Pressable
+        onPress={() => navigation.navigate('Activity')}
+        accessibilityRole="button"
+        accessibilityLabel="Open Activity"
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      >
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
+            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+              <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
+              {activityLoading ? (
+                <ActivityIndicator color={colors.primary} />
+              ) : activityError ? (
+                <Text style={[typography.caption, { color: colors.danger }]}>
+                  Couldn't load your activity.
                 </Text>
-                <StatChip
-                  icon="barbell-outline"
-                  value={`${w.totalExercises} exercise${w.totalExercises === 1 ? '' : 's'}`}
-                />
-              </View>
-            ))}
+              ) : currentStreakDays === 0 && workoutsThisWeek === 0 ? (
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                  Log your first workout to start a streak.
+                </Text>
+              ) : (
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                  {currentStreakDays} day{currentStreakDays === 1 ? '' : 's'} streak · {workoutsThisWeek}{' '}
+                  workout{workoutsThisWeek === 1 ? '' : 's'} this week
+                </Text>
+              )}
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </View>
-        )}
-      </Card>
+        </Card>
+      </Pressable>
+
+      <Pressable
+        onPress={() => navigation.navigate('Workouts')}
+        accessibilityRole="button"
+        accessibilityLabel="Open Workouts"
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      >
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
+            <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
+              Workout Summary
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+
+          {recentLoading ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : recentError ? (
+            <ErrorNotice message={recentError} />
+          ) : recentWorkouts.length === 0 ? (
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              No workouts logged yet. Tap "Log workout" to get started.
+            </Text>
+          ) : (
+            <View style={{ gap: spacing.sm, paddingTop: spacing.sm }}>
+              {recentWorkouts.map((w) => (
+                <View
+                  key={w.date}
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: spacing.sm,
+                    borderTopWidth: 1,
+                    borderTopColor: colors.border,
+                  }}
+                >
+                  <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
+                    {formatShortDate(w.date, today)}
+                  </Text>
+                  <StatChip
+                    icon="barbell-outline"
+                    value={`${w.totalExercises} exercise${w.totalExercises === 1 ? '' : 's'}`}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
+        </Card>
+      </Pressable>
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Browse by category</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>

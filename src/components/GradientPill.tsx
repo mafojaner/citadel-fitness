@@ -1,23 +1,36 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, Text } from 'react-native';
 import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface GradientPillProps {
+  /** Always used as the accessibility label, even when `icon` replaces it visually. */
   label: string;
+  /** When set, renders this icon instead of the label text. */
+  icon?: keyof typeof Ionicons.glyphMap;
   active: boolean;
   onPress: () => void;
   colors?: readonly [string, string, ...string[]];
   flex?: boolean;
 }
 
-export function GradientPill({ label, active, onPress, colors: gradientColors = gradients.action, flex }: GradientPillProps) {
+export function GradientPill({
+  label,
+  icon,
+  active,
+  onPress,
+  colors: gradientColors = gradients.action,
+  flex,
+}: GradientPillProps) {
   const { colors, spacing, radius, typography } = useTheme();
 
   if (!active) {
     return (
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
         style={{
           flex: flex ? 1 : undefined,
           paddingVertical: spacing.xs + 2,
@@ -29,13 +42,22 @@ export function GradientPill({ label, active, onPress, colors: gradientColors = 
           alignItems: 'center',
         }}
       >
-        <Text style={[typography.body, { color: colors.textSecondary }]}>{label}</Text>
+        {icon ? (
+          <Ionicons name={icon} size={18} color={colors.textSecondary} />
+        ) : (
+          <Text style={[typography.body, { color: colors.textSecondary }]}>{label}</Text>
+        )}
       </Pressable>
     );
   }
 
   return (
-    <Pressable onPress={onPress} style={{ flex: flex ? 1 : undefined }}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={{ flex: flex ? 1 : undefined }}
+    >
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
@@ -52,7 +74,11 @@ export function GradientPill({ label, active, onPress, colors: gradientColors = 
           elevation: 3,
         }}
       >
-        <Text style={[typography.body, { color: '#FFFFFF', fontWeight: '700' }]}>{label}</Text>
+        {icon ? (
+          <Ionicons name={icon} size={18} color="#FFFFFF" />
+        ) : (
+          <Text style={[typography.body, { color: '#FFFFFF', fontWeight: '700' }]}>{label}</Text>
+        )}
       </LinearGradient>
     </Pressable>
   );

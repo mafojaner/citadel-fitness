@@ -1,24 +1,18 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { fetchActivitySummary, type ActivitySummary } from '../lib/analytics';
+import { fetchProgressSeries, type ProgressSeries } from '../lib/analytics';
 import { useAuthStore } from '../state/authStore';
 import type { Category } from '../types/models';
 
-const EMPTY: ActivitySummary = {
-  workoutsThisWeek: 0,
-  currentStreakDays: 0,
-  totalVolumeThisWeek: 0,
-  metric: 'volume',
-};
+const EMPTY: ProgressSeries = { points: [], bucketing: 'day', metric: 'volume' };
 
 /**
- * Fixed KPIs (streak, this week) — always "up to today", regardless of
- * whatever date range the Activity screen's chart is currently showing.
- * Backs both the Home summary cards and the Activity screen's stat tiles.
+ * The Activity screen's chart data — a user-selectable date range, unlike
+ * useActivityAnalytics's fixed "current streak / this week" KPIs.
  */
-export function useActivityAnalytics(category: Category | 'all') {
+export function useProgressSeries(category: Category | 'all', startDate: string, endDate: string) {
   const userId = useAuthStore((s) => s.session?.user.id);
-  const [data, setData] = useState<ActivitySummary>(EMPTY);
+  const [data, setData] = useState<ProgressSeries>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,14 +22,14 @@ export function useActivityAnalytics(category: Category | 'all') {
       let cancelled = false;
       setLoading(true);
       setError(null);
-      fetchActivitySummary(userId, category)
+      fetchProgressSeries(userId, category, startDate, endDate)
         .then((result) => {
           if (!cancelled) setData(result);
         })
         .catch((err) => {
           if (!cancelled) {
             setData(EMPTY);
-            setError(err instanceof Error ? err.message : 'Failed to load activity data');
+            setError(err instanceof Error ? err.message : 'Failed to load progress data');
           }
         })
         .finally(() => {
@@ -44,7 +38,7 @@ export function useActivityAnalytics(category: Category | 'all') {
       return () => {
         cancelled = true;
       };
-    }, [userId, category])
+    }, [userId, category, startDate, endDate])
   );
 
   return { ...data, loading, error };
