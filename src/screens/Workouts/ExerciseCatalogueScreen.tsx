@@ -153,7 +153,12 @@ export function ExerciseCatalogueScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`About ${exercise.name}`}
                   >
-                    <Ionicons name="information-circle-outline" size={24} color={colors.textMuted} />
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={24}
+                      color={colors.textMuted}
+                      style={{ opacity: 0.55 }}
+                    />
                   </Pressable>
                   <Ionicons name="add-circle" size={26} color={colors.primary} />
                 </View>

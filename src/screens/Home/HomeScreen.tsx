@@ -169,6 +169,9 @@ export function HomeScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </View>
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            Select to view your full activity breakdown
+          </Text>
         </Card>
       </Pressable>
 
@@ -196,32 +199,83 @@ export function HomeScreen() {
               No workouts logged yet. Tap "Log workout" to get started.
             </Text>
           ) : (
-            <View style={{ gap: spacing.sm, paddingTop: spacing.sm }}>
+            <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>
               {recentWorkouts.map((w) => (
                 <View
                   key={w.date}
                   style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    gap: spacing.xs,
                     paddingTop: spacing.sm,
                     borderTopWidth: 1,
                     borderTopColor: colors.border,
                   }}
                 >
-                  <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
-                    {formatShortDate(w.date, today)}
-                  </Text>
-                  <StatChip
-                    icon="barbell-outline"
-                    value={`${w.totalExercises} exercise${w.totalExercises === 1 ? '' : 's'}`}
-                  />
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '700' }]}>
+                      {formatShortDate(w.date, today)}
+                    </Text>
+                    <StatChip
+                      icon="barbell-outline"
+                      value={`${w.totalExercises} exercise${w.totalExercises === 1 ? '' : 's'}`}
+                    />
+                  </View>
+                  {w.categories.length > 0 ? (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+                      {w.categories.map((cat) => (
+                        <View
+                          key={cat}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            backgroundColor: colors.primaryMuted,
+                            borderRadius: radius.pill,
+                            paddingHorizontal: spacing.sm,
+                            paddingVertical: 3,
+                          }}
+                        >
+                          <Ionicons
+                            name={CATEGORY_ICONS[cat] ?? DEFAULT_CATEGORY_ICON}
+                            size={12}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '600',
+                              color: colors.primary,
+                              textTransform: 'capitalize',
+                            }}
+                          >
+                            {cat}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
           )}
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            Select to view your full workout history
+          </Text>
         </Card>
       </Pressable>
+
+      <GradientButton
+        label="Log workout"
+        onPress={() => {
+          ensureDraftFor(today);
+          navigation.navigate('AddWorkout');
+        }}
+      />
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Browse by category</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
@@ -251,14 +305,6 @@ export function HomeScreen() {
           );
         })}
       </View>
-
-      <GradientButton
-        label="Log workout"
-        onPress={() => {
-          ensureDraftFor(today);
-          navigation.navigate('AddWorkout');
-        }}
-      />
         </>
       )}
     </ScreenContainer>
