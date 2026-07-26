@@ -2,10 +2,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { PRIVACY_POLICY_URL } from '../../constants/legal';
 import { deleteAccount } from '../../lib/account';
 import { confirmAsync } from '../../lib/confirm';
 import { useAuthStore } from '../../state/authStore';
@@ -99,6 +100,15 @@ export function AccountScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <GradientIconBadge icon="lock-closed" colors={gradients.pulse} size={36} />
             <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Change password</Text>
+          </View>
+        </Card>
+      </Pressable>
+
+      <Pressable onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <GradientIconBadge icon="shield-checkmark" colors={gradients.identity} size={36} />
+            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Privacy policy</Text>
           </View>
         </Card>
       </Pressable>

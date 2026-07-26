@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
+import { PRIVACY_POLICY_URL } from '../../constants/legal';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
@@ -76,6 +77,14 @@ export function SignUpScreen() {
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
       {info ? <Text style={{ color: colors.success }}>{info}</Text> : null}
+
+      <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center' }}>
+        By creating an account, you agree to our{' '}
+        <Text style={{ color: colors.primary }} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+          Privacy Policy
+        </Text>
+        .
+      </Text>
 
       <GradientButton
         label={submitting ? 'Creating account...' : 'Sign up'}
