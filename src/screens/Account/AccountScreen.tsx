@@ -1,10 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { deleteAccount } from '../../lib/account';
+import { confirmAsync } from '../../lib/confirm';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
@@ -20,6 +23,27 @@ export function AccountScreen() {
   const avatarUrl = useProfileStore((s) => s.avatarUrl);
   const displayName = name || session?.user.email || 'Signed in user';
   const initial = displayName[0]?.toUpperCase();
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const onDeleteAccount = async () => {
+    const confirmed = await confirmAsync(
+      'Delete account?',
+      "This permanently deletes your account, workout history, streaks, and profile — including your photo. There's no way to undo this or recover your data afterward.",
+      'Delete account'
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      await signOut();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete account');
+      setDeleting(false);
+    }
+  };
 
   return (
     <ScreenContainer>
@@ -92,6 +116,30 @@ export function AccountScreen() {
       >
         <Text style={{ color: colors.danger, fontWeight: '700' }}>Log out</Text>
       </Pressable>
+
+      <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
+        <Text style={[typography.caption, { color: colors.textMuted }]}>DANGER ZONE</Text>
+        {deleteError ? <Text style={{ color: colors.danger }}>{deleteError}</Text> : null}
+        <Pressable
+          onPress={onDeleteAccount}
+          disabled={deleting}
+          accessibilityRole="button"
+          accessibilityLabel="Delete account"
+          style={({ pressed }) => ({
+            backgroundColor: 'transparent',
+            borderRadius: radius.md,
+            padding: spacing.md,
+            alignItems: 'center',
+            opacity: pressed || deleting ? 0.6 : 1,
+          })}
+        >
+          {deleting ? (
+            <ActivityIndicator color={colors.danger} />
+          ) : (
+            <Text style={{ color: colors.danger, fontWeight: '600' }}>Delete account</Text>
+          )}
+        </Pressable>
+      </View>
     </ScreenContainer>
   );
 }

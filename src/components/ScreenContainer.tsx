@@ -1,15 +1,19 @@
 import type { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
+import { ProfileLoadBanner } from './ProfileLoadBanner';
 
 export function ScreenContainer({ children }: PropsWithChildren) {
   const { colors, spacing } = useTheme();
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[styles.content, { padding: spacing.md, gap: spacing.md }]}
+      contentContainerStyle={[styles.content, { padding: spacing.md }]}
     >
-      <View style={{ gap: spacing.md }}>{children}</View>
+      <View style={{ gap: spacing.md }}>
+        <ProfileLoadBanner />
+        {children}
+      </View>
     </ScrollView>
   );
 }

@@ -13,6 +13,7 @@ interface ProfileState {
   preferences: ProfilePreferences;
   loaded: boolean;
   loading: boolean;
+  error: string | null;
   load: (userId: string) => Promise<void>;
   saveName: (userId: string, name: string) => Promise<void>;
   savePreferences: (userId: string, patch: Partial<ProfilePreferences>) => Promise<void>;
@@ -20,16 +21,30 @@ interface ProfileState {
   reset: () => void;
 }
 
-export const useProfileStore = create<ProfileState>((set, get) => ({
+const INITIAL = {
   name: '',
   avatarUrl: null,
   preferences: DEFAULT_PREFERENCES,
   loaded: false,
   loading: false,
+  error: null,
+};
 
+export const useProfileStore = create<ProfileState>((set, get) => ({
+  ...INITIAL,
+
+  /**
+   * Loads the profile once per session.
+   *
+   * A failure here used to be silent: without a catch the rejection went
+   * unhandled, `loaded` stayed false, and `preferences` kept its defaults —
+   * so someone who had chosen kg saw every weight in the app labelled lb.
+   * Showing the wrong unit is worse than showing an error, so a failure is
+   * now recorded and surfaced, and the caller can retry.
+   */
   load: async (userId) => {
     if (get().loaded || get().loading) return;
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
       const profile = await fetchProfile(userId);
       set({
@@ -47,6 +62,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         },
         loaded: true,
       });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Failed to load your profile' });
     } finally {
       set({ loading: false });
     }
@@ -65,6 +82,5 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   setAvatarUrl: (url) => set({ avatarUrl: url }),
 
-  reset: () =>
-    set({ name: '', avatarUrl: null, preferences: DEFAULT_PREFERENCES, loaded: false, loading: false }),
+  reset: () => set(INITIAL),
 }));
