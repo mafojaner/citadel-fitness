@@ -9,7 +9,7 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native';
-import { BarChart, CurveType, LineChart } from 'react-native-gifted-charts';
+import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -224,9 +224,8 @@ export function ActivityScreen() {
                 horizontal
                 scrollEnabled={scrollNeeded}
                 showsHorizontalScrollIndicator={false}
-                // A curved line can overshoot slightly above its highest
-                // point (spline smoothing) — without this, ScrollView's
-                // implicit vertical clipping cuts off that peak.
+                // ScrollView clips vertically, which would shave the marker
+                // sitting on the highest data point.
                 contentContainerStyle={{ paddingTop: 16 }}
               >
                 {chartType === 'line' ? (
@@ -237,15 +236,12 @@ export function ActivityScreen() {
                     endSpacing={10}
                     spacing={pointSpacing}
                     color={chartAccent}
-                    thickness={3}
-                    curved
-                    // The default CUBIC curve derives control points from
-                    // neighbouring slopes, so it overshoots between points —
-                    // a flat run of zeros bows *below* the x-axis, which is
-                    // nonsense for volume. QUADRATIC's control points reuse
-                    // the endpoint y-values, so every segment stays within
-                    // the range of the two points it joins.
-                    curveType={CurveType.QUADRATIC}
+                    thickness={2}
+                    // Deliberately not `curved`. Any spline interpolates
+                    // *between* the real data points, which let the line bow
+                    // below zero on flat runs — negative volume. Straight
+                    // segments only ever join actual values, so peaks stay
+                    // sharp and the line can never leave the plotted range.
                     isAnimated
                     animationDuration={700}
                     areaChart
