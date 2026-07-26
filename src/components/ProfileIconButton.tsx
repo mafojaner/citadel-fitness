@@ -9,7 +9,7 @@ type RootStackParamList = {
   Account: undefined;
 };
 
-const SIZE = 30;
+const SIZE = 38;
 
 export function ProfileIconButton() {
   const { colors, spacing } = useTheme();

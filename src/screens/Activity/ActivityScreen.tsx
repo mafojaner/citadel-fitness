@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -85,6 +86,21 @@ export function ActivityScreen() {
 
   const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
+
+  // react-native-gifted-charts' web renderer flex-shrinks its own <svg> a few
+  // pixels below the height it requests, clipping the bottom edge of any
+  // data point (or bar) sitting at/near the x-axis. No prop the library
+  // exposes (height, overflowTop, overflowBottom) reaches that inner
+  // container, so this scopes an overflow override to just this chart's SVGs.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const id = 'progress-chart-svg-fix';
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = '#progress-chart svg { overflow: visible !important; }';
+    document.head.appendChild(style);
+  }, []);
 
   const chartAccentGradient = activeCategory === 'all' ? gradients.action : CATEGORY_GRADIENTS[activeCategory];
   const chartAccent = chartAccentGradient?.[chartAccentGradient.length - 1] ?? colors.primary;
@@ -201,7 +217,7 @@ export function ActivityScreen() {
         {seriesError ? null : seriesLoading ? (
           <ActivityIndicator color={colors.primary} />
         ) : (
-          <View onLayout={onChartAreaLayout} style={{ width: '100%' }}>
+          <View nativeID="progress-chart" onLayout={onChartAreaLayout} style={{ width: '100%' }}>
             {chartWidth > 0 ? (
               <ScrollView
                 horizontal

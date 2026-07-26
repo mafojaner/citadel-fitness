@@ -3,7 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FavoriteButton } from '../../components/FavoriteButton';
@@ -41,6 +41,7 @@ export function NewsletterScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<NewsletterStackParamList>>();
   const { articles, loading, error, reload } = useArticles();
   const [activeFilter, setActiveFilter] = useState<FilterValue | null>(null);
+  const [query, setQuery] = useState('');
 
   const userId = useAuthStore((s) => s.session?.user.id);
   const favoriteIds = useFavoriteArticlesStore((s) => s.ids);
@@ -67,6 +68,15 @@ export function NewsletterScreen() {
     return articles.filter((a) => a.category === activeFilter);
   }, [articles, activeFilter, favoriteIds]);
 
+  const isSearching = query.trim().length > 0;
+  const searchResults = useMemo(() => {
+    if (!isSearching) return [];
+    const q = query.trim().toLowerCase();
+    return articles.filter(
+      (a) => a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q)
+    );
+  }, [articles, query, isSearching]);
+
   const activeLabel =
     activeFilter === 'favorites'
       ? 'Favorites'
@@ -78,12 +88,72 @@ export function NewsletterScreen() {
     navigation.navigate('ArticleDetail', { articleId: article.id });
   };
 
+  const renderArticleRow = (article: Article) => (
+    <Pressable
+      key={article.id}
+      onPress={() => onOpen(article)}
+      accessibilityRole="link"
+      accessibilityLabel={`Read ${article.title}`}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+    >
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <GradientIconBadge
+            icon={ARTICLE_CATEGORY_ICONS[article.category]}
+            colors={ARTICLE_CATEGORY_GRADIENTS[article.category]}
+            size={40}
+          />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {ARTICLE_CATEGORY_LABELS[article.category]}
+            </Text>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>{article.title}</Text>
+          </View>
+          <FavoriteButton articleId={article.id} />
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </View>
+
+        <Text style={[typography.body, { color: colors.textSecondary }]}>{article.summary}</Text>
+
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <StatChip icon="time-outline" value={`${article.readMinutes} min read`} />
+          <StatChip icon="calendar-outline" value={formatPublished(article.publishedAt)} />
+        </View>
+      </Card>
+    </Pressable>
+  );
+
   return (
     <ScreenContainer>
+      <TextInput
+        placeholder="Search newsletters..."
+        placeholderTextColor={colors.textMuted}
+        value={query}
+        onChangeText={setQuery}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
+      />
+
       {loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : error ? (
         <ErrorNotice message={error} onRetry={reload} />
+      ) : isSearching ? (
+        searchResults.length === 0 ? (
+          <Card>
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              No newsletters match "{query.trim()}".
+            </Text>
+          </Card>
+        ) : (
+          <View style={{ gap: spacing.md }}>{searchResults.map(renderArticleRow)}</View>
+        )
       ) : activeFilter === null ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
           {CATEGORY_ORDER.map((cat) => {
@@ -170,46 +240,7 @@ export function NewsletterScreen() {
               </Text>
             </Card>
           ) : (
-            <View style={{ gap: spacing.md }}>
-              {filtered.map((article) => (
-                <Pressable
-                  key={article.id}
-                  onPress={() => onOpen(article)}
-                  accessibilityRole="link"
-                  accessibilityLabel={`Read ${article.title}`}
-                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                >
-                  <Card>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                      <GradientIconBadge
-                        icon={ARTICLE_CATEGORY_ICONS[article.category]}
-                        colors={ARTICLE_CATEGORY_GRADIENTS[article.category]}
-                        size={40}
-                      />
-                      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                        <Text style={[typography.caption, { color: colors.textMuted }]}>
-                          {ARTICLE_CATEGORY_LABELS[article.category]}
-                        </Text>
-                        <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                          {article.title}
-                        </Text>
-                      </View>
-                      <FavoriteButton articleId={article.id} />
-                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-                    </View>
-
-                    <Text style={[typography.body, { color: colors.textSecondary }]}>
-                      {article.summary}
-                    </Text>
-
-                    <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                      <StatChip icon="time-outline" value={`${article.readMinutes} min read`} />
-                      <StatChip icon="calendar-outline" value={formatPublished(article.publishedAt)} />
-                    </View>
-                  </Card>
-                </Pressable>
-              ))}
-            </View>
+            <View style={{ gap: spacing.md }}>{filtered.map(renderArticleRow)}</View>
           )}
         </>
       )}
