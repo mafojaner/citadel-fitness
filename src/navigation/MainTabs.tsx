@@ -45,7 +45,7 @@ export function MainTabs() {
         tabBarLabelStyle: { fontSize: 12, marginTop: 2 },
         tabBarIcon: ({ color, size }) =>
           route.name === 'Fortress' ? (
-            <MaterialCommunityIcons name="castle" size={size} color={color} />
+            <MaterialCommunityIcons name="chess-rook" size={size} color={color} />
           ) : (
             <Ionicons name={TAB_ICONS[route.name as keyof typeof TAB_ICONS]} size={size} color={color} />
           ),

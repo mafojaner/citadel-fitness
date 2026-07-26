@@ -134,7 +134,7 @@ export function FortressScreen() {
             justifyContent: 'center',
           }}
         >
-          <MaterialCommunityIcons name="castle" size={34} color="#FFFFFF" />
+          <MaterialCommunityIcons name="chess-rook" size={34} color="#FFFFFF" />
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>Fortress</Text>
         <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textAlign: 'center' }}>
