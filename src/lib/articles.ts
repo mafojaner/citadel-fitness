@@ -60,3 +60,31 @@ export async function fetchArticlesSince(since: string): Promise<Article[]> {
   if (error) throw error;
   return (data ?? []).map(toArticle);
 }
+
+export async function fetchFavoriteArticleIds(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('article_favorites')
+    .select('article_id')
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  return (data ?? []).map((row) => row.article_id as string);
+}
+
+export async function addFavoriteArticle(userId: string, articleId: string): Promise<void> {
+  const { error } = await supabase
+    .from('article_favorites')
+    .insert({ user_id: userId, article_id: articleId });
+
+  if (error) throw error;
+}
+
+export async function removeFavoriteArticle(userId: string, articleId: string): Promise<void> {
+  const { error } = await supabase
+    .from('article_favorites')
+    .delete()
+    .eq('user_id', userId)
+    .eq('article_id', articleId);
+
+  if (error) throw error;
+}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FavoriteButton } from '../../components/FavoriteButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -13,6 +14,8 @@ import {
   ARTICLE_CATEGORY_LABELS,
 } from '../../constants/articles';
 import { fetchArticleById } from '../../lib/articles';
+import { useAuthStore } from '../../state/authStore';
+import { useFavoriteArticlesStore } from '../../state/favoriteArticlesStore';
 import { useTheme } from '../../theme/useTheme';
 import type { Article } from '../../types/models';
 import type { NewsletterStackParamList } from '../../navigation/stacks/NewsletterStack';
@@ -47,6 +50,13 @@ export function ArticleDetailScreen() {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const loadFavorites = useFavoriteArticlesStore((s) => s.load);
+
+  useEffect(() => {
+    if (userId) loadFavorites(userId);
+  }, [userId, loadFavorites]);
 
   const load = useCallback(() => {
     let cancelled = false;
@@ -116,6 +126,7 @@ export function ArticleDetailScreen() {
           </Text>
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{article.title}</Text>
         </View>
+        <FavoriteButton articleId={article.id} size={26} />
       </View>
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>

@@ -7,6 +7,7 @@ export const CATEGORY_FILTERS: { label: string; value: Category | 'all' }[] = [
   { label: 'Chest', value: 'chest' },
   { label: 'Back', value: 'back' },
   { label: 'Legs', value: 'legs' },
+  { label: 'Arms', value: 'arms' },
   { label: 'Cardio', value: 'cardio' },
 ];
 
@@ -14,6 +15,7 @@ export const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyp
   chest: 'barbell-outline',
   back: 'body-outline',
   legs: 'walk-outline',
+  arms: 'accessibility-outline',
   cardio: 'heart-outline',
 };
 
@@ -23,6 +25,7 @@ export const CATEGORY_GRADIENTS: Partial<Record<Category, readonly [string, stri
   chest: gradients.volume,
   back: gradients.calendar,
   legs: gradients.flame,
+  arms: gradients.arms,
   cardio: gradients.pulse,
 };
 
