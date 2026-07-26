@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
@@ -12,12 +13,40 @@ import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 
+function DangerIconBadge({ icon, size = 36 }: { icon: keyof typeof Ionicons.glyphMap; size?: number }) {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: colors.danger,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Ionicons name={icon} size={size * 0.5} color="#FFFFFF" />
+    </View>
+  );
+}
+
 export function AccountManagementScreen() {
-  const { colors, spacing, radius } = useTheme();
+  const { colors, spacing } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
   const signOut = useAuthStore((s) => s.signOut);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const onLogOut = async () => {
+    const confirmed = await confirmAsync(
+      'Log out?',
+      "You'll need to sign back in to see your workouts and progress.",
+      'Log out'
+    );
+    if (!confirmed) return;
+    await signOut();
+  };
 
   const onDeleteAccount = async () => {
     const confirmed = await confirmAsync(
@@ -49,18 +78,13 @@ export function AccountManagementScreen() {
         </Card>
       </Pressable>
 
-      <Pressable
-        onPress={() => signOut()}
-        style={({ pressed }) => ({
-          borderColor: colors.danger,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <Text style={{ color: colors.danger, fontWeight: '700' }}>Log out</Text>
+      <Pressable onPress={onLogOut}>
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <DangerIconBadge icon="log-out-outline" />
+            <Text style={{ color: colors.danger, fontWeight: '600' }}>Log out</Text>
+          </View>
+        </Card>
       </Pressable>
 
       {deleteError ? <Text style={{ color: colors.danger }}>{deleteError}</Text> : null}
@@ -69,19 +93,18 @@ export function AccountManagementScreen() {
         disabled={deleting}
         accessibilityRole="button"
         accessibilityLabel="Delete account"
-        style={({ pressed }) => ({
-          backgroundColor: 'transparent',
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed || deleting ? 0.6 : 1,
-        })}
+        style={({ pressed }) => ({ opacity: pressed || deleting ? 0.6 : 1 })}
       >
-        {deleting ? (
-          <ActivityIndicator color={colors.danger} />
-        ) : (
-          <Text style={{ color: colors.danger, fontWeight: '600' }}>Delete account</Text>
-        )}
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <DangerIconBadge icon="trash-outline" />
+            {deleting ? (
+              <ActivityIndicator color={colors.danger} />
+            ) : (
+              <Text style={{ color: colors.danger, fontWeight: '600' }}>Delete account</Text>
+            )}
+          </View>
+        </Card>
       </Pressable>
     </ScreenContainer>
   );
