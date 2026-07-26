@@ -25,7 +25,7 @@ interface RangeDayProps {
  * get stuck.
  */
 export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarProps) {
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, scheme } = useTheme();
   const [pickingEnd, setPickingEnd] = useState(false);
 
   const onDayPress = useCallback(
@@ -84,6 +84,7 @@ export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarPro
   return (
     <View style={{ gap: spacing.xs }}>
       <Calendar
+        key={scheme}
         current={end}
         onDayPress={onDayPress}
         dayComponent={RangeDay}

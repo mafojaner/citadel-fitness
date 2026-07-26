@@ -95,15 +95,6 @@ export function AccountScreen() {
         </Card>
       </Pressable>
 
-      <Pressable onPress={() => navigation.navigate('ChangePassword')}>
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="lock-closed" colors={gradients.pulse} size={36} />
-            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Change password</Text>
-          </View>
-        </Card>
-      </Pressable>
-
       <Pressable onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -113,22 +104,32 @@ export function AccountScreen() {
         </Card>
       </Pressable>
 
-      <Pressable
-        onPress={() => signOut()}
-        style={({ pressed }) => ({
-          borderColor: colors.danger,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          alignItems: 'center',
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <Text style={{ color: colors.danger, fontWeight: '700' }}>Log out</Text>
-      </Pressable>
-
       <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
-        <Text style={[typography.caption, { color: colors.textMuted }]}>DANGER ZONE</Text>
+        <Text style={[typography.caption, { color: colors.textMuted }]}>ACCOUNT MANAGEMENT</Text>
+
+        <Pressable onPress={() => navigation.navigate('ChangePassword')}>
+          <Card>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <GradientIconBadge icon="lock-closed" colors={gradients.pulse} size={36} />
+              <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Change password</Text>
+            </View>
+          </Card>
+        </Pressable>
+
+        <Pressable
+          onPress={() => signOut()}
+          style={({ pressed }) => ({
+            borderColor: colors.danger,
+            borderWidth: 1,
+            borderRadius: radius.md,
+            padding: spacing.md,
+            alignItems: 'center',
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Text style={{ color: colors.danger, fontWeight: '700' }}>Log out</Text>
+        </Pressable>
+
         {deleteError ? <Text style={{ color: colors.danger }}>{deleteError}</Text> : null}
         <Pressable
           onPress={onDeleteAccount}

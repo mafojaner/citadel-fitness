@@ -61,7 +61,7 @@ interface CalendarDayProps {
 }
 
 export function WorkoutsScreen() {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, typography, scheme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
@@ -203,6 +203,7 @@ export function WorkoutsScreen() {
       >
         <Card>
           <Calendar
+            key={scheme}
             current={selectedDate}
             onDayPress={(day: DateData) => setSelectedDate(day.dateString)}
             onMonthChange={(month: DateData) => loadMonth(month.dateString)}

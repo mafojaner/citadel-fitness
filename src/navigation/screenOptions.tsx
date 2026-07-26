@@ -1,4 +1,5 @@
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { CustomBackButton } from './CustomBackButton';
 import type { ThemeColors } from '../theme/tokens';
 
 export function stackScreenOptions(colors: ThemeColors): NativeStackNavigationOptions {
@@ -7,5 +8,7 @@ export function stackScreenOptions(colors: ThemeColors): NativeStackNavigationOp
     headerTintColor: colors.navText,
     headerTitleStyle: { color: colors.navText, fontWeight: '700' },
     headerShadowVisible: false,
+    headerLeft: ({ canGoBack, tintColor }) =>
+      canGoBack ? <CustomBackButton tintColor={tintColor} /> : null,
   };
 }
