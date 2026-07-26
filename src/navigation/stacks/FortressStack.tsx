@@ -1,24 +1,24 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ProfileIconButton } from '../../components/ProfileIconButton';
-import { RewardsScreen } from '../../screens/Rewards/RewardsScreen';
+import { FortressScreen } from '../../screens/Fortress/FortressScreen';
 import { useTheme } from '../../theme/useTheme';
 import { stackScreenOptions } from '../screenOptions';
 
-export type RewardsStackParamList = {
-  Rewards: undefined;
+export type FortressStackParamList = {
+  Fortress: undefined;
 };
 
-const Stack = createNativeStackNavigator<RewardsStackParamList>();
+const Stack = createNativeStackNavigator<FortressStackParamList>();
 
-export function RewardsStack() {
+export function FortressStack() {
   const { colors } = useTheme();
 
   return (
     <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen
-        name="Rewards"
-        component={RewardsScreen}
-        options={{ title: 'Rewards', headerRight: () => <ProfileIconButton /> }}
+        name="Fortress"
+        component={FortressScreen}
+        options={{ title: 'Fortress', headerRight: () => <ProfileIconButton /> }}
       />
     </Stack.Navigator>
   );

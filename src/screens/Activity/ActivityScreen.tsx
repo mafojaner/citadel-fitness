@@ -13,6 +13,7 @@ import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
@@ -20,11 +21,82 @@ import { StatTile } from '../../components/StatTile';
 import { CATEGORY_FILTERS, CATEGORY_GRADIENTS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useProgressSeries } from '../../hooks/useProgressSeries';
+import { useRewards } from '../../hooks/useRewards';
 import { addDays, todayISO } from '../../lib/analytics';
+import type { RewardDay, RewardWeek } from '../../lib/rewards';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
+
+const REWARD_DAY_HEADER_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+function RewardDayCircle({ day }: { day: RewardDay }) {
+  const { colors } = useTheme();
+  const isTodayUnlogged = day.isToday && !day.logged;
+
+  return (
+    <View style={{ flex: 1, alignItems: 'center' }}>
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: day.logged ? 2 : 0,
+          borderColor: colors.primary,
+          backgroundColor: isTodayUnlogged ? colors.textPrimary : 'transparent',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: day.logged ? '700' : '500',
+            color: isTodayUnlogged ? colors.background : day.isFuture ? colors.textMuted : colors.textPrimary,
+            opacity: day.isFuture ? 0.4 : 1,
+          }}
+        >
+          {day.dayNumber}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function RewardWeekRow({ week }: { week: RewardWeek }) {
+  const { colors, spacing } = useTheme();
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+      {week.days.map((day) => (
+        <RewardDayCircle key={day.date} day={day} />
+      ))}
+      <View
+        style={{
+          width: 44,
+          height: 32,
+          borderRadius: 16,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: week.complete ? colors.primary : 'transparent',
+          borderWidth: week.complete ? 0 : 1,
+          borderColor: colors.border,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: '700',
+            color: week.complete ? '#FFFFFF' : colors.textMuted,
+          }}
+        >
+          {week.daysLogged}/{4}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 type RangePreset = '7d' | '30d' | '90d' | 'custom';
 
@@ -83,6 +155,19 @@ export function ActivityScreen() {
     loading: summaryLoading,
     error: summaryError,
   } = useActivityAnalytics(activeCategory, units);
+
+  const {
+    weeklyStreak,
+    rewardsEarned,
+    weeksIntoCurrentCycle,
+    weeksPerReward,
+    weeklyTargetDays,
+    weeks: rewardWeeks,
+    loading: rewardsLoading,
+    error: rewardsError,
+    reload: reloadRewards,
+  } = useRewards();
+  const weeksToGo = weeksPerReward - weeksIntoCurrentCycle;
 
   const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
@@ -327,6 +412,73 @@ export function ActivityScreen() {
           </Text>
         ) : null}
       </Card>
+
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <GradientIconBadge icon="diamond" colors={gradients.flame} size={44} />
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+              {weeklyStreak} week streak
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              Log a workout on {weeklyTargetDays} days a week to keep it going.
+            </Text>
+          </View>
+        </View>
+      </Card>
+
+      {rewardsError ? <ErrorNotice message={rewardsError} onRetry={reloadRewards} /> : null}
+
+      <Card title="This cycle">
+        {rewardsLoading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <View style={{ gap: spacing.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              {REWARD_DAY_HEADER_LABELS.map((label, i) => (
+                <Text
+                  key={i}
+                  style={[
+                    typography.caption,
+                    { flex: 1, textAlign: 'center', color: colors.textMuted },
+                  ]}
+                >
+                  {label}
+                </Text>
+              ))}
+              <View style={{ width: 44 }}>
+                <Ionicons name="checkmark" size={16} color={colors.textMuted} style={{ alignSelf: 'center' }} />
+              </View>
+            </View>
+
+            {rewardWeeks.map((week) => (
+              <RewardWeekRow key={week.weekStart} week={week} />
+            ))}
+          </View>
+        )}
+      </Card>
+
+      <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <GradientIconBadge icon="pricetag" colors={gradients.identity} size={40} />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+              {rewardsEarned > 0
+                ? `${rewardsEarned} reward${rewardsEarned === 1 ? '' : 's'} earned`
+                : 'No rewards earned yet'}
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              {weeksIntoCurrentCycle} of {weeksPerReward} weeks toward your next 10% off — {weeksToGo}{' '}
+              more complete week{weeksToGo === 1 ? '' : 's'} to go.
+            </Text>
+          </View>
+        </View>
+      </Card>
+
+      <Text style={[typography.caption, { color: colors.textMuted }]}>
+        Rewards track your consistency now. Redeeming 10% off a premium membership isn't live yet —
+        we'll let you know here as soon as it is.
+      </Text>
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
       {summaryError ? null : summaryLoading ? (

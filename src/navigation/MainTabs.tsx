@@ -1,25 +1,24 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/useTheme';
 import { ActivityStack } from './stacks/ActivityStack';
+import { FortressStack } from './stacks/FortressStack';
 import { HomeStack } from './stacks/HomeStack';
 import { NewsletterStack } from './stacks/NewsletterStack';
-import { RewardsStack } from './stacks/RewardsStack';
 import { WorkoutsStack } from './stacks/WorkoutsStack';
 
 export type MainTabsParamList = {
   Home: undefined;
   Workouts: undefined;
-  Rewards: undefined;
+  Fortress: undefined;
   Activity: undefined;
   Learn: undefined;
 };
 
-const TAB_ICONS: Record<keyof MainTabsParamList, keyof typeof Ionicons.glyphMap> = {
+const TAB_ICONS: Record<Exclude<keyof MainTabsParamList, 'Fortress'>, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Workouts: 'barbell',
-  Rewards: 'diamond',
   Activity: 'stats-chart',
   Learn: 'book',
 };
@@ -44,14 +43,17 @@ export function MainTabs() {
           paddingBottom: insets.bottom + 6,
         },
         tabBarLabelStyle: { fontSize: 12, marginTop: 2 },
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name={TAB_ICONS[route.name as keyof MainTabsParamList]} size={size} color={color} />
-        ),
+        tabBarIcon: ({ color, size }) =>
+          route.name === 'Fortress' ? (
+            <MaterialCommunityIcons name="castle" size={size} color={color} />
+          ) : (
+            <Ionicons name={TAB_ICONS[route.name as keyof typeof TAB_ICONS]} size={size} color={color} />
+          ),
       })}
     >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Workouts" component={WorkoutsStack} />
-      <Tab.Screen name="Rewards" component={RewardsStack} />
+      <Tab.Screen name="Fortress" component={FortressStack} />
       <Tab.Screen name="Activity" component={ActivityStack} />
       <Tab.Screen name="Learn" component={NewsletterStack} />
     </Tab.Navigator>
