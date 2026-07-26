@@ -9,7 +9,7 @@ import {
   View,
   type LayoutChangeEvent,
 } from 'react-native';
-import { BarChart, LineChart } from 'react-native-gifted-charts';
+import { BarChart, CurveType, LineChart } from 'react-native-gifted-charts';
 import { Card } from '../../components/Card';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -87,18 +87,19 @@ export function ActivityScreen() {
   const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
 
-  // react-native-gifted-charts' web renderer flex-shrinks its own <svg> a few
-  // pixels below the height it requests, clipping the bottom edge of any
-  // data point (or bar) sitting at/near the x-axis. No prop the library
-  // exposes (height, overflowTop, overflowBottom) reaches that inner
-  // container, so this scopes an overflow override to just this chart's SVGs.
+  // react-native-gifted-charts sizes its <svg> to fit the data-point radius
+  // below the x-axis, but on web flexbox shrinks it back to the bare plot
+  // height — so points sitting at zero get their bottom half clipped. No prop
+  // the library exposes (height, overflowTop, overflowBottom) reaches that
+  // element. Blocking the shrink is enough; clipping stays on, so nothing can
+  // bleed into neighbouring cards.
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     const id = 'progress-chart-svg-fix';
     if (document.getElementById(id)) return;
     const style = document.createElement('style');
     style.id = id;
-    style.textContent = '#progress-chart svg { overflow: visible !important; }';
+    style.textContent = '#progress-chart svg { flex-shrink: 0 !important; }';
     document.head.appendChild(style);
   }, []);
 
@@ -238,6 +239,13 @@ export function ActivityScreen() {
                     color={chartAccent}
                     thickness={3}
                     curved
+                    // The default CUBIC curve derives control points from
+                    // neighbouring slopes, so it overshoots between points —
+                    // a flat run of zeros bows *below* the x-axis, which is
+                    // nonsense for volume. QUADRATIC's control points reuse
+                    // the endpoint y-values, so every segment stays within
+                    // the range of the two points it joins.
+                    curveType={CurveType.QUADRATIC}
                     isAnimated
                     animationDuration={700}
                     areaChart
