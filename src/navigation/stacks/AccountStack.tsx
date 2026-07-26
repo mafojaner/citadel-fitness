@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AccountManagementScreen } from '../../screens/Account/AccountManagementScreen';
 import { AccountScreen } from '../../screens/Account/AccountScreen';
 import { ChangePasswordScreen } from '../../screens/Account/ChangePasswordScreen';
 import { PreferencesScreen } from '../../screens/Account/PreferencesScreen';
@@ -10,6 +11,7 @@ export type AccountStackParamList = {
   Account: undefined;
   ProfileSettings: undefined;
   Preferences: undefined;
+  AccountManagement: undefined;
   ChangePassword: undefined;
 };
 
@@ -27,6 +29,11 @@ export function AccountStack() {
         options={{ title: 'Profile Settings' }}
       />
       <Stack.Screen name="Preferences" component={PreferencesScreen} />
+      <Stack.Screen
+        name="AccountManagement"
+        component={AccountManagementScreen}
+        options={{ title: 'Account Management' }}
+      />
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
