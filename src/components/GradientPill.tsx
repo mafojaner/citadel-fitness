@@ -33,7 +33,7 @@ export function GradientPill({
         accessibilityLabel={label}
         style={{
           flex: flex ? 1 : undefined,
-          paddingVertical: spacing.xs + 2,
+          paddingVertical: spacing.xs - 2,
           paddingHorizontal: spacing.md,
           borderRadius: radius.pill,
           backgroundColor: colors.surface,
@@ -63,7 +63,7 @@ export function GradientPill({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{
-          paddingVertical: spacing.xs + 2,
+          paddingVertical: spacing.xs - 2,
           paddingHorizontal: spacing.md,
           borderRadius: radius.pill,
           alignItems: 'center',

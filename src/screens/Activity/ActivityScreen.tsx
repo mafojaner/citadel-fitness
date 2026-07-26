@@ -29,9 +29,9 @@ import type { Category } from '../../types/models';
 type RangePreset = '7d' | '30d' | '90d' | 'custom';
 
 const RANGE_PRESETS: { label: string; value: RangePreset }[] = [
-  { label: '7d', value: '7d' },
-  { label: '30d', value: '30d' },
-  { label: '90d', value: '90d' },
+  { label: '7 days', value: '7d' },
+  { label: '30 days', value: '30d' },
+  { label: '90 days', value: '90d' },
   { label: 'Custom', value: 'custom' },
 ];
 
