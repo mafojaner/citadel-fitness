@@ -58,7 +58,7 @@ export function AddWorkoutScreen() {
     setSaving(true);
     setError(null);
     try {
-      await saveWorkout(date, draftExercises);
+      await saveWorkout(date, draftExercises, units, distanceUnit);
       finishedRef.current = false;
       setShowConfetti(true);
       setTimeout(finishAndLeave, 2500);

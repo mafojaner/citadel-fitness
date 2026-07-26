@@ -22,6 +22,7 @@ import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useExercises } from '../../hooks/useExercises';
 import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { todayISO } from '../../lib/analytics';
+import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -48,12 +49,13 @@ export function HomeScreen() {
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
+  const weightUnit = useProfileStore((s) => s.preferences.units);
   const {
     currentStreakDays,
     workoutsThisWeek,
     loading: activityLoading,
     error: activityError,
-  } = useActivityAnalytics('all');
+  } = useActivityAnalytics('all', weightUnit);
   const {
     workouts: recentWorkouts,
     loading: recentLoading,

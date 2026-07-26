@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { fetchProgressSeries, type ProgressSeries } from '../lib/analytics';
 import { useAuthStore } from '../state/authStore';
-import type { Category } from '../types/models';
+import type { Category, WeightUnit } from '../types/models';
 
 const EMPTY: ProgressSeries = { points: [], bucketing: 'day', metric: 'volume' };
 
@@ -10,7 +10,12 @@ const EMPTY: ProgressSeries = { points: [], bucketing: 'day', metric: 'volume' }
  * The Activity screen's chart data — a user-selectable date range, unlike
  * useActivityAnalytics's fixed "current streak / this week" KPIs.
  */
-export function useProgressSeries(category: Category | 'all', startDate: string, endDate: string) {
+export function useProgressSeries(
+  category: Category | 'all',
+  startDate: string,
+  endDate: string,
+  weightUnit: WeightUnit
+) {
   const userId = useAuthStore((s) => s.session?.user.id);
   const [data, setData] = useState<ProgressSeries>(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -22,7 +27,7 @@ export function useProgressSeries(category: Category | 'all', startDate: string,
       let cancelled = false;
       setLoading(true);
       setError(null);
-      fetchProgressSeries(userId, category, startDate, endDate)
+      fetchProgressSeries(userId, category, startDate, endDate, weightUnit)
         .then((result) => {
           if (!cancelled) setData(result);
         })
@@ -38,7 +43,7 @@ export function useProgressSeries(category: Category | 'all', startDate: string,
       return () => {
         cancelled = true;
       };
-    }, [userId, category, startDate, endDate])
+    }, [userId, category, startDate, endDate, weightUnit])
   );
 
   return { ...data, loading, error };

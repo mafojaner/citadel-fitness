@@ -20,6 +20,7 @@ import {
 import { todayISO } from '../../lib/analytics';
 import { fetchWorkoutForDate, fetchWorkoutDatesInRange, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -65,6 +66,8 @@ export function WorkoutsScreen() {
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
   const userId = useAuthStore((s) => s.session?.user.id);
+  const units = useProfileStore((s) => s.preferences.units);
+  const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const today = todayISO();
   const [selectedDate, setSelectedDate] = useState(today);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
@@ -113,7 +116,7 @@ export function WorkoutsScreen() {
 
   const onEnterWorkout = () => {
     if (dayExercises && dayExercises.length > 0) {
-      loadDraftFromExisting(selectedDate, dayExercises);
+      loadDraftFromExisting(selectedDate, dayExercises, units, distanceUnit);
     } else {
       // Keeps an unsaved draft for this day rather than discarding it.
       ensureDraftFor(selectedDate);

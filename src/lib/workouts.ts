@@ -1,5 +1,12 @@
 import { supabase } from './supabase';
-import type { Category, Exercise, ExerciseType, LoggedExercise } from '../types/models';
+import type {
+  Category,
+  DistanceUnit,
+  Exercise,
+  ExerciseType,
+  LoggedExercise,
+  WeightUnit,
+} from '../types/models';
 
 export async function fetchExercises(): Promise<Exercise[]> {
   const { data, error } = await supabase
@@ -33,8 +40,10 @@ interface DbSetEntry {
   set_number: number;
   reps: number;
   weight: number;
+  weight_unit: WeightUnit;
   duration_minutes: number | null;
   distance: number | null;
+  distance_unit: DistanceUnit;
 }
 
 interface DbLoggedExercise {
@@ -55,8 +64,10 @@ export interface WorkoutDetailExercise {
     setNumber: number;
     reps: number;
     weight: number;
+    weightUnit: WeightUnit;
     durationMinutes: number;
     distance: number;
+    distanceUnit: DistanceUnit;
   }[];
 }
 
@@ -77,7 +88,7 @@ export async function fetchWorkoutForDate(
   const { data, error } = await supabase
     .from('logged_exercises')
     .select(
-      'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, duration_minutes, distance )'
+      'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, weight_unit, duration_minutes, distance, distance_unit )'
     )
     .eq('workout_id', workout.id)
     .returns<DbLoggedExercise[]>();
@@ -97,8 +108,10 @@ export async function fetchWorkoutForDate(
         setNumber: s.set_number,
         reps: s.reps,
         weight: s.weight,
+        weightUnit: s.weight_unit,
         durationMinutes: s.duration_minutes ?? 0,
         distance: s.distance ?? 0,
+        distanceUnit: s.distance_unit,
       })),
   }));
 }
@@ -113,8 +126,18 @@ export async function fetchWorkoutForDate(
  * supabase/migration_005_transactional_save_workout.sql.
  *
  * The user id is resolved from auth.uid() server-side, so it isn't passed in.
+ *
+ * weightUnit/distanceUnit are the units active *right now* — every set in
+ * this save is tagged with them, so a later unit-preference switch can
+ * never change what a past entry means. See
+ * supabase/migration_009_set_entry_units.sql.
  */
-export async function saveWorkout(date: string, exercises: LoggedExercise[]): Promise<void> {
+export async function saveWorkout(
+  date: string,
+  exercises: LoggedExercise[],
+  weightUnit: WeightUnit,
+  distanceUnit: DistanceUnit
+): Promise<void> {
   if (exercises.length === 0) return;
 
   const payload = exercises.map((e) => ({
@@ -131,6 +154,8 @@ export async function saveWorkout(date: string, exercises: LoggedExercise[]): Pr
   const { error } = await supabase.rpc('save_workout', {
     p_date: date,
     p_exercises: payload,
+    p_weight_unit: weightUnit,
+    p_distance_unit: distanceUnit,
   });
 
   if (error) throw error;

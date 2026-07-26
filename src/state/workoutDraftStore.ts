@@ -2,8 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { todayISO } from '../lib/analytics';
+import { convertDistance, convertWeight, roundForDisplay } from '../lib/units';
 import type { WorkoutDetailExercise } from '../lib/workouts';
-import type { Exercise, LoggedExercise, SetEntry } from '../types/models';
+import type { DistanceUnit, Exercise, LoggedExercise, SetEntry, WeightUnit } from '../types/models';
 
 interface WorkoutDraftState {
   date: string;
@@ -15,7 +16,12 @@ interface WorkoutDraftState {
   removeSet: (loggedExerciseId: string, setId: string) => void;
   reset: (date?: string) => void;
   ensureDraftFor: (date: string) => void;
-  loadFromExisting: (date: string, exercises: WorkoutDetailExercise[]) => void;
+  loadFromExisting: (
+    date: string,
+    exercises: WorkoutDetailExercise[],
+    currentWeightUnit: WeightUnit,
+    currentDistanceUnit: DistanceUnit
+  ) => void;
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10);
@@ -105,7 +111,18 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
           state.date === date && state.exercises.length > 0 ? {} : { date, exercises: [] }
         ),
 
-      loadFromExisting: (date, exercises) =>
+      /**
+       * Converts each set's weight/distance from whatever unit it was
+       * originally logged in into the currently active preference. Without
+       * this, editing an old kg-entry while now in lb mode would show its
+       * raw kg number sitting in a field labelled "lb" — and re-saving it
+       * unchanged would overwrite the correct kg record with a wrong lb one
+       * (100 kg re-tagged as "100 lb" is a completely different, much
+       * lighter weight). Converting on load means an edit always preserves
+       * the actual physical weight/distance; only sets left untouched stay
+       * in their original unit in the database.
+       */
+      loadFromExisting: (date, exercises, currentWeightUnit, currentDistanceUnit) =>
         set({
           date,
           exercises: exercises.map((e) => ({
@@ -115,9 +132,11 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
               id: s.id,
               setNumber: s.setNumber,
               reps: s.reps,
-              weight: s.weight,
+              weight: roundForDisplay(convertWeight(s.weight, s.weightUnit, currentWeightUnit)),
               durationMinutes: s.durationMinutes,
-              distance: s.distance,
+              distance: roundForDisplay(
+                convertDistance(s.distance, s.distanceUnit, currentDistanceUnit)
+              ),
             })),
           })),
         }),

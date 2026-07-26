@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import type { Category, ExerciseType } from '../types/models';
+import { convertWeight } from './units';
+import type { Category, ExerciseType, WeightUnit } from '../types/models';
 
 export function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -42,6 +43,7 @@ function daySpan(startDate: string, endDate: string): number {
 interface DbSetEntry {
   reps: number;
   weight: number;
+  weight_unit: WeightUnit;
   duration_minutes: number | null;
 }
 
@@ -61,18 +63,28 @@ function metricForCategory(category: Category | 'all'): Metric {
   return category === 'cardio' ? 'minutes' : 'volume';
 }
 
+/**
+ * displayWeightUnit is the unit every returned "volume" value is expressed
+ * in. Sets can be tagged lb or kg depending on what was active when each
+ * was logged (see migration_009), so summing raw stored numbers across a
+ * range would silently mix units — this converts each set into
+ * displayWeightUnit before multiplying by reps and summing, so mixed-unit
+ * history always aggregates correctly. Cardio's "minutes" metric has no
+ * such ambiguity (a minute is a minute), so it's untouched.
+ */
 async function fetchValueByDate(
   userId: string,
   category: Category | 'all',
   startDate: string,
-  endDate: string
+  endDate: string,
+  displayWeightUnit: WeightUnit
 ): Promise<{ valueByDate: Map<string, number>; activeDates: Set<string> }> {
   const metric = metricForCategory(category);
 
   const { data, error } = await supabase
     .from('workouts')
     .select(
-      'date, logged_exercises ( exercises ( category, type ), set_entries ( reps, weight, duration_minutes ) )'
+      'date, logged_exercises ( exercises ( category, type ), set_entries ( reps, weight, weight_unit, duration_minutes ) )'
     )
     .eq('user_id', userId)
     .gte('date', startDate)
@@ -93,7 +105,10 @@ async function fetchValueByDate(
       const value =
         metric === 'minutes'
           ? logged.set_entries.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0)
-          : logged.set_entries.reduce((sum, s) => sum + s.reps * s.weight, 0);
+          : logged.set_entries.reduce(
+              (sum, s) => sum + s.reps * convertWeight(s.weight, s.weight_unit, displayWeightUnit),
+              0
+            );
       valueByDate.set(workout.date, (valueByDate.get(workout.date) ?? 0) + value);
     }
   }
@@ -119,13 +134,20 @@ const STREAK_LOOKBACK_DAYS = 60;
  */
 export async function fetchActivitySummary(
   userId: string,
-  category: Category | 'all'
+  category: Category | 'all',
+  displayWeightUnit: WeightUnit
 ): Promise<ActivitySummary> {
   const today = todayISO();
   const startDate = addDays(today, -STREAK_LOOKBACK_DAYS);
   const metric = metricForCategory(category);
 
-  const { valueByDate, activeDates } = await fetchValueByDate(userId, category, startDate, today);
+  const { valueByDate, activeDates } = await fetchValueByDate(
+    userId,
+    category,
+    startDate,
+    today,
+    displayWeightUnit
+  );
 
   const last7Dates: string[] = [];
   for (let i = 6; i >= 0; i--) {
@@ -192,10 +214,17 @@ export async function fetchProgressSeries(
   userId: string,
   category: Category | 'all',
   startDate: string,
-  endDate: string
+  endDate: string,
+  displayWeightUnit: WeightUnit
 ): Promise<ProgressSeries> {
   const metric = metricForCategory(category);
-  const { valueByDate } = await fetchValueByDate(userId, category, startDate, endDate);
+  const { valueByDate } = await fetchValueByDate(
+    userId,
+    category,
+    startDate,
+    endDate,
+    displayWeightUnit
+  );
   const bucketing = bucketingFor(startDate, endDate);
 
   const allDates: string[] = [];

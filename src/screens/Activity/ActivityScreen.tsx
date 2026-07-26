@@ -65,13 +65,15 @@ export function ActivityScreen() {
           ? { start: addDays(today, -89), end: today }
           : { start: addDays(today, -6), end: today };
 
+  const units = useProfileStore((s) => s.preferences.units);
+
   const {
     points,
     bucketing,
     metric,
     loading: seriesLoading,
     error: seriesError,
-  } = useProgressSeries(activeCategory, start, end);
+  } = useProgressSeries(activeCategory, start, end, units);
 
   const {
     currentStreakDays,
@@ -79,9 +81,8 @@ export function ActivityScreen() {
     totalVolumeThisWeek,
     loading: summaryLoading,
     error: summaryError,
-  } = useActivityAnalytics(activeCategory);
+  } = useActivityAnalytics(activeCategory, units);
 
-  const units = useProfileStore((s) => s.preferences.units);
   const isMinutes = metric === 'minutes';
   const [chartWidth, setChartWidth] = useState(0);
 

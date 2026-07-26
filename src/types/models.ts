@@ -2,6 +2,9 @@ export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'cardio' | string;
 
 export type ExerciseType = 'strength' | 'cardio';
 
+export type WeightUnit = 'lb' | 'kg';
+export type DistanceUnit = 'mi' | 'km';
+
 export interface Exercise {
   id: string;
   name: string;

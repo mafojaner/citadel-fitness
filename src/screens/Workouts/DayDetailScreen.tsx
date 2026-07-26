@@ -54,7 +54,7 @@ export function DayDetailScreen() {
 
   const onEdit = () => {
     if (!exercises || exercises.length === 0) return;
-    loadDraftFromExisting(route.params.date, exercises);
+    loadDraftFromExisting(route.params.date, exercises, units, distanceUnit);
     navigation.navigate('AddWorkout');
   };
 
@@ -147,13 +147,16 @@ export function DayDetailScreen() {
                         <>
                           <StatChip icon="time-outline" value={`${set.durationMinutes} min`} />
                           {set.distance ? (
-                            <StatChip icon="navigate-outline" value={`${set.distance} ${distanceUnit}`} />
+                            <StatChip
+                              icon="navigate-outline"
+                              value={`${set.distance} ${set.distanceUnit}`}
+                            />
                           ) : null}
                         </>
                       ) : (
                         <>
                           <StatChip icon="repeat-outline" value={`${set.reps} reps`} />
-                          <StatChip icon="barbell-outline" value={`${set.weight} ${units}`} />
+                          <StatChip icon="barbell-outline" value={`${set.weight} ${set.weightUnit}`} />
                         </>
                       )}
                     </View>
