@@ -1,6 +1,7 @@
 /**
- * TODO: replace with the real hosted URL once legal/privacy-policy.html is
- * published (e.g. via GitHub Pages) and its placeholders are filled in.
- * example.com is intentional — it can't be mistaken for a real live page.
+ * Served by GitHub Pages from docs/index.html on this repo's main branch.
+ * Live only once Pages is enabled in the repo's Settings — see that file's
+ * own "Before you publish this" notice for what still needs filling in
+ * (contact email, developer name) before this is real.
  */
-export const PRIVACY_POLICY_URL = 'https://example.com/citadel-fitness-privacy-policy';
+export const PRIVACY_POLICY_URL = 'https://mafojaner.github.io/citadel-fitness/';

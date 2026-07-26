@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Privacy Policy — Citadel Fitness</title>
 <meta name="description" content="Privacy Policy for the Citadel Fitness app: what we collect, why, and how to delete your account." />
 <style>
@@ -33,37 +38,8 @@
     }
   }
 
-  :root[data-theme="dark"] {
-    --paper: #0B0E14;
-    --ink: #F4F5F7;
-    --surface: #151A24;
-    --surface-raised: #1B212E;
-    --border: #262E3D;
-    --ember: #FF7A57;
-    --ember-soft: #2A180F;
-    --slate: #B7BECC;
-    --mist: #7C879A;
-    --flag: #E8B457;
-    --flag-soft: #2A2110;
-    --flag-border: #4A3A17;
-  }
-
-  :root[data-theme="light"] {
-    --paper: #F5F6F8;
-    --ink: #0B0E14;
-    --surface: #FFFFFF;
-    --surface-raised: #FFFFFF;
-    --border: #E2E5EC;
-    --ember: #FF5A36;
-    --ember-soft: #FFE8E1;
-    --slate: #4A5468;
-    --mist: #8A93A6;
-    --flag: #A5680C;
-    --flag-soft: #FBEFDA;
-    --flag-border: #E7C688;
-  }
-
   * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
 
   body {
     background: var(--paper);
@@ -90,15 +66,6 @@
     grid-template-columns: 220px minmax(0, 680px);
     gap: 64px;
     align-items: start;
-  }
-
-  @media (max-width: 860px) {
-    .page {
-      grid-template-columns: minmax(0, 1fr);
-      padding: 32px 20px 72px;
-      gap: 32px;
-    }
-    .toc { display: none; }
   }
 
   /* ---------- Header ---------- */
@@ -344,7 +311,31 @@
   @media (prefers-reduced-motion: no-preference) {
     html { scroll-behavior: smooth; }
   }
+
+  /* ---------- Mobile layout ----------
+     Deliberately last in the stylesheet: every selector below ties in
+     specificity with the base rule it overrides (.page, nav.toc,
+     header.doc-head, .tldr, main, footer.doc-foot are each matched by an
+     equal-specificity base rule earlier in this file), so cascade order is
+     what decides the winner. Placed anywhere earlier, the later base rules
+     would win regardless of whether this media query matches. */
+  @media (max-width: 860px) {
+    .page {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 32px 20px 72px;
+      gap: 32px;
+    }
+    nav.toc { display: none; }
+    header.doc-head,
+    .tldr,
+    main,
+    footer.doc-foot {
+      grid-column: 1;
+    }
+  }
 </style>
+</head>
+<body>
 
 <div class="page">
 
@@ -555,3 +546,6 @@
   </footer>
 
 </div>
+
+</body>
+</html>
