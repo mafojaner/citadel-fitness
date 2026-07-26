@@ -10,6 +10,7 @@ export interface Exercise {
   name: string;
   category: Category;
   type: ExerciseType;
+  description: string | null;
 }
 
 export interface SetEntry {

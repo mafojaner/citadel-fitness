@@ -11,7 +11,7 @@ import type {
 export async function fetchExercises(): Promise<Exercise[]> {
   const { data, error } = await supabase
     .from('exercises')
-    .select('id, name, category, type')
+    .select('id, name, category, type, description')
     .order('category')
     .order('name');
 

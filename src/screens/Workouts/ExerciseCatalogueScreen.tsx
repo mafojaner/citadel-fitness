@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
@@ -18,7 +18,7 @@ import {
 import { useExercises } from '../../hooks/useExercises';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
-import type { Category } from '../../types/models';
+import type { Category, Exercise } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
 export function ExerciseCatalogueScreen() {
@@ -31,6 +31,7 @@ export function ExerciseCatalogueScreen() {
     route.params?.initialCategory ?? 'all'
   );
   const [query, setQuery] = useState('');
+  const [infoExercise, setInfoExercise] = useState<Exercise | null>(null);
 
   const isSearching = query.trim().length > 0;
   const showCategoryGrid = !isSearching && activeCategory === 'all';
@@ -146,6 +147,14 @@ export function ExerciseCatalogueScreen() {
                       {exercise.category}
                     </Text>
                   </View>
+                  <Pressable
+                    onPress={() => setInfoExercise(exercise)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`About ${exercise.name}`}
+                  >
+                    <Ionicons name="information-circle-outline" size={24} color={colors.textMuted} />
+                  </Pressable>
                   <Ionicons name="add-circle" size={26} color={colors.primary} />
                 </View>
               </Card>
@@ -153,6 +162,62 @@ export function ExerciseCatalogueScreen() {
           ))}
         </View>
       )}
+
+      <Modal
+        visible={!!infoExercise}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoExercise(null)}
+      >
+        <Pressable
+          onPress={() => setInfoExercise(null)}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            padding: spacing.lg,
+          }}
+        >
+          <Pressable onPress={() => {}}>
+            <Card>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <GradientIconBadge
+                  icon={
+                    infoExercise
+                      ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
+                      : DEFAULT_CATEGORY_ICON
+                  }
+                  colors={
+                    infoExercise
+                      ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
+                      : DEFAULT_CATEGORY_GRADIENT
+                  }
+                  size={40}
+                />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                    {infoExercise?.name}
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                    {infoExercise?.category}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setInfoExercise(null)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                >
+                  <Ionicons name="close" size={22} color={colors.textMuted} />
+                </Pressable>
+              </View>
+              <Text style={[typography.body, { color: colors.textSecondary }]}>
+                {infoExercise?.description ?? 'No description yet for this exercise.'}
+              </Text>
+            </Card>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenContainer>
   );
 }
