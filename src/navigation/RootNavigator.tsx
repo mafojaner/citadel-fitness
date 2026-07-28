@@ -1,10 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, View } from 'react-native';
 import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
 import { useArticleNotifications } from '../hooks/useArticleNotifications';
-import { supabase } from '../lib/supabase';
+import { parseRecoveryTokensFromUrl, supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
@@ -47,6 +47,34 @@ export function RootNavigator() {
       }
     });
     return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Web relies on Supabase's own detectSessionInUrl to notice a recovery
+  // link and fire PASSWORD_RECOVERY above. Native has no browser location
+  // for that to inspect — the OS just hands the citadelfitness:// URL to
+  // the app directly — so the tokens have to be pulled out and applied by
+  // hand here, for both a cold start (tapped from Mail) and a warm one
+  // (app already running in the background).
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    const handleUrl = async (url: string | null) => {
+      if (!url) return;
+      const tokens = parseRecoveryTokensFromUrl(url);
+      if (!tokens) return;
+      // Set before setSession so the SIGNED_IN event it fires lands on a
+      // screen already committed to showing the reset form, rather than
+      // racing into MainTabs first.
+      setPasswordRecovery(true);
+      await supabase.auth.setSession({
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+      });
+    };
+
+    Linking.getInitialURL().then(handleUrl);
+    const subscription = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+    return () => subscription.remove();
   }, []);
 
   if (passwordRecovery) {

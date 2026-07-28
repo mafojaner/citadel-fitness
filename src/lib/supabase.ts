@@ -29,3 +29,30 @@ export function getPasswordResetRedirectUrl(): string {
   }
   return 'citadelfitness://reset-password';
 }
+
+export interface RecoveryTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
+/**
+ * On web, `detectSessionInUrl` parses the recovery link's tokens for us.
+ * On native there's no browser location to detect — the OS just opens the
+ * app via the `citadelfitness://` scheme with the same tokens Supabase's
+ * implicit auth flow appends after a `#`, so this pulls them out by hand.
+ */
+export function parseRecoveryTokensFromUrl(url: string): RecoveryTokens | null {
+  const hashIndex = url.indexOf('#');
+  const queryIndex = url.indexOf('?');
+  const paramsString = hashIndex >= 0 ? url.slice(hashIndex + 1) : queryIndex >= 0 ? url.slice(queryIndex + 1) : '';
+  if (!paramsString) return null;
+
+  const params = new URLSearchParams(paramsString);
+  if (params.get('type') !== 'recovery') return null;
+
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken) return null;
+
+  return { accessToken, refreshToken };
+}
