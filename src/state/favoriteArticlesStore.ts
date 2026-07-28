@@ -11,34 +11,54 @@ interface FavoriteArticlesState {
   loaded: boolean;
   loading: boolean;
   error: string | null;
+  /**
+   * Whichever user's data this store should currently reflect. Not read by
+   * any screen — purely internal bookkeeping so a slow response for a
+   * previous account can recognize it's stale. See the comment on `load`.
+   */
+  activeUserId: string | null;
   load: (userId: string) => Promise<void>;
   toggle: (userId: string, articleId: string) => Promise<void>;
   reset: () => void;
 }
+
+const INITIAL = {
+  ids: new Set<string>(),
+  pending: new Set<string>(),
+  loaded: false,
+  loading: false,
+  error: null,
+  activeUserId: null,
+};
 
 /**
  * Shared across NewsletterScreen and ArticleDetailScreen so favoriting from
  * either place stays in sync without prop drilling — same pattern as
  * profileStore. Loaded once per session; toggle is optimistic and reverts
  * on failure so a flaky request doesn't leave the UI lying about state.
+ *
+ * Every commit inside `load` is gated on `activeUserId` still matching
+ * `userId`, and `reset()` (called on sign-out) clears `activeUserId` —
+ * without that, signing out and into a different account while this fetch
+ * is still in flight could let account A's stale response land after
+ * account B's session has started, silently showing A's favorited
+ * articles while signed in as B.
  */
 export const useFavoriteArticlesStore = create<FavoriteArticlesState>((set, get) => ({
-  ids: new Set(),
-  pending: new Set(),
-  loaded: false,
-  loading: false,
-  error: null,
+  ...INITIAL,
 
   load: async (userId) => {
     if (get().loaded || get().loading) return;
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, activeUserId: userId });
     try {
       const ids = await fetchFavoriteArticleIds(userId);
+      if (get().activeUserId !== userId) return;
       set({ ids: new Set(ids), loaded: true });
     } catch (err) {
+      if (get().activeUserId !== userId) return;
       set({ error: err instanceof Error ? err.message : 'Failed to load favorites' });
     } finally {
-      set({ loading: false });
+      if (get().activeUserId === userId) set({ loading: false });
     }
   },
 
@@ -73,5 +93,5 @@ export const useFavoriteArticlesStore = create<FavoriteArticlesState>((set, get)
     }
   },
 
-  reset: () => set({ ids: new Set(), pending: new Set(), loaded: false, loading: false, error: null }),
+  reset: () => set(INITIAL),
 }));

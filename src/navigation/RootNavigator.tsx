@@ -6,6 +6,7 @@ import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
 import { useArticleNotifications } from '../hooks/useArticleNotifications';
 import { parseRecoveryTokensFromUrl, supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
+import { useFavoriteArticlesStore } from '../state/favoriteArticlesStore';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
 import { MainTabs } from './MainTabs';
@@ -25,6 +26,7 @@ export function RootNavigator() {
   const isInitializing = useAuthStore((s) => s.isInitializing);
   const loadProfile = useProfileStore((s) => s.load);
   const resetProfile = useProfileStore((s) => s.reset);
+  const resetFavoriteArticles = useFavoriteArticlesStore((s) => s.reset);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const profileLoaded = useProfileStore((s) => s.loaded);
 
@@ -36,9 +38,14 @@ export function RootNavigator() {
     if (session?.user.id) {
       loadProfile(session.user.id);
     } else {
+      // Also clears favoriteArticlesStore, not just the profile — without
+      // this, signing out never reset its `loaded` flag, so the next
+      // account to sign in on this device would see the previous account's
+      // favorited articles instead of ever fetching its own.
       resetProfile();
+      resetFavoriteArticles();
     }
-  }, [session?.user.id, loadProfile, resetProfile]);
+  }, [session?.user.id, loadProfile, resetProfile, resetFavoriteArticles]);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
