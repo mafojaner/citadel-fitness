@@ -41,7 +41,11 @@ export interface RecoveryTokens {
  * app via the `citadelfitness://` scheme with the same tokens Supabase's
  * implicit auth flow appends after a `#`, so this pulls them out by hand.
  */
-export function parseRecoveryTokensFromUrl(url: string): RecoveryTokens | null {
+export function parseRecoveryTokensFromUrl(url: string | null | undefined): RecoveryTokens | null {
+  // Defensive at its own boundary rather than trusting every caller to
+  // check first — this exists specifically to handle untrusted external
+  // input (an OS-delivered deep link), so it should never throw on it.
+  if (!url) return null;
   const hashIndex = url.indexOf('#');
   const queryIndex = url.indexOf('?');
   const paramsString = hashIndex >= 0 ? url.slice(hashIndex + 1) : queryIndex >= 0 ? url.slice(queryIndex + 1) : '';
