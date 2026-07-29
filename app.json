@@ -34,6 +34,19 @@
           "cameraPermission": false,
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/android-icon-foreground.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#F5F6F8",
+          "dark": {
+            "image": "./assets/android-icon-foreground.png",
+            "backgroundColor": "#0B0E14"
+          }
+        }
       ]
     ]
   }
