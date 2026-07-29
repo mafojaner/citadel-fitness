@@ -246,7 +246,7 @@ export function WorkoutsScreen() {
             <ActivityIndicator color={colors.primary} />
           ) : error ? (
             <Text style={[typography.body, { color: colors.danger }]}>
-              Couldn't load this day.
+              Couldn&apos;t load this day.
             </Text>
           ) : summary.length === 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

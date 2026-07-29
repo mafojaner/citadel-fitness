@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import { fetchExercises } from '../lib/workouts';
 import type { Exercise } from '../types/models';
 
@@ -7,7 +8,7 @@ export function useExercises() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false;
     setLoading(true);
     fetchExercises()
@@ -24,6 +25,8 @@ export function useExercises() {
       cancelled = true;
     };
   }, []);
+
+  useFocusEffect(load);
 
   return { exercises, loading, error };
 }

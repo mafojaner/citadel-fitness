@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 
 export function ChangePasswordScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, radius } = useTheme();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export function ChangePasswordScreen() {
             color: colors.textPrimary,
           }}
         />
-        {mismatch ? <Text style={{ color: colors.danger }}>Passwords don't match</Text> : null}
+        {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
         {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
         {saved ? <Text style={{ color: colors.success }}>Password updated</Text> : null}
         <GradientButton

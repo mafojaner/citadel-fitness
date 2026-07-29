@@ -77,7 +77,7 @@ export function AddWorkoutScreen() {
       {draftExercises.length === 0 ? (
         <Card>
           <Text style={[typography.body, { color: colors.textSecondary }]}>
-            No exercises added yet. Tap "+ Add exercise" to pick a movement from the catalogue.
+            No exercises added yet. Tap &quot;+ Add exercise&quot; to pick a movement from the catalogue.
           </Text>
         </Card>
       ) : (

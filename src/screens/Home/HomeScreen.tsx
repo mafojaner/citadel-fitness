@@ -109,7 +109,7 @@ export function HomeScreen() {
         searchResults.length === 0 ? (
           <Card>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No exercises match "{query.trim()}".
+              No exercises match &quot;{query.trim()}&quot;.
             </Text>
           </Card>
         ) : (
@@ -155,7 +155,7 @@ export function HomeScreen() {
                 <ActivityIndicator color={colors.primary} />
               ) : activityError ? (
                 <Text style={[typography.caption, { color: colors.danger }]}>
-                  Couldn't load your activity.
+                  Couldn&apos;t load your activity.
                 </Text>
               ) : currentStreakDays === 0 && workoutsThisWeek === 0 ? (
                 <Text style={[typography.caption, { color: colors.textSecondary }]}>
@@ -197,7 +197,7 @@ export function HomeScreen() {
             <ErrorNotice message={recentError} />
           ) : recentWorkouts.length === 0 ? (
             <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No workouts logged yet. Tap "Log workout" to get started.
+              No workouts logged yet. Tap &quot;Log workout&quot; to get started.
             </Text>
           ) : (
             <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>

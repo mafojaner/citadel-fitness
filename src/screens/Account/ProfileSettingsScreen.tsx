@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
@@ -17,21 +17,21 @@ export function ProfileSettingsScreen() {
   const userId = useAuthStore((s) => s.session?.user.id);
   const email = useAuthStore((s) => s.session?.user.email);
   const storedName = useProfileStore((s) => s.name);
-  const loaded = useProfileStore((s) => s.loaded);
   const saveName = useProfileStore((s) => s.saveName);
   const avatarUrl = useProfileStore((s) => s.avatarUrl);
   const setAvatarUrl = useProfileStore((s) => s.setAvatarUrl);
 
-  const [name, setName] = useState(storedName);
+  // Rather than copying storedName into local state via an effect once the
+  // profile loads (which could clobber in-progress typing if storedName
+  // changed again later), track only what the user has actually typed and
+  // fall back to the store's value until they do.
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const name = nameOverride ?? storedName;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (loaded) setName(storedName);
-  }, [loaded, storedName]);
 
   const initial = (name || email || '?')[0]?.toUpperCase();
   const dirty = name.trim() !== storedName && name.trim().length > 0;
@@ -153,7 +153,7 @@ export function ProfileSettingsScreen() {
         <TextInput
           value={name}
           onChangeText={(t) => {
-            setName(t);
+            setNameOverride(t);
             setSaved(false);
           }}
           placeholder="Your name"

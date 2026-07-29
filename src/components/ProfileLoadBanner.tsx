@@ -35,7 +35,7 @@ export function ProfileLoadBanner() {
     >
       <Ionicons name="alert-circle-outline" size={20} color={colors.danger} />
       <Text style={[typography.caption, { color: colors.danger, flex: 1, minWidth: 0 }]}>
-        Couldn't load your settings — units may be shown incorrectly.
+        Couldn&apos;t load your settings — units may be shown incorrectly.
       </Text>
       <Pressable
         onPress={() => userId && load(userId)}

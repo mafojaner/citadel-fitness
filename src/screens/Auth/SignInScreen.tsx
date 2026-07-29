@@ -83,7 +83,7 @@ export function SignInScreen() {
 
       <Pressable onPress={() => navigation.navigate('SignUp')}>
         <Text style={{ color: colors.primary, textAlign: 'center' }}>
-          Don't have an account? Sign up
+          Don&apos;t have an account? Sign up
         </Text>
       </Pressable>
     </View>

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import { fetchArticles } from '../lib/articles';
 import type { Article } from '../types/models';
 
@@ -29,7 +30,7 @@ export function useArticles() {
     };
   }, []);
 
-  useEffect(() => load(), [load]);
+  useFocusEffect(load);
 
   return { articles, loading, error, reload: load };
 }

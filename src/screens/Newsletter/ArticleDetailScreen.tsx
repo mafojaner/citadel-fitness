@@ -1,5 +1,5 @@
 import type { RouteProp } from '@react-navigation/native';
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
@@ -80,7 +80,7 @@ export function ArticleDetailScreen() {
     };
   }, [route.params.articleId]);
 
-  useEffect(() => load(), [load]);
+  useFocusEffect(load);
 
   if (loading) {
     return (

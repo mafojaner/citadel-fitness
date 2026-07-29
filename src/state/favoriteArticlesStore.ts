@@ -67,7 +67,11 @@ export const useFavoriteArticlesStore = create<FavoriteArticlesState>((set, get)
 
     const wasFavorited = get().ids.has(articleId);
     const nextIds = new Set(get().ids);
-    wasFavorited ? nextIds.delete(articleId) : nextIds.add(articleId);
+    if (wasFavorited) {
+      nextIds.delete(articleId);
+    } else {
+      nextIds.add(articleId);
+    }
     set((state) => ({ ids: nextIds, pending: new Set(state.pending).add(articleId) }));
 
     try {
@@ -79,7 +83,11 @@ export const useFavoriteArticlesStore = create<FavoriteArticlesState>((set, get)
     } catch (err) {
       // Revert the optimistic change; leave other favorites untouched.
       const revertedIds = new Set(get().ids);
-      wasFavorited ? revertedIds.add(articleId) : revertedIds.delete(articleId);
+      if (wasFavorited) {
+        revertedIds.add(articleId);
+      } else {
+        revertedIds.delete(articleId);
+      }
       set({
         ids: revertedIds,
         error: err instanceof Error ? err.message : 'Failed to update favorite',

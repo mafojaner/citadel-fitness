@@ -148,7 +148,7 @@ export function NewsletterScreen() {
         searchResults.length === 0 ? (
           <Card>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No newsletters match "{query.trim()}".
+              No newsletters match &quot;{query.trim()}&quot;.
             </Text>
           </Card>
         ) : (

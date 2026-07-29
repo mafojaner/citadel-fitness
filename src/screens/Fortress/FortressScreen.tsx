@@ -166,7 +166,7 @@ export function FortressScreen() {
         </View>
         <GradientButton label="Start free trial" colors={gradients.identity} onPress={onUpgrade} />
         <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
-          Cancel anytime. Fortress isn't live yet — starting a trial just gets you notified at launch.
+          Cancel anytime. Fortress isn&apos;t live yet — starting a trial just gets you notified at launch.
         </Text>
       </Card>
 

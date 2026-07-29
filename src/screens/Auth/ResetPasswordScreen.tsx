@@ -78,7 +78,7 @@ export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
         }}
       />
 
-      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don't match</Text> : null}
+      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 
       <GradientButton

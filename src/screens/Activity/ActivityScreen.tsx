@@ -476,8 +476,8 @@ export function ActivityScreen() {
       </Card>
 
       <Text style={[typography.caption, { color: colors.textMuted }]}>
-        Rewards track your consistency now. Redeeming 10% off a premium membership isn't live yet —
-        we'll let you know here as soon as it is.
+        Rewards track your consistency now. Redeeming 10% off a premium membership isn&apos;t live yet —
+        we&apos;ll let you know here as soon as it is.
       </Text>
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
