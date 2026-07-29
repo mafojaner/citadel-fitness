@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
@@ -114,25 +115,14 @@ export function ExerciseCatalogueScreen() {
             ) : showCategoryGrid ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
                 {categoryCards.map((c) => (
-                  <Pressable
+                  <CategoryGridCard
                     key={c.value}
+                    icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
+                    gradientColors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    label={c.label}
+                    count={c.count}
                     onPress={() => setActiveCategory(c.value)}
-                    style={{ width: '47%' }}
-                  >
-                    <Card>
-                      <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-                        <GradientIconBadge
-                          icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
-                          colors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
-                          size={40}
-                        />
-                        <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
-                        <Text style={[typography.caption, { color: colors.textMuted }]}>
-                          {c.count} exercise{c.count === 1 ? '' : 's'}
-                        </Text>
-                      </View>
-                    </Card>
-                  </Pressable>
+                  />
                 ))}
               </View>
             ) : null}

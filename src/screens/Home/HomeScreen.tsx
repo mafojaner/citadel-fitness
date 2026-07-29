@@ -6,6 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
+import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
@@ -282,26 +283,14 @@ export function HomeScreen() {
         {CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => {
           const category = c.value as Category;
           return (
-            <Pressable
+            <CategoryGridCard
               key={c.value}
+              icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+              gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
+              label={c.label}
+              count={categoryCounts.get(category) ?? 0}
               onPress={() => onSelectCategory(category)}
-              style={{ width: '47%' }}
-            >
-              <Card>
-                <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                    colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
-                    size={40}
-                  />
-                  <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
-                  <Text style={[typography.caption, { color: colors.textMuted }]}>
-                    {categoryCounts.get(category) ?? 0} exercise
-                    {(categoryCounts.get(category) ?? 0) === 1 ? '' : 's'}
-                  </Text>
-                </View>
-              </Card>
-            </Pressable>
+            />
           );
         })}
       </View>
