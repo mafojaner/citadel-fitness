@@ -3,11 +3,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
-import { ScreenContainer } from '../../components/ScreenContainer';
+import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import {
   CATEGORY_FILTERS,
   CATEGORY_GRADIENTS,
@@ -55,7 +55,7 @@ export function ExerciseCatalogueScreen() {
     });
   }, [exercises, activeCategory, query]);
 
-  const onSelect = (exercise: (typeof exercises)[number]) => {
+  const onSelect = (exercise: Exercise) => {
     addExercise(exercise);
     if (route.params?.standalone) {
       navigation.replace('AddWorkout');
@@ -64,109 +64,125 @@ export function ExerciseCatalogueScreen() {
     }
   };
 
+  // Only the filtered exercise list (up to ~90 rows with icons) needs
+  // virtualizing — the category grid is a handful of fixed tiles, so it
+  // renders as ordinary header content rather than FlatList data.
+  const listData = loading || error || showCategoryGrid ? [] : filtered;
+
   return (
-    <ScreenContainer>
-      <TextInput
-        placeholder="Search exercises"
-        placeholderTextColor={colors.textMuted}
-        value={query}
-        onChangeText={setQuery}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlatList
+        data={listData}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: spacing.md, flexGrow: 1 }}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+        ListHeaderComponent={
+          <View style={{ gap: spacing.md, marginBottom: listData.length > 0 ? spacing.md : 0 }}>
+            <ProfileLoadBanner />
+            <TextInput
+              placeholder="Search exercises"
+              placeholderTextColor={colors.textMuted}
+              value={query}
+              onChangeText={setQuery}
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: radius.md,
+                padding: spacing.md,
+                color: colors.textPrimary,
+              }}
+            />
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {CATEGORY_FILTERS.map((c) => (
-          <GradientPill
-            key={c.value}
-            label={c.label}
-            active={c.value === activeCategory}
-            onPress={() => setActiveCategory(c.value)}
-          />
-        ))}
-      </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+              {CATEGORY_FILTERS.map((c) => (
+                <GradientPill
+                  key={c.value}
+                  label={c.label}
+                  active={c.value === activeCategory}
+                  onPress={() => setActiveCategory(c.value)}
+                />
+              ))}
+            </View>
 
-      {loading ? (
-        <ActivityIndicator color={colors.primary} />
-      ) : error ? (
-        <Card>
-          <Text style={{ color: colors.danger }}>{error}</Text>
-        </Card>
-      ) : showCategoryGrid ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-          {categoryCards.map((c) => (
-            <Pressable
-              key={c.value}
-              onPress={() => setActiveCategory(c.value)}
-              style={{ width: '47%' }}
-            >
+            {loading ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : error ? (
               <Card>
-                <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
-                    colors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
-                    size={40}
-                  />
-                  <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
+                <Text style={{ color: colors.danger }}>{error}</Text>
+              </Card>
+            ) : showCategoryGrid ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+                {categoryCards.map((c) => (
+                  <Pressable
+                    key={c.value}
+                    onPress={() => setActiveCategory(c.value)}
+                    style={{ width: '47%' }}
+                  >
+                    <Card>
+                      <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
+                        <GradientIconBadge
+                          icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
+                          colors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
+                          size={40}
+                        />
+                        <Text style={[typography.heading, { color: colors.textPrimary }]}>{c.label}</Text>
+                        <Text style={[typography.caption, { color: colors.textMuted }]}>
+                          {c.count} exercise{c.count === 1 ? '' : 's'}
+                        </Text>
+                      </View>
+                    </Card>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        }
+        ListEmptyComponent={
+          !loading && !error && !showCategoryGrid ? (
+            <Card>
+              <Text style={[typography.body, { color: colors.textSecondary }]}>
+                No exercises match your search.
+              </Text>
+            </Card>
+          ) : null
+        }
+        renderItem={({ item: exercise }) => (
+          <Pressable onPress={() => onSelect(exercise)}>
+            <Card>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <GradientIconBadge
+                  icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
+                  colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
+                  size={36}
+                />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                    {exercise.name}
+                  </Text>
                   <Text style={[typography.caption, { color: colors.textMuted }]}>
-                    {c.count} exercise{c.count === 1 ? '' : 's'}
+                    {exercise.category}
                   </Text>
                 </View>
-              </Card>
-            </Pressable>
-          ))}
-        </View>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <Text style={[typography.body, { color: colors.textSecondary }]}>
-            No exercises match your search.
-          </Text>
-        </Card>
-      ) : (
-        <View style={{ gap: spacing.sm }}>
-          {filtered.map((exercise) => (
-            <Pressable key={exercise.id} onPress={() => onSelect(exercise)}>
-              <Card>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-                    colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                    size={36}
+                <Pressable
+                  onPress={() => setInfoExercise(exercise)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`About ${exercise.name}`}
+                >
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={24}
+                    color={colors.textMuted}
+                    style={{ opacity: 0.55 }}
                   />
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                      {exercise.name}
-                    </Text>
-                    <Text style={[typography.caption, { color: colors.textMuted }]}>
-                      {exercise.category}
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => setInfoExercise(exercise)}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel={`About ${exercise.name}`}
-                  >
-                    <Ionicons
-                      name="information-circle-outline"
-                      size={24}
-                      color={colors.textMuted}
-                      style={{ opacity: 0.55 }}
-                    />
-                  </Pressable>
-                  <Ionicons name="add-circle" size={26} color={colors.primary} />
-                </View>
-              </Card>
-            </Pressable>
-          ))}
-        </View>
-      )}
+                </Pressable>
+                <Ionicons name="add-circle" size={26} color={colors.primary} />
+              </View>
+            </Card>
+          </Pressable>
+        )}
+      />
 
       <Modal
         visible={!!infoExercise}
@@ -223,6 +239,6 @@ export function ExerciseCatalogueScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </ScreenContainer>
+    </View>
   );
 }
