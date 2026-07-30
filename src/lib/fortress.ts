@@ -3,15 +3,17 @@ import { supabase } from './supabase';
 /** Postgres unique-violation code — a double-submit racing past the client-side guard. */
 const UNIQUE_VIOLATION = '23505';
 
-export async function fetchFortressWaitlistStatus(userId: string): Promise<boolean> {
+export async function fetchFortressWaitlistStatus(
+  userId: string,
+): Promise<{ joined: boolean; email: string | undefined }> {
   const { data, error } = await supabase
     .from('fortress_waitlist')
-    .select('user_id')
+    .select('email')
     .eq('user_id', userId)
     .maybeSingle();
 
   if (error) throw error;
-  return !!data;
+  return { joined: !!data, email: data?.email };
 }
 
 export async function joinFortressWaitlist(userId: string, email: string): Promise<void> {

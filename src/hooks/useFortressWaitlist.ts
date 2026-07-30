@@ -5,8 +5,9 @@ import { useAuthStore } from '../state/authStore';
 
 export function useFortressWaitlist() {
   const userId = useAuthStore((s) => s.session?.user.id);
-  const email = useAuthStore((s) => s.session?.user.email);
+  const accountEmail = useAuthStore((s) => s.session?.user.email);
   const [joined, setJoined] = useState(false);
+  const [joinedEmail, setJoinedEmail] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +19,10 @@ export function useFortressWaitlist() {
     setError(null);
     fetchFortressWaitlistStatus(userId)
       .then((result) => {
-        if (!cancelled) setJoined(result);
+        if (!cancelled) {
+          setJoined(result.joined);
+          setJoinedEmail(result.email);
+        }
       })
       .catch((err) => {
         if (!cancelled) {
@@ -35,19 +39,23 @@ export function useFortressWaitlist() {
 
   useFocusEffect(load);
 
-  const join = useCallback(async () => {
-    if (!userId || !email || joined || joining) return;
-    setJoining(true);
-    setError(null);
-    try {
-      await joinFortressWaitlist(userId, email);
-      setJoined(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join the waitlist');
-    } finally {
-      setJoining(false);
-    }
-  }, [userId, email, joined, joining]);
+  const join = useCallback(
+    async (submittedEmail: string) => {
+      if (!userId || !submittedEmail || joined || joining) return;
+      setJoining(true);
+      setError(null);
+      try {
+        await joinFortressWaitlist(userId, submittedEmail);
+        setJoined(true);
+        setJoinedEmail(submittedEmail);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to join the waitlist');
+      } finally {
+        setJoining(false);
+      }
+    },
+    [userId, joined, joining],
+  );
 
-  return { email, joined, loading, joining, error, join };
+  return { accountEmail, joined, joinedEmail, loading, joining, error, join };
 }

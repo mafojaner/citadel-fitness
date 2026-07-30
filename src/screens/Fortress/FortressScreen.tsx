@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
@@ -112,17 +113,28 @@ function ComparisonMark({
 }
 
 interface WaitlistActionProps {
-  email: string | undefined;
+  accountEmail: string | undefined;
   joined: boolean;
+  joinedEmail: string | undefined;
   loading: boolean;
   joining: boolean;
   error: string | null;
-  onJoin: () => void;
+  onJoin: (email: string) => void;
 }
 
 /** The join-the-waitlist control, shared by the top card and the closing CTA. */
-function WaitlistAction({ email, joined, loading, joining, error, onJoin }: WaitlistActionProps) {
-  const { colors, spacing, typography } = useTheme();
+function WaitlistAction({
+  accountEmail,
+  joined,
+  joinedEmail,
+  loading,
+  joining,
+  error,
+  onJoin,
+}: WaitlistActionProps) {
+  const { colors, spacing, radius, typography } = useTheme();
+  const [showForm, setShowForm] = useState(false);
+  const [emailInput, setEmailInput] = useState(accountEmail ?? '');
 
   if (loading) {
     return <ActivityIndicator color={colors.primary} />;
@@ -133,20 +145,45 @@ function WaitlistAction({ email, joined, loading, joining, error, onJoin }: Wait
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
         <Ionicons name="checkmark-circle" size={22} color={colors.success} />
         <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary }]}>
-          You&apos;re on the list — we&apos;ll email {email ?? 'you'} the moment Fortress launches.
+          You&apos;re on the list — we&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment
+          Fortress launches.
         </Text>
       </View>
     );
   }
 
+  if (!showForm) {
+    return <GradientButton label="Join the waitlist" colors={gradients.identity} onPress={() => setShowForm(true)} />;
+  }
+
+  const trimmedEmail = emailInput.trim();
+
   return (
     <View style={{ gap: spacing.sm }}>
-      {error ? <ErrorNotice message={error} onRetry={onJoin} /> : null}
+      <TextInput
+        placeholder="Email address"
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={emailInput}
+        onChangeText={setEmailInput}
+        editable={!joining}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
+      />
+      {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail)} /> : null}
       <GradientButton
-        label={joining ? 'Signing up...' : `Notify me at ${email ?? 'my email'}`}
+        label={joining ? 'Signing up...' : 'Notify me'}
         colors={gradients.identity}
         loading={joining}
-        onPress={onJoin}
+        disabled={!trimmedEmail}
+        onPress={() => onJoin(trimmedEmail)}
       />
     </View>
   );
@@ -154,7 +191,7 @@ function WaitlistAction({ email, joined, loading, joining, error, onJoin }: Wait
 
 export function FortressScreen() {
   const { colors, spacing, radius, typography } = useTheme();
-  const { email, joined, loading, joining, error, join } = useFortressWaitlist();
+  const { accountEmail, joined, joinedEmail, loading, joining, error, join } = useFortressWaitlist();
 
   return (
     <ScreenContainer>
@@ -182,32 +219,17 @@ export function FortressScreen() {
           <MaterialCommunityIcons name="chess-rook" size={34} color="#FFFFFF" />
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>Fortress</Text>
-        <View
-          style={{
-            backgroundColor: 'rgba(0,0,0,0.25)',
-            paddingHorizontal: spacing.sm,
-            paddingVertical: 4,
-            borderRadius: radius.pill,
-          }}
-        >
-          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11, letterSpacing: 0.4 }}>
-            IN DEVELOPMENT — NOT YET AVAILABLE
-          </Text>
-        </View>
         <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textAlign: 'center' }}>
           Everything Citadel Fitness can be — training intelligence, coaching, and rewards, all in one
-          membership. We&apos;re still building it.
+          membership.
         </Text>
       </LinearGradient>
 
-      <Card title="Get notified at launch">
-        <Text style={[typography.caption, { color: colors.textMuted }]}>
-          Fortress isn&apos;t live yet and nothing is billed today — sign up and we&apos;ll email your
-          account address the moment it&apos;s ready.
-        </Text>
+      <Card title="Reserve your spot">
         <WaitlistAction
-          email={email}
+          accountEmail={accountEmail}
           joined={joined}
+          joinedEmail={joinedEmail}
           loading={loading}
           joining={joining}
           error={error}
@@ -278,8 +300,9 @@ export function FortressScreen() {
       </Card>
 
       <WaitlistAction
-        email={email}
+        accountEmail={accountEmail}
         joined={joined}
+        joinedEmail={joinedEmail}
         loading={loading}
         joining={joining}
         error={error}
