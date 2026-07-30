@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Text, TextInput } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
+import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 
@@ -14,8 +16,9 @@ export function ChangePasswordScreen() {
   const [saved, setSaved] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const passwordInvalid = password.length > 0 && !isPasswordValid(password);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
-  const canSubmit = password.length >= 6 && password === confirmPassword;
+  const canSubmit = isPasswordValid(password) && password === confirmPassword;
 
   const onSubmit = async () => {
     if (!canSubmit) return;
@@ -47,13 +50,14 @@ export function ChangePasswordScreen() {
           }}
           style={{
             backgroundColor: colors.background,
-            borderColor: colors.border,
+            borderColor: passwordInvalid ? colors.danger : colors.border,
             borderWidth: 1,
             borderRadius: radius.md,
             padding: spacing.md,
             color: colors.textPrimary,
           }}
         />
+        {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
         <TextInput
           placeholder="Confirm new password"
           placeholderTextColor={colors.textMuted}

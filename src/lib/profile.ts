@@ -7,6 +7,8 @@ export interface ProfilePreferences {
   notifications: boolean;
   /** Which newsletter categories may raise a notification when published. */
   articleNotifications: Record<ArticleCategory, boolean>;
+  /** Whether this account has been shown (or skipped) the first-run introduction flow. */
+  hasSeenOnboarding: boolean;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -19,6 +21,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     nutrition: true,
     recovery: true,
   },
+  hasSeenOnboarding: false,
 };
 
 export interface RawProfile {

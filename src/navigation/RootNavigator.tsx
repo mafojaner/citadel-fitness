@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, View } from 'react-native';
 import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
+import { OnboardingScreen } from '../screens/Onboarding/OnboardingScreen';
 import { useArticleNotifications } from '../hooks/useArticleNotifications';
 import { parseRecoveryTokensFromUrl, supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
@@ -29,6 +30,8 @@ export function RootNavigator() {
   const resetFavoriteArticles = useFavoriteArticlesStore((s) => s.reset);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const profileLoaded = useProfileStore((s) => s.loaded);
+  const profileError = useProfileStore((s) => s.error);
+  const hasSeenOnboarding = useProfileStore((s) => s.preferences.hasSeenOnboarding);
 
   // Only once a session exists and preferences have loaded, so the check
   // respects the user's actual category toggles rather than the defaults.
@@ -92,7 +95,11 @@ export function RootNavigator() {
     );
   }
 
-  if (isInitializing) {
+  // Also waits out the profile fetch once signed in, so the very first
+  // render after sign-in never flashes MainTabs before flipping to
+  // OnboardingScreen once `hasSeenOnboarding` comes back false. A failed
+  // fetch still falls through below rather than blocking forever.
+  if (isInitializing || (session && !profileLoaded && !profileError)) {
     return (
       <View
         style={{
@@ -110,14 +117,18 @@ export function RootNavigator() {
   return (
     <NavigationContainer>
       {session ? (
-        <Stack.Navigator>
-          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-          <Stack.Screen
-            name="Account"
-            component={AccountStack}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
+        profileLoaded && !hasSeenOnboarding ? (
+          <OnboardingScreen />
+        ) : (
+          <Stack.Navigator>
+            <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+            <Stack.Screen
+              name="Account"
+              component={AccountStack}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
+        )
       ) : (
         <AuthStack />
       )}

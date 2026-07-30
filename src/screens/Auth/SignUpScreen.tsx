@@ -3,7 +3,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
+import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { PRIVACY_POLICY_URL } from '../../constants/legal';
+import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
@@ -22,10 +24,10 @@ export function SignUpScreen() {
 
   const trimmedEmail = email.trim();
   const emailInvalid = trimmedEmail.length > 0 && !EMAIL_PATTERN.test(trimmedEmail);
-  const passwordTooShort = password.length > 0 && password.length < 6;
+  const passwordInvalid = password.length > 0 && !isPasswordValid(password);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
   const canSubmit =
-    trimmedEmail.length > 0 && !emailInvalid && password.length >= 6 && password === confirmPassword;
+    trimmedEmail.length > 0 && !emailInvalid && isPasswordValid(password) && password === confirmPassword;
 
   const onSubmit = async () => {
     if (!canSubmit) return;
@@ -79,16 +81,14 @@ export function SignUpScreen() {
         onChangeText={setPassword}
         style={{
           backgroundColor: colors.surface,
-          borderColor: passwordTooShort ? colors.danger : colors.border,
+          borderColor: passwordInvalid ? colors.danger : colors.border,
           borderWidth: 1,
           borderRadius: radius.md,
           padding: spacing.md,
           color: colors.textPrimary,
         }}
       />
-      {passwordTooShort ? (
-        <Text style={{ color: colors.danger }}>Password must be at least 6 characters</Text>
-      ) : null}
+      {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
 
       <TextInput
         placeholder="Confirm password"
