@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
+import { PasswordInput } from '../../components/PasswordInput';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
@@ -53,21 +54,7 @@ export function SignInScreen() {
         }}
       />
 
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
+      <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} />
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 

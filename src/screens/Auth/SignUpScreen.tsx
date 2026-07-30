@@ -3,6 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
+import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { PRIVACY_POLICY_URL } from '../../constants/legal';
 import { isPasswordValid } from '../../lib/password';
@@ -73,37 +74,14 @@ export function SignUpScreen() {
       />
       {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
 
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: passwordInvalid ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
+      <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} hasError={passwordInvalid} />
       {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
 
-      <TextInput
+      <PasswordInput
         placeholder="Confirm password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: mismatch ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
+        hasError={mismatch}
       />
       {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
 

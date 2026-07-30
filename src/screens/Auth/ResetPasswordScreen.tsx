@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { GradientButton } from '../../components/GradientButton';
+import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
@@ -11,7 +12,7 @@ interface ResetPasswordScreenProps {
 }
 
 export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -49,37 +50,14 @@ export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
         Choose a new password for your account.
       </Text>
 
-      <TextInput
-        placeholder="New password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: passwordInvalid ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
+      <PasswordInput placeholder="New password" value={password} onChangeText={setPassword} hasError={passwordInvalid} />
       {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
 
-      <TextInput
+      <PasswordInput
         placeholder="Confirm new password"
-        placeholderTextColor={colors.textMuted}
-        secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: mismatch ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
+        hasError={mismatch}
       />
 
       {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
