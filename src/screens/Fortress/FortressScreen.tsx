@@ -135,56 +135,98 @@ function WaitlistAction({
   const { colors, spacing, radius, typography } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [emailInput, setEmailInput] = useState(accountEmail ?? '');
+  const [alreadyJoinedNotice, setAlreadyJoinedNotice] = useState(false);
 
   if (loading) {
     return <ActivityIndicator color={colors.primary} />;
   }
 
-  if (joined) {
-    return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-        <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary }]}>
-          You&apos;re on the list — we&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment
-          Fortress launches.
-        </Text>
-      </View>
-    );
-  }
-
-  if (!showForm) {
-    return <GradientButton label="Join the waitlist" colors={gradients.identity} onPress={() => setShowForm(true)} />;
-  }
+  const handlePress = () => {
+    if (joined) {
+      setAlreadyJoinedNotice(true);
+      return;
+    }
+    setShowForm(true);
+  };
 
   const trimmedEmail = emailInput.trim();
+  // Once joined, the form should never show again — the button reappears as a
+  // plain "check your status" affordance instead of a way to resubmit.
+  const showingForm = showForm && !joined;
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <TextInput
-        placeholder="Email address"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={emailInput}
-        onChangeText={setEmailInput}
-        editable={!joining}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
-      {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail)} /> : null}
-      <GradientButton
-        label={joining ? 'Signing up...' : 'Notify me'}
-        colors={gradients.identity}
-        loading={joining}
-        disabled={!trimmedEmail}
-        onPress={() => onJoin(trimmedEmail)}
-      />
+      {joined ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.md,
+            backgroundColor: `${colors.success}1A`,
+            borderWidth: 1,
+            borderColor: colors.success,
+            borderRadius: radius.md,
+            padding: spacing.md,
+          }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: colors.success,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>You&apos;re on the list!</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              We&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment Fortress launches.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
+      {showingForm ? (
+        <View style={{ gap: spacing.sm }}>
+          <TextInput
+            placeholder="Email address"
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={emailInput}
+            onChangeText={setEmailInput}
+            editable={!joining}
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: radius.md,
+              padding: spacing.md,
+              color: colors.textPrimary,
+            }}
+          />
+          {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail)} /> : null}
+          <GradientButton
+            label={joining ? 'Signing up...' : 'Notify me'}
+            colors={gradients.identity}
+            loading={joining}
+            disabled={!trimmedEmail}
+            onPress={() => onJoin(trimmedEmail)}
+          />
+        </View>
+      ) : (
+        <GradientButton label="Join the waitlist" colors={gradients.identity} onPress={handlePress} />
+      )}
+
+      {alreadyJoinedNotice && joined ? (
+        <Text style={[typography.caption, { color: colors.success }]}>
+          You&apos;re already signed up — sit tight, we&apos;ll be in touch.
+        </Text>
+      ) : null}
     </View>
   );
 }
