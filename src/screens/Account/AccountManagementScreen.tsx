@@ -1,11 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { Card } from '../../components/Card';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { Text } from 'react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { SettingsRow } from '../../components/SettingsRow';
+import { SettingsSection } from '../../components/SettingsSection';
 import { deleteAccount } from '../../lib/account';
 import { confirmAsync } from '../../lib/confirm';
 import { useAuthStore } from '../../state/authStore';
@@ -13,26 +12,8 @@ import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 
-function DangerIconBadge({ icon, size = 36 }: { icon: keyof typeof Ionicons.glyphMap; size?: number }) {
-  const { colors } = useTheme();
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: colors.danger,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Ionicons name={icon} size={size * 0.5} color="#FFFFFF" />
-    </View>
-  );
-}
-
 export function AccountManagementScreen() {
-  const { colors, spacing } = useTheme();
+  const { colors } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
   const signOut = useAuthStore((s) => s.signOut);
   const [deleting, setDeleting] = useState(false);
@@ -69,43 +50,28 @@ export function AccountManagementScreen() {
 
   return (
     <ScreenContainer>
-      <Pressable onPress={() => navigation.navigate('ChangePassword')}>
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="lock-closed" colors={gradients.pulse} size={36} />
-            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Change password</Text>
-          </View>
-        </Card>
-      </Pressable>
-
-      <Pressable onPress={onLogOut}>
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <DangerIconBadge icon="log-out-outline" />
-            <Text style={{ color: colors.danger, fontWeight: '600' }}>Log out</Text>
-          </View>
-        </Card>
-      </Pressable>
+      <SettingsSection title="Security">
+        <SettingsRow
+          icon="lock-closed"
+          iconColors={gradients.pulse}
+          title="Change password"
+          onPress={() => navigation.navigate('ChangePassword')}
+        />
+      </SettingsSection>
 
       {deleteError ? <Text style={{ color: colors.danger }}>{deleteError}</Text> : null}
-      <Pressable
-        onPress={onDeleteAccount}
-        disabled={deleting}
-        accessibilityRole="button"
-        accessibilityLabel="Delete account"
-        style={({ pressed }) => ({ opacity: pressed || deleting ? 0.6 : 1 })}
-      >
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <DangerIconBadge icon="trash-outline" />
-            {deleting ? (
-              <ActivityIndicator color={colors.danger} />
-            ) : (
-              <Text style={{ color: colors.danger, fontWeight: '600' }}>Delete account</Text>
-            )}
-          </View>
-        </Card>
-      </Pressable>
+
+      <SettingsSection title="Danger zone">
+        <SettingsRow icon="log-out-outline" danger title="Log out" onPress={onLogOut} />
+        <SettingsRow
+          icon="trash-outline"
+          danger
+          title="Delete account"
+          loading={deleting}
+          disabled={deleting}
+          onPress={onDeleteAccount}
+        />
+      </SettingsSection>
     </ScreenContainer>
   );
 }
