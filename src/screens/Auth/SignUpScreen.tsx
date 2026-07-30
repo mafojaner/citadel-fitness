@@ -8,20 +8,31 @@ import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function SignUpScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const trimmedEmail = email.trim();
+  const emailInvalid = trimmedEmail.length > 0 && !EMAIL_PATTERN.test(trimmedEmail);
+  const passwordTooShort = password.length > 0 && password.length < 6;
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+  const canSubmit =
+    trimmedEmail.length > 0 && !emailInvalid && password.length >= 6 && password === confirmPassword;
+
   const onSubmit = async () => {
+    if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
     setInfo(null);
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { error: signUpError } = await supabase.auth.signUp({ email: trimmedEmail, password });
     if (signUpError) {
       setError(signUpError.message);
     } else {
@@ -51,13 +62,14 @@ export function SignUpScreen() {
         onChangeText={setEmail}
         style={{
           backgroundColor: colors.surface,
-          borderColor: colors.border,
+          borderColor: emailInvalid ? colors.danger : colors.border,
           borderWidth: 1,
           borderRadius: radius.md,
           padding: spacing.md,
           color: colors.textPrimary,
         }}
       />
+      {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
 
       <TextInput
         placeholder="Password"
@@ -67,13 +79,33 @@ export function SignUpScreen() {
         onChangeText={setPassword}
         style={{
           backgroundColor: colors.surface,
-          borderColor: colors.border,
+          borderColor: passwordTooShort ? colors.danger : colors.border,
           borderWidth: 1,
           borderRadius: radius.md,
           padding: spacing.md,
           color: colors.textPrimary,
         }}
       />
+      {passwordTooShort ? (
+        <Text style={{ color: colors.danger }}>Password must be at least 6 characters</Text>
+      ) : null}
+
+      <TextInput
+        placeholder="Confirm password"
+        placeholderTextColor={colors.textMuted}
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: mismatch ? colors.danger : colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
+      />
+      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
       {info ? <Text style={{ color: colors.success }}>{info}</Text> : null}
@@ -89,6 +121,7 @@ export function SignUpScreen() {
       <GradientButton
         label={submitting ? 'Creating account...' : 'Sign up'}
         loading={submitting}
+        disabled={!canSubmit}
         onPress={onSubmit}
       />
 
