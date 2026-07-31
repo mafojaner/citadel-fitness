@@ -7,19 +7,20 @@
 
 -- Tracking type -------------------------------------------------------
 alter table public.exercises
-  add column type text not null default 'strength'
+  add column if not exists type text not null default 'strength'
   check (type in ('strength', 'cardio'));
 
 update public.exercises set type = 'cardio' where category = 'cardio';
 
 -- Cardio fields on sets -------------------------------------------------
 alter table public.set_entries
-  add column duration_minutes numeric,
-  add column distance numeric;
+  add column if not exists duration_minutes numeric,
+  add column if not exists distance numeric;
 
 -- Prevent duplicate exercise names so the seed below is safe to re-run.
-alter table public.exercises
-  add constraint exercises_name_unique unique (name);
+-- Postgres has no `add constraint if not exists`, so drop-then-add instead.
+alter table public.exercises drop constraint if exists exercises_name_unique;
+alter table public.exercises add constraint exercises_name_unique unique (name);
 
 -- Expand the catalogue --------------------------------------------------
 insert into public.exercises (name, category, type) values

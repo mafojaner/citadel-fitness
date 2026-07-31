@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Card } from '../../components/Card';
@@ -41,10 +41,27 @@ export function AddWorkoutScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const finishedRef = useRef(false);
+  const finishTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current);
+    };
+  }, []);
 
   const catalogueFor = (exerciseId: string) => catalogue.find((e) => e.id === exerciseId);
   const nameFor = (exerciseId: string) => catalogueFor(exerciseId)?.name ?? 'Exercise';
   const isCardio = (exerciseId: string) => catalogueFor(exerciseId)?.type === 'cardio';
+
+  // An exercise added but never actually filled in (every set still at its
+  // default zero) shouldn't be confirmable — it would still count toward
+  // the streak and reward cycle despite recording nothing real.
+  const hasMeaningfulData = draftExercises.some((exercise) => {
+    const cardio = isCardio(exercise.exerciseId);
+    return exercise.sets.some((set) =>
+      cardio ? set.durationMinutes > 0 || set.distance > 0 : set.reps > 0 || set.weight > 0
+    );
+  });
 
   const finishAndLeave = () => {
     if (finishedRef.current) return;
@@ -54,14 +71,14 @@ export function AddWorkoutScreen() {
   };
 
   const onConfirm = async () => {
-    if (!userId || draftExercises.length === 0) return;
+    if (!userId || draftExercises.length === 0 || !hasMeaningfulData) return;
     setSaving(true);
     setError(null);
     try {
       await saveWorkout(date, draftExercises, units, distanceUnit);
       finishedRef.current = false;
       setShowConfetti(true);
-      setTimeout(finishAndLeave, 2500);
+      finishTimeoutRef.current = setTimeout(finishAndLeave, 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save workout');
     } finally {
@@ -239,12 +256,17 @@ export function AddWorkoutScreen() {
         onPress={() => navigation.navigate('ExerciseCatalogue')}
       />
 
+      {draftExercises.length > 0 && !hasMeaningfulData ? (
+        <Text style={[typography.caption, { color: colors.textMuted }]}>
+          Enter at least one rep, weight, duration, or distance before confirming.
+        </Text>
+      ) : null}
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 
       <GradientButton
         label={saving ? 'Saving...' : 'Confirm'}
         loading={saving}
-        disabled={draftExercises.length === 0}
+        disabled={draftExercises.length === 0 || !hasMeaningfulData}
         onPress={onConfirm}
       />
     </ScreenContainer>

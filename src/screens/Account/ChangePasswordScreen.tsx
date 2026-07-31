@@ -7,10 +7,14 @@ import { PasswordRequirementsList } from '../../components/PasswordRequirementsL
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../state/authStore';
 import { useTheme } from '../../theme/useTheme';
 
 export function ChangePasswordScreen() {
   const { colors } = useTheme();
+  const email = useAuthStore((s) => s.session?.user.email);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [currentPasswordInvalid, setCurrentPasswordInvalid] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -19,19 +23,36 @@ export function ChangePasswordScreen() {
 
   const passwordInvalid = password.length > 0 && !isPasswordValid(password);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
-  const canSubmit = isPasswordValid(password) && password === confirmPassword;
+  const canSubmit = currentPassword.length > 0 && isPasswordValid(password) && password === confirmPassword;
 
   const onSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || !email) return;
     setSubmitting(true);
     setError(null);
+    setCurrentPasswordInvalid(false);
     setSaved(false);
+
+    // Anyone with 30 seconds on an unlocked, signed-in device could
+    // otherwise change the password with no proof they're the account
+    // owner — re-verifying the current password first closes that gap.
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (verifyError) {
+      setSubmitting(false);
+      setCurrentPasswordInvalid(true);
+      setError('Current password is incorrect.');
+      return;
+    }
+
     const { error: updateError } = await supabase.auth.updateUser({ password });
     setSubmitting(false);
     if (updateError) {
       setError(updateError.message);
       return;
     }
+    setCurrentPassword('');
     setPassword('');
     setConfirmPassword('');
     setSaved(true);
@@ -40,6 +61,17 @@ export function ChangePasswordScreen() {
   return (
     <ScreenContainer>
       <Card title="Change password">
+        <PasswordInput
+          placeholder="Current password"
+          value={currentPassword}
+          onChangeText={(t) => {
+            setCurrentPassword(t);
+            setCurrentPasswordInvalid(false);
+            setSaved(false);
+          }}
+          hasError={currentPasswordInvalid}
+          backgroundColor={colors.background}
+        />
         <PasswordInput
           placeholder="New password"
           value={password}

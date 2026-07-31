@@ -54,12 +54,14 @@ export class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundarySta
         >
           The app hit an unexpected error. You can try again — your logged workouts are safe.
         </Text>
-        <Text
-          style={[typography.caption, { color: darkColors.textMuted, textAlign: 'center' }]}
-          numberOfLines={3}
-        >
-          {error.message}
-        </Text>
+        {__DEV__ ? (
+          <Text
+            style={[typography.caption, { color: darkColors.textMuted, textAlign: 'center' }]}
+            numberOfLines={3}
+          >
+            {error.message}
+          </Text>
+        ) : null}
         <Pressable
           onPress={this.handleReset}
           accessibilityRole="button"

@@ -2,13 +2,17 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, View } from 'react-native';
+import { FadeInView } from '../components/FadeInView';
 import { ResetPasswordScreen } from '../screens/Auth/ResetPasswordScreen';
 import { OnboardingScreen } from '../screens/Onboarding/OnboardingScreen';
 import { useArticleNotifications } from '../hooks/useArticleNotifications';
+import { resetArticleNotificationMarker } from '../lib/notifications';
 import { parseRecoveryTokensFromUrl, supabase } from '../lib/supabase';
 import { useAuthStore } from '../state/authStore';
 import { useFavoriteArticlesStore } from '../state/favoriteArticlesStore';
 import { useProfileStore } from '../state/profileStore';
+import { useWorkoutDraftStore } from '../state/workoutDraftStore';
+import { motion } from '../theme/motion';
 import { useTheme } from '../theme/useTheme';
 import { MainTabs } from './MainTabs';
 import { AccountStack } from './stacks/AccountStack';
@@ -28,6 +32,7 @@ export function RootNavigator() {
   const loadProfile = useProfileStore((s) => s.load);
   const resetProfile = useProfileStore((s) => s.reset);
   const resetFavoriteArticles = useFavoriteArticlesStore((s) => s.reset);
+  const resetWorkoutDraft = useWorkoutDraftStore((s) => s.reset);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const profileLoaded = useProfileStore((s) => s.loaded);
   const profileError = useProfileStore((s) => s.error);
@@ -41,14 +46,19 @@ export function RootNavigator() {
     if (session?.user.id) {
       loadProfile(session.user.id);
     } else {
-      // Also clears favoriteArticlesStore, not just the profile — without
-      // this, signing out never reset its `loaded` flag, so the next
-      // account to sign in on this device would see the previous account's
-      // favorited articles instead of ever fetching its own.
+      // Also clears favoriteArticlesStore and workoutDraftStore, not just the
+      // profile — without this, signing out never reset them, so the next
+      // account to sign in on this device would inherit the previous
+      // account's favorited articles and, worse, its in-progress workout
+      // draft (which could then get saved under the new account entirely).
+      // The article-notification "last seen" marker is reset the same way,
+      // since it's also global device storage rather than per-account.
       resetProfile();
       resetFavoriteArticles();
+      resetWorkoutDraft();
+      resetArticleNotificationMarker();
     }
-  }, [session?.user.id, loadProfile, resetProfile, resetFavoriteArticles]);
+  }, [session?.user.id, loadProfile, resetProfile, resetFavoriteArticles, resetWorkoutDraft]);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
@@ -114,12 +124,17 @@ export function RootNavigator() {
     );
   }
 
+  const mode = !session ? 'auth' : profileLoaded && !hasSeenOnboarding ? 'onboarding' : 'main';
+
   return (
     <NavigationContainer>
-      {session ? (
-        profileLoaded && !hasSeenOnboarding ? (
+      {/* `key={mode}` forces a fresh mount (and so a fresh fade-in) at each of
+          the app's three big-picture transitions — signing in, finishing
+          onboarding, signing out — instead of an abrupt instant cut. */}
+      <FadeInView key={mode} style={{ flex: 1 }} duration={motion.duration.slow} slideDistance={0}>
+        {mode === 'onboarding' ? (
           <OnboardingScreen />
-        ) : (
+        ) : mode === 'main' ? (
           <Stack.Navigator>
             <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
             <Stack.Screen
@@ -128,10 +143,10 @@ export function RootNavigator() {
               options={{ headerShown: false }}
             />
           </Stack.Navigator>
-        )
-      ) : (
-        <AuthStack />
-      )}
+        ) : (
+          <AuthStack />
+        )}
+      </FadeInView>
     </NavigationContainer>
   );
 }
