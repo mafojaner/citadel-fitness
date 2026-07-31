@@ -1,7 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable } from 'react-native';
+import { Image } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
 
@@ -17,11 +18,12 @@ export function ProfileIconButton() {
   const avatarUrl = useProfileStore((s) => s.avatarUrl);
 
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityLabel="Open account"
       hitSlop={8}
       onPress={() => navigation.navigate('Account')}
-      style={({ pressed }) => ({ marginRight: spacing.md, opacity: pressed ? 0.6 : 1 })}
+      scaleTo={0.88}
+      style={{ marginRight: spacing.md }}
     >
       {avatarUrl ? (
         <Image
@@ -38,6 +40,6 @@ export function ProfileIconButton() {
       ) : (
         <Ionicons name="person-circle" size={SIZE} color={colors.navText} />
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }

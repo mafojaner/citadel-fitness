@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
@@ -27,10 +28,11 @@ export function GradientPill({
 
   if (!active) {
     return (
-      <Pressable
+      <AnimatedPressable
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label}
+        scaleTo={0.95}
         style={{
           flex: flex ? 1 : undefined,
           paddingVertical: spacing.xs - 2,
@@ -47,15 +49,16 @@ export function GradientPill({
         ) : (
           <Text style={[typography.body, { color: colors.textSecondary }]}>{label}</Text>
         )}
-      </Pressable>
+      </AnimatedPressable>
     );
   }
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      scaleTo={0.95}
       style={{ flex: flex ? 1 : undefined }}
     >
       <LinearGradient
@@ -80,6 +83,6 @@ export function GradientPill({
           <Text style={[typography.body, { color: '#FFFFFF', fontWeight: '700' }]}>{label}</Text>
         )}
       </LinearGradient>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

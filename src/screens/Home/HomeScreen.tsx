@@ -4,7 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -115,7 +116,7 @@ export function HomeScreen() {
         ) : (
           <View style={{ gap: spacing.sm }}>
             {searchResults.map((exercise) => (
-              <Pressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)}>
+              <AnimatedPressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)} scaleTo={0.98}>
                 <Card>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                     <GradientIconBadge
@@ -134,17 +135,17 @@ export function HomeScreen() {
                     <Ionicons name="add-circle" size={26} color={colors.primary} />
                   </View>
                 </Card>
-              </Pressable>
+              </AnimatedPressable>
             ))}
           </View>
         )
       ) : (
         <>
-      <Pressable
+      <AnimatedPressable
         onPress={() => navigation.navigate('Activity')}
         accessibilityRole="button"
         accessibilityLabel="Open Activity"
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        scaleTo={0.98}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -174,13 +175,13 @@ export function HomeScreen() {
             Select to view your full activity breakdown
           </Text>
         </Card>
-      </Pressable>
+      </AnimatedPressable>
 
-      <Pressable
+      <AnimatedPressable
         onPress={() => navigation.navigate('Workouts')}
         accessibilityRole="button"
         accessibilityLabel="Open Workouts"
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        scaleTo={0.98}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -268,7 +269,7 @@ export function HomeScreen() {
             Select to view your full workout history
           </Text>
         </Card>
-      </Pressable>
+      </AnimatedPressable>
 
       <GradientButton
         label="Log workout"

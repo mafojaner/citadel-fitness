@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
@@ -230,9 +231,9 @@ export function WorkoutsScreen() {
         </Card>
       </View>
 
-      <Pressable
+      <AnimatedPressable
         onPress={() => navigation.navigate('DayDetail', { date: selectedDate })}
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        scaleTo={0.98}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -278,7 +279,7 @@ export function WorkoutsScreen() {
             </View>
           )}
         </Card>
-      </Pressable>
+      </AnimatedPressable>
     </ScreenContainer>
   );
 }

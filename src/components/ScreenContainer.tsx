@@ -1,7 +1,8 @@
 import type { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useTheme } from '../theme/useTheme';
+import { ScrollView, StyleSheet } from 'react-native';
+import { FadeInView } from './FadeInView';
 import { ProfileLoadBanner } from './ProfileLoadBanner';
+import { useTheme } from '../theme/useTheme';
 
 export function ScreenContainer({ children }: PropsWithChildren) {
   const { colors, spacing } = useTheme();
@@ -10,10 +11,10 @@ export function ScreenContainer({ children }: PropsWithChildren) {
       style={{ backgroundColor: colors.background }}
       contentContainerStyle={[styles.content, { padding: spacing.md }]}
     >
-      <View style={{ gap: spacing.md }}>
+      <FadeInView style={{ gap: spacing.md }}>
         <ProfileLoadBanner />
         {children}
-      </View>
+      </FadeInView>
     </ScrollView>
   );
 }

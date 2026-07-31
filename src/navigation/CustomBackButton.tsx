@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { Pressable } from 'react-native';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 
 /**
  * Native-stack's default back button renders a platform-native image
@@ -12,8 +12,8 @@ export function CustomBackButton({ tintColor }: { tintColor?: string }) {
   const navigation = useNavigation();
 
   return (
-    <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={{ padding: 4 }}>
+    <AnimatedPressable onPress={() => navigation.goBack()} hitSlop={12} scaleTo={0.85} style={{ padding: 4 }}>
       <Ionicons name="chevron-back" size={26} color={tintColor} />
-    </Pressable>
+    </AnimatedPressable>
   );
 }

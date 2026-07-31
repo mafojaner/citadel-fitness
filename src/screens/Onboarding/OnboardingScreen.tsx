@@ -1,11 +1,14 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FadeInView } from '../../components/FadeInView';
 import { GradientButton } from '../../components/GradientButton';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { motion } from '../../theme/motion';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
@@ -73,35 +76,42 @@ export function OnboardingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: 'flex-end', padding: spacing.lg }}>
-        <Pressable onPress={finish} disabled={finishing}>
+        <AnimatedPressable onPress={finish} disabled={finishing} scaleTo={0.92}>
           <Text style={[typography.body, { color: colors.textMuted }]}>Skip</Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl, gap: spacing.lg }}>
-        <LinearGradient
-          colors={slide.colors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
+        <FadeInView
+          key={index}
+          duration={motion.duration.base}
+          slideDistance={16}
+          style={{ alignItems: 'center', gap: spacing.lg }}
         >
-          {slide.icon.family === 'ionicon' ? (
-            <Ionicons name={slide.icon.name} size={44} color="#FFFFFF" />
-          ) : (
-            <MaterialCommunityIcons name={slide.icon.name} size={44} color="#FFFFFF" />
-          )}
-        </LinearGradient>
+          <LinearGradient
+            colors={slide.colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {slide.icon.family === 'ionicon' ? (
+              <Ionicons name={slide.icon.name} size={44} color="#FFFFFF" />
+            ) : (
+              <MaterialCommunityIcons name={slide.icon.name} size={44} color="#FFFFFF" />
+            )}
+          </LinearGradient>
 
-        <Text style={[typography.title, { color: colors.textPrimary, textAlign: 'center' }]}>{slide.title}</Text>
-        <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
-          {slide.description}
-        </Text>
+          <Text style={[typography.title, { color: colors.textPrimary, textAlign: 'center' }]}>{slide.title}</Text>
+          <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+            {slide.description}
+          </Text>
+        </FadeInView>
       </View>
 
       <View style={{ padding: spacing.lg, gap: spacing.md }}>

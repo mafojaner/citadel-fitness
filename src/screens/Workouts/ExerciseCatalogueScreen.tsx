@@ -4,10 +4,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
+import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import {
   CATEGORY_FILTERS,
@@ -138,7 +140,7 @@ export function ExerciseCatalogueScreen() {
           ) : null
         }
         renderItem={({ item: exercise }) => (
-          <Pressable onPress={() => onSelect(exercise)}>
+          <AnimatedPressable onPress={() => onSelect(exercise)} scaleTo={0.98}>
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <GradientIconBadge
@@ -170,7 +172,7 @@ export function ExerciseCatalogueScreen() {
                 <Ionicons name="add-circle" size={26} color={colors.primary} />
               </View>
             </Card>
-          </Pressable>
+          </AnimatedPressable>
         )}
       />
 
@@ -190,42 +192,44 @@ export function ExerciseCatalogueScreen() {
           }}
         >
           <Pressable onPress={() => {}}>
-            <Card>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <GradientIconBadge
-                  icon={
-                    infoExercise
-                      ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
-                      : DEFAULT_CATEGORY_ICON
-                  }
-                  colors={
-                    infoExercise
-                      ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
-                      : DEFAULT_CATEGORY_GRADIENT
-                  }
-                  size={40}
-                />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                    {infoExercise?.name}
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.textMuted }]}>
-                    {infoExercise?.category}
-                  </Text>
+            <PopInView key={infoExercise?.id}>
+              <Card>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <GradientIconBadge
+                    icon={
+                      infoExercise
+                        ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
+                        : DEFAULT_CATEGORY_ICON
+                    }
+                    colors={
+                      infoExercise
+                        ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
+                        : DEFAULT_CATEGORY_GRADIENT
+                    }
+                    size={40}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                      {infoExercise?.name}
+                    </Text>
+                    <Text style={[typography.caption, { color: colors.textMuted }]}>
+                      {infoExercise?.category}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => setInfoExercise(null)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close"
+                  >
+                    <Ionicons name="close" size={22} color={colors.textMuted} />
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={() => setInfoExercise(null)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close"
-                >
-                  <Ionicons name="close" size={22} color={colors.textMuted} />
-                </Pressable>
-              </View>
-              <Text style={[typography.body, { color: colors.textSecondary }]}>
-                {infoExercise?.description ?? 'No description yet for this exercise.'}
-              </Text>
-            </Card>
+                <Text style={[typography.body, { color: colors.textSecondary }]}>
+                  {infoExercise?.description ?? 'No description yet for this exercise.'}
+                </Text>
+              </Card>
+            </PopInView>
           </Pressable>
         </Pressable>
       </Modal>

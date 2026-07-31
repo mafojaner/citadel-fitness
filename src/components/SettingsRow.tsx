@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 import { GradientIconBadge } from './GradientIconBadge';
 import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
@@ -90,8 +91,8 @@ export function SettingsRow({
   if (!onPress) return row;
 
   return (
-    <Pressable onPress={onPress} disabled={disabled || loading} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+    <AnimatedPressable onPress={onPress} disabled={disabled || loading} scaleTo={0.98}>
       {row}
-    </Pressable>
+    </AnimatedPressable>
   );
 }

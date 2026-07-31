@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
+import { FadeInView } from './FadeInView';
 import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
@@ -21,33 +23,36 @@ export function ProfileLoadBanner() {
   if (!error) return null;
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-        padding: spacing.md,
-        borderRadius: radius.md,
-        borderWidth: 1,
-        borderColor: colors.danger,
-        backgroundColor: colors.surface,
-      }}
-    >
-      <Ionicons name="alert-circle-outline" size={20} color={colors.danger} />
-      <Text style={[typography.caption, { color: colors.danger, flex: 1, minWidth: 0 }]}>
-        Couldn&apos;t load your settings — units may be shown incorrectly.
-      </Text>
-      <Pressable
-        onPress={() => userId && load(userId)}
-        disabled={loading}
-        accessibilityRole="button"
-        accessibilityLabel="Retry loading your settings"
-        hitSlop={8}
+    <FadeInView duration={150} slideDistance={0}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          padding: spacing.md,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          borderColor: colors.danger,
+          backgroundColor: colors.surface,
+        }}
       >
-        <Text style={[typography.caption, { color: colors.primary, fontWeight: '700' }]}>
-          {loading ? 'Retrying…' : 'Retry'}
+        <Ionicons name="alert-circle-outline" size={20} color={colors.danger} />
+        <Text style={[typography.caption, { color: colors.danger, flex: 1, minWidth: 0 }]}>
+          Couldn&apos;t load your settings — units may be shown incorrectly.
         </Text>
-      </Pressable>
-    </View>
+        <AnimatedPressable
+          onPress={() => userId && load(userId)}
+          disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading your settings"
+          hitSlop={8}
+          scaleTo={0.92}
+        >
+          <Text style={[typography.caption, { color: colors.primary, fontWeight: '700' }]}>
+            {loading ? 'Retrying…' : 'Retry'}
+          </Text>
+        </AnimatedPressable>
+      </View>
+    </FadeInView>
   );
 }

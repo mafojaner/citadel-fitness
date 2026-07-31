@@ -1,5 +1,6 @@
 import type { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
 import { GradientIconBadge } from './GradientIconBadge';
 import { useTheme } from '../theme/useTheme';
@@ -17,7 +18,7 @@ export function CategoryGridCard({ icon, gradientColors, label, count, onPress }
   const { colors, spacing, typography } = useTheme();
 
   return (
-    <Pressable onPress={onPress} style={{ width: '47%' }}>
+    <AnimatedPressable onPress={onPress} scaleTo={0.96} style={{ width: '47%' }}>
       <Card>
         <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
           <GradientIconBadge icon={icon} colors={gradientColors} size={40} />
@@ -27,6 +28,6 @@ export function CategoryGridCard({ icon, gradientColors, label, count, onPress }
           </Text>
         </View>
       </Card>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

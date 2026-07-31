@@ -3,7 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FavoriteButton } from '../../components/FavoriteButton';
@@ -89,12 +90,12 @@ export function NewsletterScreen() {
   };
 
   const renderArticleRow = (article: Article) => (
-    <Pressable
+    <AnimatedPressable
       key={article.id}
       onPress={() => onOpen(article)}
       accessibilityRole="link"
       accessibilityLabel={`Read ${article.title}`}
-      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      scaleTo={0.98}
     >
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -120,7 +121,7 @@ export function NewsletterScreen() {
           <StatChip icon="calendar-outline" value={formatPublished(article.publishedAt)} />
         </View>
       </Card>
-    </Pressable>
+    </AnimatedPressable>
   );
 
   return (
@@ -159,11 +160,7 @@ export function NewsletterScreen() {
           {CATEGORY_ORDER.map((cat) => {
             const count = categoryCounts.get(cat) ?? 0;
             return (
-              <Pressable
-                key={cat}
-                onPress={() => setActiveFilter(cat)}
-                style={({ pressed }) => ({ width: '47%', opacity: pressed ? 0.85 : 1 })}
-              >
+              <AnimatedPressable key={cat} onPress={() => setActiveFilter(cat)} scaleTo={0.96} style={{ width: '47%' }}>
                 <LinearGradient
                   colors={ARTICLE_CATEGORY_GRADIENTS[cat]}
                   start={{ x: 0, y: 0 }}
@@ -185,14 +182,11 @@ export function NewsletterScreen() {
                     </Text>
                   </View>
                 </LinearGradient>
-              </Pressable>
+              </AnimatedPressable>
             );
           })}
 
-          <Pressable
-            onPress={() => setActiveFilter('favorites')}
-            style={({ pressed }) => ({ width: '47%', opacity: pressed ? 0.85 : 1 })}
-          >
+          <AnimatedPressable onPress={() => setActiveFilter('favorites')} scaleTo={0.96} style={{ width: '47%' }}>
             <LinearGradient
               colors={gradients.favorite}
               start={{ x: 0, y: 0 }}
@@ -212,22 +206,18 @@ export function NewsletterScreen() {
                 </Text>
               </View>
             </LinearGradient>
-          </Pressable>
+          </AnimatedPressable>
         </View>
       ) : (
         <>
-          <Pressable
+          <AnimatedPressable
             onPress={() => setActiveFilter(null)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              opacity: pressed ? 0.7 : 1,
-            })}
+            scaleTo={0.92}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
           >
             <Ionicons name="chevron-back" size={18} color={colors.primary} />
             <Text style={{ color: colors.primary, fontWeight: '600' }}>All categories</Text>
-          </Pressable>
+          </AnimatedPressable>
 
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{activeLabel}</Text>
 
