@@ -1,7 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
+import { AuthScreenContainer } from '../../components/AuthScreenContainer';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { supabase } from '../../lib/supabase';
@@ -25,15 +27,7 @@ export function SignInScreen() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        justifyContent: 'center',
-        gap: spacing.md,
-      }}
-    >
+    <AuthScreenContainer>
       <Text style={[typography.title, { color: colors.textPrimary }]}>Citadel Fitness</Text>
       <Text style={[typography.body, { color: colors.textSecondary }]}>Sign in to continue</Text>
 
@@ -58,9 +52,14 @@ export function SignInScreen() {
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 
-      <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
+      <AnimatedPressable
+        onPress={() => navigation.navigate('ForgotPassword')}
+        accessibilityRole="link"
+        accessibilityLabel="Forgot password?"
+        scaleTo={0.96}
+      >
         <Text style={{ color: colors.primary, textAlign: 'right' }}>Forgot password?</Text>
-      </Pressable>
+      </AnimatedPressable>
 
       <GradientButton
         label={submitting ? 'Signing in...' : 'Sign in'}
@@ -68,11 +67,16 @@ export function SignInScreen() {
         onPress={onSubmit}
       />
 
-      <Pressable onPress={() => navigation.navigate('SignUp')}>
+      <AnimatedPressable
+        onPress={() => navigation.navigate('SignUp')}
+        accessibilityRole="link"
+        accessibilityLabel="Don't have an account? Sign up"
+        scaleTo={0.96}
+      >
         <Text style={{ color: colors.primary, textAlign: 'center' }}>
           Don&apos;t have an account? Sign up
         </Text>
-      </Pressable>
-    </View>
+      </AnimatedPressable>
+    </AuthScreenContainer>
   );
 }

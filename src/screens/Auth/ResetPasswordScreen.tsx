@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
+import { AuthScreenContainer } from '../../components/AuthScreenContainer';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
@@ -12,7 +13,7 @@ interface ResetPasswordScreenProps {
 }
 
 export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, typography } = useTheme();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -36,15 +37,7 @@ export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        justifyContent: 'center',
-        gap: spacing.md,
-      }}
-    >
+    <AuthScreenContainer>
       <Text style={[typography.title, { color: colors.textPrimary }]}>Set a new password</Text>
       <Text style={[typography.body, { color: colors.textSecondary }]}>
         Choose a new password for your account.
@@ -69,6 +62,6 @@ export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
         disabled={!canSubmit}
         onPress={onSubmit}
       />
-    </View>
+    </AuthScreenContainer>
   );
 }

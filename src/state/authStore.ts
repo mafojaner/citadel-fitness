@@ -6,6 +6,15 @@ interface AuthState {
   session: Session | null;
   isInitializing: boolean;
   signOut: () => Promise<void>;
+  /**
+   * Forces the local session to null without waiting on Supabase's own
+   * sign-out network call. Only meant for the case where the account has
+   * already been deleted server-side and signOut() itself then fails — at
+   * that point there's no account left to retry against, so the app must
+   * still drop back to the Auth flow rather than stay stuck showing a
+   * session for a user that no longer exists.
+   */
+  clearSessionLocally: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => {
@@ -35,5 +44,6 @@ export const useAuthStore = create<AuthState>((set) => {
     signOut: async () => {
       await supabase.auth.signOut();
     },
+    clearSessionLocally: () => set({ session: null }),
   };
 });

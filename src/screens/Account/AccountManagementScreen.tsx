@@ -16,6 +16,7 @@ export function AccountManagementScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
   const signOut = useAuthStore((s) => s.signOut);
+  const clearSessionLocally = useAuthStore((s) => s.clearSessionLocally);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -41,10 +42,21 @@ export function AccountManagementScreen() {
     setDeleteError(null);
     try {
       await deleteAccount();
-      await signOut();
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Failed to delete account');
       setDeleting(false);
+      return;
+    }
+
+    // The account is already gone server-side at this point no matter what
+    // happens next, so a signOut failure here must never be shown as
+    // "delete failed" — that would invite a retry that just re-runs delete
+    // against a user that no longer exists. Force the local session to
+    // null directly instead, so the app still drops back to the Auth flow.
+    try {
+      await signOut();
+    } catch {
+      clearSessionLocally();
     }
   };
 

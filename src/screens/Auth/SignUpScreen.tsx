@@ -1,17 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Linking, Pressable, Text, TextInput, View } from 'react-native';
+import { Linking, Text, TextInput } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
+import { AuthScreenContainer } from '../../components/AuthScreenContainer';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { PRIVACY_POLICY_URL } from '../../constants/legal';
+import { isEmailValid } from '../../lib/email';
 import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function SignUpScreen() {
   const { colors, spacing, radius, typography } = useTheme();
@@ -24,7 +25,7 @@ export function SignUpScreen() {
   const [submitting, setSubmitting] = useState(false);
 
   const trimmedEmail = email.trim();
-  const emailInvalid = trimmedEmail.length > 0 && !EMAIL_PATTERN.test(trimmedEmail);
+  const emailInvalid = trimmedEmail.length > 0 && !isEmailValid(trimmedEmail);
   const passwordInvalid = password.length > 0 && !isPasswordValid(password);
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
   const canSubmit =
@@ -45,15 +46,7 @@ export function SignUpScreen() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        justifyContent: 'center',
-        gap: spacing.md,
-      }}
-    >
+    <AuthScreenContainer>
       <Text style={[typography.title, { color: colors.textPrimary }]}>Create account</Text>
 
       <TextInput
@@ -103,11 +96,16 @@ export function SignUpScreen() {
         onPress={onSubmit}
       />
 
-      <Pressable onPress={() => navigation.navigate('SignIn')}>
+      <AnimatedPressable
+        onPress={() => navigation.navigate('SignIn')}
+        accessibilityRole="link"
+        accessibilityLabel="Already have an account? Sign in"
+        scaleTo={0.96}
+      >
         <Text style={{ color: colors.primary, textAlign: 'center' }}>
           Already have an account? Sign in
         </Text>
-      </Pressable>
-    </View>
+      </AnimatedPressable>
+    </AuthScreenContainer>
   );
 }

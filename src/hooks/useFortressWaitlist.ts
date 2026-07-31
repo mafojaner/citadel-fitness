@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { fetchFortressWaitlistStatus, joinFortressWaitlist } from '../lib/fortress';
+import { fetchFortressWaitlistStatus, joinFortressWaitlist, leaveFortressWaitlist } from '../lib/fortress';
 import { useAuthStore } from '../state/authStore';
 
 export function useFortressWaitlist() {
@@ -10,6 +10,7 @@ export function useFortressWaitlist() {
   const [joinedEmail, setJoinedEmail] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -57,5 +58,20 @@ export function useFortressWaitlist() {
     [userId, joined, joining],
   );
 
-  return { accountEmail, joined, joinedEmail, loading, joining, error, join };
+  const leave = useCallback(async () => {
+    if (!userId || !joined || leaving) return;
+    setLeaving(true);
+    setError(null);
+    try {
+      await leaveFortressWaitlist(userId);
+      setJoined(false);
+      setJoinedEmail(undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to leave the waitlist');
+    } finally {
+      setLeaving(false);
+    }
+  }, [userId, joined, leaving]);
+
+  return { accountEmail, joined, joinedEmail, loading, joining, leaving, error, join, leave };
 }

@@ -1,7 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
+import { AuthScreenContainer } from '../../components/AuthScreenContainer';
 import { GradientButton } from '../../components/GradientButton';
 import { getPasswordResetRedirectUrl, supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
@@ -31,15 +33,7 @@ export function ForgotPasswordScreen() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.background,
-        padding: spacing.lg,
-        justifyContent: 'center',
-        gap: spacing.md,
-      }}
-    >
+    <AuthScreenContainer>
       <Text style={[typography.title, { color: colors.textPrimary }]}>Reset password</Text>
       <Text style={[typography.body, { color: colors.textSecondary }]}>
         Enter your email and we&apos;ll send you a link to reset your password.
@@ -81,10 +75,15 @@ export function ForgotPasswordScreen() {
       )}
 
       {!sent ? (
-        <Pressable onPress={() => navigation.navigate('SignIn')}>
+        <AnimatedPressable
+          onPress={() => navigation.navigate('SignIn')}
+          accessibilityRole="link"
+          accessibilityLabel="Back to sign in"
+          scaleTo={0.96}
+        >
           <Text style={{ color: colors.primary, textAlign: 'center' }}>Back to sign in</Text>
-        </Pressable>
+        </AnimatedPressable>
       ) : null}
-    </View>
+    </AuthScreenContainer>
   );
 }

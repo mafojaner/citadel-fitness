@@ -2,12 +2,14 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
+import { isEmailValid } from '../../lib/email';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
@@ -118,8 +120,10 @@ interface WaitlistActionProps {
   joinedEmail: string | undefined;
   loading: boolean;
   joining: boolean;
+  leaving: boolean;
   error: string | null;
   onJoin: (email: string) => void;
+  onLeave: () => void;
 }
 
 /** The join-the-waitlist control, shared by the top card and the closing CTA. */
@@ -129,8 +133,10 @@ function WaitlistAction({
   joinedEmail,
   loading,
   joining,
+  leaving,
   error,
   onJoin,
+  onLeave,
 }: WaitlistActionProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const [showForm, setShowForm] = useState(false);
@@ -150,6 +156,7 @@ function WaitlistAction({
   };
 
   const trimmedEmail = emailInput.trim();
+  const emailInvalid = trimmedEmail.length > 0 && !isEmailValid(trimmedEmail);
   // Once joined, the form should never show again — the button reappears as a
   // plain "check your status" affordance instead of a way to resubmit.
   const showingForm = showForm && !joined;
@@ -159,9 +166,7 @@ function WaitlistAction({
       {joined ? (
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.md,
+            gap: spacing.sm,
             backgroundColor: `${colors.success}1A`,
             borderWidth: 1,
             borderColor: colors.success,
@@ -169,24 +174,32 @@ function WaitlistAction({
             padding: spacing.md,
           }}
         >
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: colors.success,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.success,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Text style={[typography.subheading, { color: colors.textPrimary }]}>You&apos;re on the list!</Text>
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                We&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment Fortress launches.
+              </Text>
+            </View>
           </View>
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={[typography.subheading, { color: colors.textPrimary }]}>You&apos;re on the list!</Text>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              We&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment Fortress launches.
+          <AnimatedPressable onPress={onLeave} disabled={leaving} scaleTo={0.96}>
+            <Text style={[typography.caption, { color: colors.textMuted, textDecorationLine: 'underline' }]}>
+              {leaving ? 'Leaving…' : 'Wrong email? Leave the waitlist and rejoin'}
             </Text>
-          </View>
+          </AnimatedPressable>
+          {error ? <ErrorNotice message={error} onRetry={onLeave} /> : null}
         </View>
       ) : null}
 
@@ -202,19 +215,20 @@ function WaitlistAction({
             editable={!joining}
             style={{
               backgroundColor: colors.surface,
-              borderColor: colors.border,
+              borderColor: emailInvalid ? colors.danger : colors.border,
               borderWidth: 1,
               borderRadius: radius.md,
               padding: spacing.md,
               color: colors.textPrimary,
             }}
           />
+          {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
           {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail)} /> : null}
           <GradientButton
             label={joining ? 'Signing up...' : 'Notify me'}
             colors={gradients.identity}
             loading={joining}
-            disabled={!trimmedEmail}
+            disabled={!trimmedEmail || emailInvalid}
             onPress={() => onJoin(trimmedEmail)}
           />
         </View>
@@ -233,7 +247,8 @@ function WaitlistAction({
 
 export function FortressScreen() {
   const { colors, spacing, radius, typography } = useTheme();
-  const { accountEmail, joined, joinedEmail, loading, joining, error, join } = useFortressWaitlist();
+  const { accountEmail, joined, joinedEmail, loading, joining, leaving, error, join, leave } =
+    useFortressWaitlist();
 
   return (
     <ScreenContainer>
@@ -274,8 +289,10 @@ export function FortressScreen() {
           joinedEmail={joinedEmail}
           loading={loading}
           joining={joining}
+          leaving={leaving}
           error={error}
           onJoin={join}
+          onLeave={leave}
         />
       </Card>
 
@@ -347,8 +364,10 @@ export function FortressScreen() {
         joinedEmail={joinedEmail}
         loading={loading}
         joining={joining}
+        leaving={leaving}
         error={error}
         onJoin={join}
+        onLeave={leave}
       />
       <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
         Join the members already signed up to train smarter with Fortress.
