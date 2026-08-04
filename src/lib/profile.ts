@@ -9,6 +9,13 @@ export interface ProfilePreferences {
   articleNotifications: Record<ArticleCategory, boolean>;
   /** Whether this account has been shown (or skipped) the first-run introduction flow. */
   hasSeenOnboarding: boolean;
+  /**
+   * Real email (not just an on-device push notification) about new
+   * articles and app news. Defaults to off — this is a genuine inbox
+   * email, not an ephemeral push, so it opts in rather than opting
+   * everyone in unannounced.
+   */
+  emailNewsletter: boolean;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -22,6 +29,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     recovery: true,
   },
   hasSeenOnboarding: false,
+  emailNewsletter: false,
 };
 
 export interface RawProfile {

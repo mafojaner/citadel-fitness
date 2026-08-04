@@ -58,6 +58,16 @@ export function NotificationsScreen() {
     }
   };
 
+  const onToggleEmailNewsletter = async (emailNewsletter: boolean) => {
+    if (!userId) return;
+    setError(null);
+    try {
+      await savePreferences(userId, { emailNewsletter });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save preference');
+    }
+  };
+
   return (
     <ScreenContainer>
       <Card>
@@ -100,6 +110,26 @@ export function NotificationsScreen() {
             />
           </View>
         ))}
+      </Card>
+
+      <Card title="Email updates">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <GradientIconBadge icon="mail" colors={gradients.identity} size={32} />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.body, { color: colors.textPrimary }]}>
+              Email me about new articles &amp; app news
+            </Text>
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              Sent to your account email — separate from the push notifications above.
+            </Text>
+          </View>
+          <Switch
+            value={preferences.emailNewsletter}
+            onValueChange={onToggleEmailNewsletter}
+            trackColor={{ false: colors.border, true: colors.primary }}
+            thumbColor={colors.surface}
+          />
+        </View>
       </Card>
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
