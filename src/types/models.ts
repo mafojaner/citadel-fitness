@@ -1,4 +1,4 @@
-export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'cardio' | string;
+export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'core' | 'cardio' | string;
 
 export type ExerciseType = 'strength' | 'cardio';
 
