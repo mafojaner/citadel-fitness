@@ -110,6 +110,16 @@ export function AccountScreen() {
         />
       </SettingsSection>
 
+      <SettingsSection title="Support">
+        <SettingsRow
+          icon="help-buoy"
+          iconColors={gradients.favorite}
+          title="Help & feedback"
+          subtitle="FAQs, and a direct line to the team"
+          onPress={() => navigation.navigate('Help')}
+        />
+      </SettingsSection>
+
       <SettingsSection title="About">
         <SettingsRow
           icon="shield-checkmark"

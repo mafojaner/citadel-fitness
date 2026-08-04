@@ -3,6 +3,7 @@ import { AccountManagementScreen } from '../../screens/Account/AccountManagement
 import { AccountScreen } from '../../screens/Account/AccountScreen';
 import { AppearanceScreen } from '../../screens/Account/AppearanceScreen';
 import { ChangePasswordScreen } from '../../screens/Account/ChangePasswordScreen';
+import { HelpScreen } from '../../screens/Account/HelpScreen';
 import { NotificationsScreen } from '../../screens/Account/NotificationsScreen';
 import { ProfileSettingsScreen } from '../../screens/Account/ProfileSettingsScreen';
 import { UnitsScreen } from '../../screens/Account/UnitsScreen';
@@ -17,6 +18,7 @@ export type AccountStackParamList = {
   Notifications: undefined;
   AccountManagement: undefined;
   ChangePassword: undefined;
+  Help: undefined;
 };
 
 const Stack = createNativeStackNavigator<AccountStackParamList>();
@@ -45,6 +47,7 @@ export function AccountStack() {
         component={ChangePasswordScreen}
         options={{ title: 'Change Password' }}
       />
+      <Stack.Screen name="Help" component={HelpScreen} options={{ title: 'Help & Feedback' }} />
     </Stack.Navigator>
   );
 }

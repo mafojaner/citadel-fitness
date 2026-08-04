@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ProfileIconButton } from '../../components/ProfileIconButton';
 import { ArticleDetailScreen } from '../../screens/Newsletter/ArticleDetailScreen';
-import { NewsletterScreen } from '../../screens/Newsletter/NewsletterScreen';
+import { LearnScreen } from '../../screens/Newsletter/LearnScreen';
 import { useTheme } from '../../theme/useTheme';
 import { stackScreenOptions } from '../screenOptions';
 
@@ -19,8 +19,8 @@ export function NewsletterStack() {
     <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
       <Stack.Screen
         name="Newsletter"
-        component={NewsletterScreen}
-        options={{ headerRight: () => <ProfileIconButton /> }}
+        component={LearnScreen}
+        options={{ title: 'Learn', headerRight: () => <ProfileIconButton /> }}
       />
       <Stack.Screen
         name="ArticleDetail"

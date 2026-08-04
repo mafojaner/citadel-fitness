@@ -8,7 +8,7 @@ export function ScreenContainer({ children }: PropsWithChildren) {
   const { colors, spacing } = useTheme();
   return (
     <ScrollView
-      style={{ backgroundColor: colors.background }}
+      style={[styles.scroll, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.content, { padding: spacing.md }]}
     >
       <FadeInView style={{ gap: spacing.md }}>
@@ -20,6 +20,13 @@ export function ScreenContainer({ children }: PropsWithChildren) {
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    // Explicit rather than relying on the navigator's implicit full-screen
+    // height — needed so this also fills correctly when composed as a
+    // sibling below other content (e.g. LearnScreen's tab switcher) rather
+    // than being the sole child of a stack screen.
+    flex: 1,
+  },
   content: {
     flexGrow: 1,
   },
