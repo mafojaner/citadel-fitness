@@ -46,7 +46,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
               id: makeId(),
               exerciseId: exercise.id,
               sets: [
-                { id: makeId(), setNumber: 1, reps: 0, weight: 0, durationMinutes: 0, distance: 0 },
+                { id: makeId(), setNumber: 1, reps: 0, weight: 0, durationSeconds: 0, distance: 0 },
               ],
             },
           ],
@@ -70,7 +70,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
                       setNumber: e.sets.length + 1,
                       reps: 0,
                       weight: 0,
-                      durationMinutes: 0,
+                      durationSeconds: 0,
                       distance: 0,
                     },
                   ],
@@ -133,7 +133,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
               setNumber: s.setNumber,
               reps: s.reps,
               weight: roundForDisplay(convertWeight(s.weight, s.weightUnit, currentWeightUnit)),
-              durationMinutes: s.durationMinutes,
+              durationSeconds: s.durationSeconds,
               distance: roundForDisplay(
                 convertDistance(s.distance, s.distanceUnit, currentDistanceUnit)
               ),

@@ -41,7 +41,7 @@ interface DbSetEntry {
   reps: number;
   weight: number;
   weight_unit: WeightUnit;
-  duration_minutes: number | null;
+  duration_seconds: number | null;
   distance: number | null;
   distance_unit: DistanceUnit;
 }
@@ -65,7 +65,7 @@ export interface WorkoutDetailExercise {
     reps: number;
     weight: number;
     weightUnit: WeightUnit;
-    durationMinutes: number;
+    durationSeconds: number;
     distance: number;
     distanceUnit: DistanceUnit;
   }[];
@@ -88,7 +88,7 @@ export async function fetchWorkoutForDate(
   const { data, error } = await supabase
     .from('logged_exercises')
     .select(
-      'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, weight_unit, duration_minutes, distance, distance_unit )'
+      'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, weight_unit, duration_seconds, distance, distance_unit )'
     )
     .eq('workout_id', workout.id)
     .returns<DbLoggedExercise[]>();
@@ -109,7 +109,7 @@ export async function fetchWorkoutForDate(
         reps: s.reps,
         weight: s.weight,
         weightUnit: s.weight_unit,
-        durationMinutes: s.duration_minutes ?? 0,
+        durationSeconds: s.duration_seconds ?? 0,
         distance: s.distance ?? 0,
         distanceUnit: s.distance_unit,
       })),
@@ -146,7 +146,7 @@ export async function saveWorkout(
       set_number: s.setNumber,
       reps: s.reps,
       weight: s.weight,
-      duration_minutes: s.durationMinutes || null,
+      duration_seconds: s.durationSeconds || null,
       distance: s.distance || null,
     })),
   }));

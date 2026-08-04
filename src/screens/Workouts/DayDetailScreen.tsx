@@ -16,6 +16,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { confirmAsync } from '../../lib/confirm';
+import { formatDuration } from '../../lib/units';
 import { deleteWorkoutForDate, fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
@@ -145,7 +146,7 @@ export function DayDetailScreen() {
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, flex: 1 }}>
                       {exercise.type === 'cardio' ? (
                         <>
-                          <StatChip icon="time-outline" value={`${set.durationMinutes} min`} />
+                          <StatChip icon="time-outline" value={formatDuration(set.durationSeconds)} />
                           {set.distance ? (
                             <StatChip
                               icon="navigate-outline"

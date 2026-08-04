@@ -44,7 +44,7 @@ interface DbSetEntry {
   reps: number;
   weight: number;
   weight_unit: WeightUnit;
-  duration_minutes: number | null;
+  duration_seconds: number | null;
 }
 
 interface DbLoggedExercise {
@@ -84,7 +84,7 @@ async function fetchValueByDate(
   const { data, error } = await supabase
     .from('workouts')
     .select(
-      'date, logged_exercises ( exercises ( category, type ), set_entries ( reps, weight, weight_unit, duration_minutes ) )'
+      'date, logged_exercises ( exercises ( category, type ), set_entries ( reps, weight, weight_unit, duration_seconds ) )'
     )
     .eq('user_id', userId)
     .gte('date', startDate)
@@ -104,7 +104,7 @@ async function fetchValueByDate(
       activeDates.add(workout.date);
       const value =
         metric === 'minutes'
-          ? logged.set_entries.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0)
+          ? logged.set_entries.reduce((sum, s) => sum + (s.duration_seconds ?? 0) / 60, 0)
           : logged.set_entries.reduce(
               (sum, s) => sum + s.reps * convertWeight(s.weight, s.weight_unit, displayWeightUnit),
               0

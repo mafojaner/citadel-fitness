@@ -15,12 +15,69 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
+import { partsToSeconds, secondsToParts } from '../../lib/units';
 import { saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
+
+interface DurationInputGroupProps {
+  totalSeconds: number;
+  onChange: (totalSeconds: number) => void;
+}
+
+/** Hours/minutes/seconds entry for a cardio set's duration, composed into a single totalSeconds value. */
+function DurationInputGroup({ totalSeconds, onChange }: DurationInputGroupProps) {
+  const { colors, spacing, radius } = useTheme();
+  const { hours, minutes, seconds } = secondsToParts(totalSeconds);
+
+  const fieldStyle = {
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'center' as const,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    color: colors.textPrimary,
+  };
+
+  return (
+    <View style={{ flex: 1.4, flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+      <TextInput
+        keyboardType="numeric"
+        value={hours === 0 ? '' : String(hours)}
+        onChangeText={(t) => onChange(partsToSeconds(Number(t) || 0, minutes, seconds))}
+        placeholder="0"
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel="Hours"
+        style={fieldStyle}
+      />
+      <Text style={{ color: colors.textMuted }}>:</Text>
+      <TextInput
+        keyboardType="numeric"
+        value={minutes === 0 ? '' : String(minutes)}
+        onChangeText={(t) => onChange(partsToSeconds(hours, Math.min(59, Number(t) || 0), seconds))}
+        placeholder="0"
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel="Minutes"
+        style={fieldStyle}
+      />
+      <Text style={{ color: colors.textMuted }}>:</Text>
+      <TextInput
+        keyboardType="numeric"
+        value={seconds === 0 ? '' : String(seconds)}
+        onChangeText={(t) => onChange(partsToSeconds(hours, minutes, Math.min(59, Number(t) || 0)))}
+        placeholder="0"
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel="Seconds"
+        style={fieldStyle}
+      />
+    </View>
+  );
+}
 
 export function AddWorkoutScreen() {
   const { colors, spacing, radius, typography } = useTheme();
@@ -59,7 +116,7 @@ export function AddWorkoutScreen() {
   const hasMeaningfulData = draftExercises.some((exercise) => {
     const cardio = isCardio(exercise.exerciseId);
     return exercise.sets.some((set) =>
-      cardio ? set.durationMinutes > 0 || set.distance > 0 : set.reps > 0 || set.weight > 0
+      cardio ? set.durationSeconds > 0 || set.distance > 0 : set.reps > 0 || set.weight > 0
     );
   });
 
@@ -125,8 +182,8 @@ export function AddWorkoutScreen() {
                 <Text style={[typography.caption, { color: colors.textMuted, width: 48 }]}>Set</Text>
                 {cardio ? (
                   <>
-                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
-                      Duration (min)
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1.4 }]}>
+                      Duration (h : m : s)
                     </Text>
                     <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
                       Distance ({distanceUnit})
@@ -163,23 +220,11 @@ export function AddWorkoutScreen() {
                   </View>
                   {cardio ? (
                     <>
-                      <TextInput
-                        keyboardType="numeric"
-                        value={set.durationMinutes === 0 ? '' : String(set.durationMinutes)}
-                        onChangeText={(t) =>
-                          updateSet(exercise.id, set.id, { durationMinutes: Number(t) || 0 })
+                      <DurationInputGroup
+                        totalSeconds={set.durationSeconds}
+                        onChange={(durationSeconds) =>
+                          updateSet(exercise.id, set.id, { durationSeconds })
                         }
-                        placeholder="0"
-                        placeholderTextColor={colors.textMuted}
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          borderColor: colors.border,
-                          borderWidth: 1,
-                          borderRadius: radius.sm,
-                          padding: spacing.sm,
-                          color: colors.textPrimary,
-                        }}
                       />
                       <TextInput
                         keyboardType="numeric"
