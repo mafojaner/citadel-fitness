@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Dashboard — Citadel Fitness</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23FF5A36'/%3E%3Cpath d='M7 13c1-4 3-6 5-8 2 2 4 4 5 8a5 5 0 1 1-10 0Z' fill='white'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --paper: #F5F6F8;
+    --ink: #0B0E14;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --border: #E2E5EC;
+    --ember: #FF5A36;
+    --ember-soft: #FFE8E1;
+    --slate: #4A5468;
+    --mist: #8A93A6;
+    --flag: #A5680C;
+    --flag-soft: #FBEFDA;
+    --flag-border: #E7C688;
+    --good: #1E8E5A;
+    --good-soft: #E4F5EC;
+    --bad: #C7362C;
+    --bad-soft: #FCEAE8;
+    --shadow: 0 1px 2px rgba(11,14,20,0.04), 0 8px 24px rgba(11,14,20,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0B0E14;
+      --ink: #F4F5F7;
+      --surface: #151A24;
+      --surface-raised: #1B212E;
+      --border: #262E3D;
+      --ember: #FF7A57;
+      --ember-soft: #2A180F;
+      --slate: #B7BECC;
+      --mist: #7C879A;
+      --flag: #E8B457;
+      --flag-soft: #2A2110;
+      --flag-border: #4A3A17;
+      --good: #5FCB92;
+      --good-soft: #10261B;
+      --bad: #FF6B62;
+      --bad-soft: #2A1412;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background:
+      radial-gradient(560px 320px at 12% -8%, color-mix(in srgb, var(--ember) 7%, transparent), transparent),
+      var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+  }
+
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .mark {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--ember), color-mix(in srgb, var(--ember) 55%, #FFB27A));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+  }
+  .mark svg { width: 20px; height: 20px; color: #fff; }
+
+  .top-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ember);
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-size: 24px;
+    margin: 0;
+  }
+
+  .sub { color: var(--mist); font-size: 13.5px; margin: 0; }
+
+  /* ---------- Login card ---------- */
+
+  .login-wrap {
+    display: flex;
+    justify-content: center;
+    padding-top: 56px;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    animation: rise 320ms ease both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .login-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--ember-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .login-icon svg { width: 22px; height: 22px; color: var(--ember); }
+
+  .login-card h2 {
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+  .login-card .hint {
+    color: var(--mist);
+    font-size: 13px;
+    margin: 0 0 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--ember);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ember) 18%, transparent);
+  }
+
+  button {
+    width: 100%;
+    background: var(--ember);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 120ms ease, transform 80ms ease;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.06); }
+  button:active:not(:disabled) { transform: scale(0.98); }
+  button:disabled { opacity: 0.6; cursor: default; }
+  button.ghost {
+    background: transparent;
+    color: var(--slate);
+    border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  button.ghost:hover:not(:disabled) { filter: none; border-color: var(--mist); color: var(--ink); }
+
+  .error-msg {
+    background: var(--ember-soft);
+    border: 1px solid color-mix(in srgb, var(--ember) 35%, var(--border));
+    color: var(--ember);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ---------- Dashboard ---------- */
+
+  #dashboard { display: none; }
+  #dashboard.show { display: block; animation: rise 280ms ease both; }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .toolbar .generated { font-size: 12px; color: var(--mist); }
+  .toolbar button { width: auto; padding: 8px 14px; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .stat-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .stat-card:hover { border-color: color-mix(in srgb, var(--tint, var(--ember)) 45%, var(--border)); transform: translateY(-1px); }
+
+  .stat-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--tint, var(--ember)) 16%, transparent);
+  }
+  .stat-icon svg { width: 15px; height: 15px; color: var(--tint, var(--ember)); }
+
+  .value-row { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+
+  .stat-card .value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    color: var(--mist);
+    margin-top: -6px;
+  }
+
+  .delta {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    line-height: 1.5;
+  }
+  .delta.up { color: var(--good); background: var(--good-soft); }
+  .delta.down { color: var(--bad); background: var(--bad-soft); }
+  .delta.flat { color: var(--mist); background: var(--paper); }
+
+  section.block { margin-bottom: 32px; }
+
+  .block-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+  .block-head .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tint, var(--ember));
+  }
+
+  h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .card-body {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 18px;
+  }
+
+  /* ---------- Trend charts ---------- */
+
+  .trend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 620px) {
+    .trend-grid { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .chart-title { font-size: 12px; color: var(--mist); font-weight: 600; margin-bottom: 10px; }
+  .chart-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--mist);
+    margin-top: 6px;
+  }
+
+  .data-table-wrap { overflow-x: auto; }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.data-table th {
+    text-align: left;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+    padding: 12px 12px 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  table.data-table td {
+    padding: 11px 12px 11px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  table.data-table tr:last-child td { border-bottom: none; }
+  table.data-table td.msg { color: var(--slate); max-width: 360px; }
+
+  .bar-cell { display: flex; align-items: center; gap: 10px; }
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--paper);
+    overflow: hidden;
+    min-width: 40px;
+  }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--ember); }
+  .bar-cell .count { font-weight: 700; font-size: 13px; min-width: 20px; text-align: right; }
+
+  .empty-note { color: var(--mist); font-size: 13px; padding: 14px 0; }
+
+  .callout {
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px dashed var(--flag-border);
+    background: var(--flag-soft);
+    color: var(--flag);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .callout svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .callout a { color: var(--flag); font-weight: 700; }
+
+  /* ---------- Roadmap / launch calendar ---------- */
+
+  .month-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .month-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mist); margin-bottom: 10px; }
+  .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .month-grid .dow { font-size: 9.5px; text-transform: uppercase; color: var(--mist); text-align: center; padding-bottom: 2px; }
+  .month-grid .day {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    color: var(--mist);
+  }
+  .month-grid .day.active { background: var(--ember-soft); border-color: var(--ember); color: var(--ember); font-weight: 700; }
+  .month-grid .day.active.weekend { background: var(--surface-raised); border-style: dashed; border-color: var(--border); color: var(--slate); font-weight: 400; }
+  .month-grid .day.today { outline: 2px solid var(--ember); outline-offset: -2px; }
+  .month-grid .day.done { background: var(--good-soft); border-color: var(--good); color: var(--good); }
+
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--slate); }
+  .legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .legend .sw.a { background: var(--ember-soft); border: 1px solid var(--ember); }
+  .legend .sw.w { background: var(--surface-raised); border: 1px dashed var(--border); }
+  .legend .sw.d { background: var(--good-soft); border: 1px solid var(--good); }
+
+  .agenda-day {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .agenda-day:last-child { border-bottom: none; }
+  .agenda-day.weekend { background: color-mix(in srgb, var(--paper) 60%, transparent); margin: 0 -18px; padding: 12px 18px; }
+  .agenda-date .dow { display: block; font-size: 9.5px; text-transform: uppercase; color: var(--mist); letter-spacing: 0.05em; }
+  .agenda-date .dom { display: block; font-size: 15px; font-weight: 700; color: var(--ink); }
+  .agenda-task { font-size: 13.5px; color: var(--slate); }
+  .agenda-task strong { font-weight: 600; color: var(--ink); }
+  .priority {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .priority.critical { background: var(--ember-soft); color: var(--ember); }
+  .priority.high { background: var(--flag-soft); color: var(--flag); }
+  .priority.medium { background: var(--paper); color: var(--slate); border: 1px solid var(--border); }
+  .priority.rest { background: transparent; color: var(--mist); }
+  .priority.done { background: var(--good-soft); color: var(--good); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1-4 3-6 5-8 2 2 4 4 5 8a5 5 0 1 1-10 0Z"/></svg>
+      </div>
+      <div class="top-text">
+        <span class="eyebrow">Citadel Fitness</span>
+        <h1>Developer Dashboard</h1>
+      </div>
+    </header>
+
+    <div id="login-wrap" class="login-wrap">
+      <div class="login-card">
+        <div class="login-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2>Sign in</h2>
+        <p class="hint">Not linked from the app — your Citadel Fitness account.</p>
+        <div id="error-msg" class="error-msg"></div>
+        <form id="login-form">
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="username" required />
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" required />
+          <button id="login-btn" type="submit">Sign in</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="dashboard">
+      <div class="toolbar">
+        <span id="generated" class="generated mono"></span>
+        <button id="signout-btn" class="ghost">Sign out</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card" style="--tint: var(--ember);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div><div class="value" id="stat-total-users">–</div><div class="label">Total users</div></div>
+        </div>
+        <div class="stat-card" style="--tint: var(--good);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+          <div>
+            <div class="value-row"><div class="value" id="stat-new-users">–</div><span class="delta" id="stat-new-users-delta"></span></div>
+            <div class="label">New signups (7d)</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--tint: var(--good);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div><div class="value" id="stat-active-1d">–</div><div class="label">Active today</div></div>
+        </div>
+        <div class="stat-card" style="--tint: var(--good);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div>
+            <div class="value-row"><div class="value" id="stat-active-7d">–</div><span class="delta" id="stat-active-7d-delta"></span></div>
+            <div class="label">Active (7d)</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--tint: var(--good);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div><div class="value" id="stat-active-30d">–</div><div class="label">Active (30d)</div></div>
+        </div>
+        <div class="stat-card" style="--tint: var(--ember);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div><div class="value" id="stat-engagement">–</div><div class="label">Weekly engagement</div></div>
+        </div>
+        <div class="stat-card" style="--tint: var(--flag);">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div><div class="value" id="stat-waitlist">–</div><div class="label">Fortress waitlist</div></div>
+        </div>
+      </div>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>14-day trends</h3></div>
+        <div class="trend-grid">
+          <div class="chart-card">
+            <div class="chart-title">Daily active users</div>
+            <div id="chart-active"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Daily signups</div>
+            <div id="chart-signups"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Exercise category usage (30d)</h3></div>
+        <div class="card-body">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Category</th><th>Logged</th></tr></thead>
+              <tbody id="category-rows"></tbody>
+            </table>
+          </div>
+          <p id="category-empty" class="empty-note" style="display:none;">No exercises logged in the last 30 days.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Most-favorited articles</h3></div>
+        <div class="card-body">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Article</th><th>Favorites</th></tr></thead>
+              <tbody id="article-rows"></tbody>
+            </table>
+          </div>
+          <p id="article-empty" class="empty-note" style="display:none;">No favorited articles yet.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Recent feedback</h3></div>
+        <div class="card-body">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead><tr><th>When</th><th>From</th><th>Message</th></tr></thead>
+              <tbody id="feedback-rows"></tbody>
+            </table>
+          </div>
+          <p id="feedback-empty" class="empty-note" style="display:none;">No feedback submitted yet.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>App health</h3></div>
+        <div class="callout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Crash and error data isn't wired up here yet — <a href="https://sentry.io" target="_blank" rel="noopener">open Sentry directly</a> for now.</span>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
+
+        <div class="month-card">
+          <div class="month-label">August 2026</div>
+          <div class="month-grid">
+            <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
+            <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
+            <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done today">5</div><div class="day active">6</div><div class="day active">7</div><div class="day active weekend">8</div>
+            <div class="day active weekend">9</div><div class="day active">10</div><div class="day active">11</div><div class="day active">12</div><div class="day active">13</div><div class="day active">14</div><div class="day active weekend">15</div>
+            <div class="day active weekend">16</div><div class="day active">17</div><div class="day active">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
+            <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
+          </div>
+          <div class="legend">
+            <span><span class="sw a"></span>Beta plan (Aug 4–31)</span>
+            <span><span class="sw w"></span>Weekend / lighter day</span>
+            <span><span class="sw d"></span>Shipped</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 4</span></div>
+            <div class="agenda-task"><strong>Sentry crash reporting</strong> at the ErrorBoundary and for unhandled promise rejections.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 5</span></div>
+            <div class="agenda-task"><strong>GitHub Actions CI</strong> — lint + typecheck gate on every push/PR.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 6</span></div>
+            <div class="agenda-task"><strong>Finish the email system:</strong> Resend SMTP, deploy the three Edge Functions, wire the two database webhooks, run <code>migration_021</code>.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 7</span></div>
+            <div class="agenda-task"><strong>Staging environment:</strong> second free-tier Supabase project; point EAS's development/preview profiles at it.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 8</span></div>
+            <div class="agenda-task">Buffer — verify this week's work end to end.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 9</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
+            <div class="agenda-task"><strong>Analytics:</strong> PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged).</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
+            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
+            <div class="agenda-task">Buffer — regression pass over Weeks 1–2.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
+            <div class="agenda-task"><strong>Responsive/accessibility pass:</strong> tablet grids, touch targets, accessibility labels.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
+            <div class="agenda-task"><strong>Apple Developer Program</strong> enrollment; fill real credentials into <code>eas.json</code>.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
+            <div class="agenda-task"><strong>Google Play Developer account;</strong> same credential fill-in for Android.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
+            <div class="agenda-task"><strong>First real production builds:</strong> <code>eas build</code> for iOS and Android.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
+            <div class="agenda-task"><strong>Store listings:</strong> App Privacy questionnaire, screenshots, description, icon/feature graphic.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 22</span></div>
+            <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 23</span></div>
+            <div class="agenda-task">Buffer — Apple's first-build review typically lands here.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 24</span></div>
+            <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
+            <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
+            <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 27</span></div>
+            <div class="agenda-task"><strong>TestFlight public:</strong> move from internal to a public link.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 28</span></div>
+            <div class="agenda-task"><strong>Play Console public:</strong> move to Closed/Open testing, generate the opt-in link.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 29</span></div>
+            <div class="agenda-task">Watch the dashboards live — this page, plus Sentry once wired up.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 30</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
+            <div class="agenda-task"><strong>Wrap-up:</strong> compile the backlog from tester feedback and real usage data.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // Same values already public in the shipped app bundle (EXPO_PUBLIC_*)
+    // — the anon key is not a secret. The real gate is server-side, in the
+    // admin-dashboard-stats Edge Function.
+    const SUPABASE_URL = 'https://ulyduorkvikeyxtpshoq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseWR1b3JrdmlrZXl4dHBzaG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4OTk3MzUsImV4cCI6MjEwMDQ3NTczNX0.GhQReBBp46PIezzm-ShmGDj6rVl-8RqITskUzWa7MMQ';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loginWrap = document.getElementById('login-wrap');
+    const dashboard = document.getElementById('dashboard');
+    const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const errorMsg = document.getElementById('error-msg');
+    const signoutBtn = document.getElementById('signout-btn');
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+    }
+    function clearError() {
+      errorMsg.classList.remove('show');
+      errorMsg.textContent = '';
+    }
+
+    function showLogin() {
+      dashboard.classList.remove('show');
+      loginWrap.style.display = 'flex';
+    }
+    function showDashboard() {
+      loginWrap.style.display = 'none';
+      dashboard.classList.add('show');
+    }
+
+    function setDelta(id, pct) {
+      const el = document.getElementById(id);
+      if (pct > 0) {
+        el.textContent = `+${pct}%`;
+        el.className = 'delta up';
+      } else if (pct < 0) {
+        el.textContent = `${pct}%`;
+        el.className = 'delta down';
+      } else {
+        el.textContent = '±0%';
+        el.className = 'delta flat';
+      }
+    }
+
+    function formatShortDate(iso) {
+      return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    function renderBarChart(containerId, points, color) {
+      const max = Math.max(1, ...points.map((p) => p.count));
+      const n = points.length;
+      const gapPct = 26 / n;
+      const barWPct = 100 / n - gapPct;
+      const bars = points
+        .map((p, i) => {
+          const h = (p.count / max) * 100;
+          const x = i * (100 / n) + gapPct / 2;
+          const y = 100 - Math.max(h, p.count > 0 ? 3 : 0);
+          const barH = Math.max(h, p.count > 0 ? 3 : 0);
+          return `<rect x="${x}%" y="${y}%" width="${barWPct}%" height="${barH}%" rx="1.5" style="fill:${color}"><title>${p.date}: ${p.count}</title></rect>`;
+        })
+        .join('');
+      document.getElementById(containerId).innerHTML = `
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:64px;display:block;overflow:visible;">${bars}</svg>
+        <div class="chart-labels"><span>${formatShortDate(points[0].date)}</span><span>${formatShortDate(points[n - 1].date)}</span></div>
+      `;
+    }
+
+    function renderCategoryRows(breakdown) {
+      const rows = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
+      const max = Math.max(1, ...rows.map(([, count]) => count));
+      document.getElementById('category-rows').innerHTML = rows
+        .map(
+          ([category, count]) => `<tr>
+            <td>${escapeHtml(category)}</td>
+            <td>
+              <div class="bar-cell">
+                <div class="bar-track"><div class="bar-fill" style="width:${(count / max) * 100}%"></div></div>
+                <span class="count">${count}</span>
+              </div>
+            </td>
+          </tr>`
+        )
+        .join('');
+      document.getElementById('category-empty').style.display = rows.length ? 'none' : 'block';
+    }
+
+    function renderArticleRows(articles) {
+      document.getElementById('article-rows').innerHTML = articles
+        .map((a) => `<tr><td>${escapeHtml(a.title)}</td><td>${a.count}</td></tr>`)
+        .join('');
+      document.getElementById('article-empty').style.display = articles.length ? 'none' : 'block';
+    }
+
+    function renderFeedbackRows(feedback) {
+      document.getElementById('feedback-rows').innerHTML = feedback
+        .map(
+          (f) =>
+            `<tr><td class="mono">${new Date(f.created_at).toLocaleDateString()}</td><td>${escapeHtml(
+              f.email ?? ''
+            )}</td><td class="msg">${escapeHtml(f.message)}</td></tr>`
+        )
+        .join('');
+      document.getElementById('feedback-empty').style.display = feedback.length ? 'none' : 'block';
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    async function loadStats() {
+      const { data, error } = await supabase.functions.invoke('admin-dashboard-stats');
+
+      if (error) {
+        const status = error?.context?.status;
+        let detail = error?.message ?? 'Unknown error';
+        try {
+          const body = await error.context.clone().json();
+          if (body?.error) detail = body.error;
+        } catch {
+          // context wasn't a Response with a JSON body — fall back to error.message
+        }
+
+        if (status === 401 || status === 403) {
+          await supabase.auth.signOut();
+          showLogin();
+          showError(status === 403 ? 'Not authorized.' : 'Session expired — sign in again.');
+          return;
+        }
+        showLogin();
+        showError(`Could not load the dashboard (${status ?? 'no status'}): ${detail}`);
+        return;
+      }
+
+      document.getElementById('stat-total-users').textContent = data.users.total;
+      document.getElementById('stat-new-users').textContent = data.users.newThisWeek;
+      setDelta('stat-new-users-delta', data.users.newThisWeekChangePct);
+      document.getElementById('stat-active-1d').textContent = data.active.last1d;
+      document.getElementById('stat-active-7d').textContent = data.active.last7d;
+      setDelta('stat-active-7d-delta', data.active.last7dChangePct);
+      document.getElementById('stat-active-30d').textContent = data.active.last30d;
+      document.getElementById('stat-engagement').textContent = data.engagementRate7d + '%';
+      document.getElementById('stat-waitlist').textContent = data.behavior.fortressWaitlistCount;
+
+      renderBarChart('chart-active', data.trends.dailyActiveUsers, 'var(--good)');
+      renderBarChart('chart-signups', data.trends.dailySignups, 'var(--ember)');
+
+      renderCategoryRows(data.behavior.categoryBreakdown30d);
+      renderArticleRows(data.behavior.topFavoritedArticles);
+      renderFeedbackRows(data.recentFeedback);
+      document.getElementById('generated').textContent =
+        'Updated ' + new Date(data.generatedAt).toLocaleString();
+
+      showDashboard();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign in';
+
+      if (error) {
+        showError(error.message);
+        return;
+      }
+
+      await loadStats();
+    });
+
+    signoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      showLogin();
+    });
+
+    // If a session already exists (e.g. page reload), try it directly —
+    // loadStats() itself signs out and falls back to the login form if the
+    // session is stale or not the admin.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await loadStats();
+    }
+  </script>
+</body>
+</html>

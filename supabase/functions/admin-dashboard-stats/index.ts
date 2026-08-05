@@ -1,0 +1,231 @@
+// Citadel Fitness — developer analytics dashboard stats
+// Deploy with: supabase functions deploy admin-dashboard-stats
+// Set the admin gate once: supabase secrets set ADMIN_EMAIL=you@example.com
+//
+// Only the developer (identified by the ADMIN_EMAIL secret) can call this.
+// Auth follows the same two-step pattern as delete-account: verify the
+// caller's own JWT with an anon-key client first, THEN — only if their
+// verified email matches ADMIN_EMAIL — open a service-role client to read
+// aggregated data across all users. The service-role client bypasses RLS
+// entirely, which is fine here because the admin check already gated
+// access to it; no new RLS policy is needed on any table.
+
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+function json(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TREND_DAYS = 14;
+
+function pctChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return json({ error: 'Missing Authorization header' }, 401);
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const adminEmail = Deno.env.get('ADMIN_EMAIL');
+
+  // Identity comes from verifying the caller's own JWT — never from
+  // anything client-supplied — same as delete-account.
+  const callerClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const {
+    data: { user },
+    error: userError,
+  } = await callerClient.auth.getUser();
+
+  if (userError || !user) {
+    return json({ error: 'Invalid or expired session' }, 401);
+  }
+
+  // Server-side admin gate. Only a verified JWT email that matches this
+  // secret gets past here — nothing about the page URL matters.
+  if (!adminEmail || user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+    return json({ error: 'Not authorized' }, 403);
+  }
+
+  const admin = createClient(supabaseUrl, serviceRoleKey);
+  const now = Date.now();
+  const cutoff = (days: number) => new Date(now - days * DAY_MS).toISOString();
+
+  // Last N calendar dates (UTC, YYYY-MM-DD), oldest first, today last —
+  // used to zero-fill trend series so a quiet day shows as a real dip
+  // instead of a missing bar.
+  function lastNDates(n: number): string[] {
+    const dates: string[] = [];
+    for (let i = n - 1; i >= 0; i--) {
+      dates.push(new Date(now - i * DAY_MS).toISOString().slice(0, 10));
+    }
+    return dates;
+  }
+  const trendDates = lastNDates(TREND_DAYS);
+
+  try {
+    // --- Users: one paginated pass covers every users.* stat --------------
+    // listUsers() defaults to 50/page — must page through fully or "total
+    // users" silently caps at 50 forever.
+    let allUsers: { created_at: string }[] = [];
+    for (let page = 1; ; page++) {
+      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) throw error;
+      allUsers = allUsers.concat(data.users.map((u) => ({ created_at: u.created_at })));
+      if (data.users.length < 1000) break;
+    }
+    const totalUsers = allUsers.length;
+    const newThisWeek = allUsers.filter((u) => u.created_at >= cutoff(7)).length;
+    const newPrevWeek = allUsers.filter(
+      (u) => u.created_at >= cutoff(14) && u.created_at < cutoff(7)
+    ).length;
+    const dailySignups = (() => {
+      const byDay = new Map<string, number>();
+      for (const u of allUsers) {
+        const day = u.created_at.slice(0, 10);
+        if (trendDates.includes(day)) byDay.set(day, (byDay.get(day) ?? 0) + 1);
+      }
+      return trendDates.map((date) => ({ date, count: byDay.get(date) ?? 0 }));
+    })();
+
+    // --- Activity: one 30-day fetch backs every active-user + behavior stat
+    // Uses logged_exercises.created_at rather than workouts.created_at —
+    // save_workout deletes and re-inserts every logged_exercise on every
+    // save (new day AND edits of an old day), so this is a true "did they
+    // do something in the app in this window" signal; workouts.created_at
+    // would miss same-day edits to an older logged day.
+    const { data: activityRows, error: activityError } = await admin
+      .from('logged_exercises')
+      .select('created_at, workouts(user_id), exercises(category)')
+      .gte('created_at', cutoff(30));
+    if (activityError) throw activityError;
+
+    type ActivityRow = {
+      created_at: string;
+      workouts: { user_id: string } | null;
+      exercises: { category: string } | null;
+    };
+    const rows = (activityRows ?? []) as unknown as ActivityRow[];
+
+    function distinctUsersInWindow(fromDays: number, toDays = 0): number {
+      const from = cutoff(fromDays);
+      const to = cutoff(toDays);
+      const ids = new Set(
+        rows
+          .filter((r) => r.created_at >= from && r.created_at < to)
+          .map((r) => r.workouts?.user_id)
+          .filter((id): id is string => Boolean(id))
+      );
+      return ids.size;
+    }
+    const active1d = distinctUsersInWindow(1);
+    const active7d = distinctUsersInWindow(7);
+    const active7dPrev = distinctUsersInWindow(14, 7);
+    const active30d = distinctUsersInWindow(30);
+
+    const dailyActiveUsers = trendDates.map((date) => {
+      const ids = new Set(
+        rows
+          .filter((r) => r.created_at.slice(0, 10) === date)
+          .map((r) => r.workouts?.user_id)
+          .filter((id): id is string => Boolean(id))
+      );
+      return { date, count: ids.size };
+    });
+
+    const categoryBreakdown: Record<string, number> = {};
+    for (const row of rows) {
+      const category = row.exercises?.category ?? 'unknown';
+      categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;
+    }
+
+    const engagementRate7d = totalUsers > 0 ? Math.round((active7d / totalUsers) * 100) : 0;
+
+    // --- Fortress waitlist total -----------------------------------------
+    const { count: waitlistCount, error: waitlistError } = await admin
+      .from('fortress_waitlist')
+      .select('*', { count: 'exact', head: true });
+    if (waitlistError) throw waitlistError;
+
+    // --- Most-favorited articles ------------------------------------------
+    const { data: favorites, error: favError } = await admin
+      .from('article_favorites')
+      .select('article_id, articles(title)');
+    if (favError) throw favError;
+    const favCounts = new Map<string, { title: string; count: number }>();
+    for (const row of favorites ?? []) {
+      const id = row.article_id as string;
+      const title = (row as { articles: { title: string } | null }).articles?.title ?? 'Untitled';
+      const existing = favCounts.get(id);
+      favCounts.set(id, { title, count: (existing?.count ?? 0) + 1 });
+    }
+    const topArticles = [...favCounts.values()].sort((a, b) => b.count - a.count).slice(0, 5);
+
+    // --- Recent feedback (service role bypasses RLS; no new policy needed)
+    const { data: recentFeedback, error: feedbackError } = await admin
+      .from('feedback')
+      .select('id, email, message, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (feedbackError) throw feedbackError;
+
+    return json(
+      {
+        users: {
+          total: totalUsers,
+          newThisWeek,
+          newThisWeekChangePct: pctChange(newThisWeek, newPrevWeek),
+        },
+        active: {
+          last1d: active1d,
+          last7d: active7d,
+          last7dChangePct: pctChange(active7d, active7dPrev),
+          last30d: active30d,
+        },
+        engagementRate7d,
+        trends: {
+          dailySignups,
+          dailyActiveUsers,
+        },
+        behavior: {
+          categoryBreakdown30d: categoryBreakdown,
+          fortressWaitlistCount: waitlistCount ?? 0,
+          topFavoritedArticles: topArticles,
+        },
+        recentFeedback: recentFeedback ?? [],
+        generatedAt: new Date().toISOString(),
+      },
+      200
+    );
+  } catch (err) {
+    // Supabase/Postgrest query errors are plain objects with a `.message`,
+    // not real Error instances — `err instanceof Error` misses them and
+    // silently loses the actual cause, so check for `.message` directly.
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? String((err as { message: unknown }).message)
+        : String(err);
+    return json({ error: message }, 500);
+  }
+});
