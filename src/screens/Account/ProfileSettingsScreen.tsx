@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { AvatarCropModal } from '../../components/AvatarCropModal';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -32,6 +33,8 @@ export function ProfileSettingsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  /** Non-null while an image is waiting to be cropped in-app (web only). */
+  const [cropUri, setCropUri] = useState<string | null>(null);
 
   const initial = (name || email || '?')[0]?.toUpperCase();
   const dirty = name.trim() !== storedName && name.trim().length > 0;
@@ -51,6 +54,20 @@ export function ProfileSettingsScreen() {
     }
   };
 
+  const upload = async (uri: string, mimeType?: string | null) => {
+    if (!userId) return;
+    setUploadingAvatar(true);
+    setAvatarError(null);
+    try {
+      const url = await uploadAvatar(userId, uri, mimeType);
+      setAvatarUrl(url);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const onPickAvatar = async () => {
     if (!userId) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -59,24 +76,26 @@ export function ProfileSettingsScreen() {
       return;
     }
 
+    // iOS/Android get the OS's own crop UI, which is what users expect
+    // there. `allowsEditing` does nothing on web, so that platform falls
+    // through to AvatarCropModal instead of uploading uncropped.
+    const useNativeCrop = Platform.OS !== 'web';
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: useNativeCrop,
       aspect: [1, 1],
+      // Android only: masks the crop area as a circle to match the avatar.
+      shape: 'oval',
       quality: 0.8,
     });
     if (result.canceled || !result.assets[0]) return;
 
-    setUploadingAvatar(true);
-    setAvatarError(null);
-    try {
-      const asset = result.assets[0];
-      const url = await uploadAvatar(userId, asset.uri, asset.mimeType);
-      setAvatarUrl(url);
-    } catch (err) {
-      setAvatarError(err instanceof Error ? err.message : 'Failed to upload avatar');
-    } finally {
-      setUploadingAvatar(false);
+    const asset = result.assets[0];
+    if (useNativeCrop) {
+      await upload(asset.uri, asset.mimeType);
+    } else {
+      setCropUri(asset.uri);
     }
   };
 
@@ -171,6 +190,17 @@ export function ProfileSettingsScreen() {
         {saved ? <Text style={{ color: colors.success }}>Saved</Text> : null}
         <GradientButton label={saving ? 'Saving...' : 'Save'} loading={saving} disabled={!dirty} onPress={onSave} />
       </Card>
+
+      <AvatarCropModal
+        // Remount per image so zoom/position start fresh without a reset effect.
+        key={cropUri ?? 'none'}
+        uri={cropUri}
+        onCancel={() => setCropUri(null)}
+        onCropped={async (uri) => {
+          setCropUri(null);
+          await upload(uri, 'image/jpeg');
+        }}
+      />
     </ScreenContainer>
   );
 }
