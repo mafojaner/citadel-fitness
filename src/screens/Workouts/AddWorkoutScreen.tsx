@@ -7,6 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { InfoNote } from '../../components/InfoNote';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import {
   CATEGORY_GRADIENTS,
@@ -15,6 +16,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
+import { todayISO } from '../../lib/analytics';
 import { partsToSeconds, secondsToParts } from '../../lib/units';
 import { saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
@@ -150,7 +152,17 @@ export function AddWorkoutScreen() {
   return (
     <>
     <ScreenContainer>
-      <Text style={[typography.caption, { color: colors.textMuted }]}>{date}</Text>
+      <View style={{ gap: spacing.xs }}>
+        <Text style={[typography.caption, { color: colors.textMuted }]}>{date}</Text>
+        <InfoNote
+          label="About this date"
+          text={
+            date === todayISO()
+              ? "Log workout always adds to today. To add or edit a previous day, use the calendar on the Workouts tab."
+              : `You're logging ${date} through the calendar. Since it wasn't logged the day it happened, it won't count toward your weekly reward.`
+          }
+        />
+      </View>
 
       {draftExercises.length === 0 ? (
         <Card>

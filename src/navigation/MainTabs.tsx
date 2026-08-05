@@ -5,11 +5,13 @@ import { useTheme } from '../theme/useTheme';
 import { ActivityStack } from './stacks/ActivityStack';
 import { HomeStack } from './stacks/HomeStack';
 import { NewsletterStack } from './stacks/NewsletterStack';
+import { RewardsStack } from './stacks/RewardsStack';
 import { WorkoutsStack } from './stacks/WorkoutsStack';
 
 export type MainTabsParamList = {
   Home: undefined;
   Workouts: undefined;
+  Rewards: undefined;
   Activity: undefined;
   Learn: undefined;
 };
@@ -17,6 +19,7 @@ export type MainTabsParamList = {
 const TAB_ICONS: Record<keyof MainTabsParamList, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Workouts: 'barbell',
+  Rewards: 'diamond',
   Activity: 'stats-chart',
   Learn: 'book',
 };
@@ -48,6 +51,7 @@ export function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Workouts" component={WorkoutsStack} />
+      <Tab.Screen name="Rewards" component={RewardsStack} />
       <Tab.Screen name="Activity" component={ActivityStack} />
       <Tab.Screen name="Learn" component={NewsletterStack} />
     </Tab.Navigator>

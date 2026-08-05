@@ -1,5 +1,5 @@
 import { addDays, todayISO } from './analytics';
-import { fetchWorkoutDatesInRange } from './workouts';
+import { fetchRewardEligibleWorkoutDates } from './workouts';
 
 /** Logging a workout on this many distinct days in a week completes it. */
 const WEEKLY_TARGET_DAYS = 4;
@@ -63,13 +63,18 @@ function mondayOfWeek(dateString: string): string {
  * midnight. Every WEEKS_PER_REWARD consecutive complete weeks earns one
  * reward. Redemption isn't wired to a real subscription/billing system —
  * there isn't one yet — this only tracks and displays eligibility.
+ *
+ * Only same-day-logged entries count — fetchRewardEligibleWorkoutDates
+ * excludes anything backdated through the Workouts calendar, so a day can't
+ * be fabricated after the fact. See
+ * supabase/migration_024_reward_eligibility.sql.
  */
 export async function fetchRewardProgress(userId: string): Promise<RewardProgress> {
   const today = todayISO();
   const currentWeekStart = mondayOfWeek(today);
   const historyStart = addDays(currentWeekStart, -7 * HISTORY_WEEKS);
 
-  const loggedDates = new Set(await fetchWorkoutDatesInRange(userId, historyStart, today));
+  const loggedDates = new Set(await fetchRewardEligibleWorkoutDates(userId, historyStart, today));
 
   const weekStarts: string[] = [];
   for (let d = historyStart; d <= currentWeekStart; d = addDays(d, 7)) {

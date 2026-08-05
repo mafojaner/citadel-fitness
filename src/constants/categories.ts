@@ -11,6 +11,7 @@ export const CATEGORY_FILTERS: { label: string; value: Category | 'all' }[] = [
   { label: 'Core', value: 'core' },
   { label: 'Cardio', value: 'cardio' },
   { label: 'Boxing', value: 'boxing' },
+  { label: 'Glutes', value: 'glutes' },
 ];
 
 export const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyphMap>> = {
@@ -21,6 +22,7 @@ export const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyp
   core: 'sync-outline',
   cardio: 'heart-outline',
   boxing: 'hand-left-outline',
+  glutes: 'contract-outline',
 };
 
 export const DEFAULT_CATEGORY_ICON: keyof typeof Ionicons.glyphMap = 'fitness-outline';
@@ -33,6 +35,7 @@ export const CATEGORY_GRADIENTS: Partial<Record<Category, readonly [string, stri
   core: gradients.identity,
   cardio: gradients.pulse,
   boxing: gradients.favorite,
+  glutes: gradients.action,
 };
 
 export const DEFAULT_CATEGORY_GRADIENT = gradients.volume;
