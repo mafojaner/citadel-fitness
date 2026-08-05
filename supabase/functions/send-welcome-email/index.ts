@@ -1,5 +1,10 @@
 // Citadel Fitness — welcome email
-// Deploy with: supabase functions deploy send-welcome-email
+// Deploy with: supabase functions deploy send-welcome-email --no-verify-jwt
+//
+// --no-verify-jwt is REQUIRED. Database Webhooks don't send a user JWT, so
+// with the default verify_jwt=true the platform gateway rejects the request
+// before this file ever runs and the webhook silently never fires. Auth is
+// still enforced below via the x-webhook-secret header, which fails closed.
 //
 // Triggered by a Supabase Database Webhook on auth.users UPDATE (set up in
 // the dashboard: Database -> Webhooks). Fires a one-time welcome email the
