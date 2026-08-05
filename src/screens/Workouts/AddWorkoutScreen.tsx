@@ -109,6 +109,10 @@ export function AddWorkoutScreen() {
   const catalogueFor = (exerciseId: string) => catalogue.find((e) => e.id === exerciseId);
   const nameFor = (exerciseId: string) => catalogueFor(exerciseId)?.name ?? 'Exercise';
   const isCardio = (exerciseId: string) => catalogueFor(exerciseId)?.type === 'cardio';
+  // Timed exercises that don't cover ground — skipping, planks, boxing
+  // rounds — shouldn't ask for a distance. Unknown ids fall back to true so
+  // a not-yet-loaded catalogue doesn't hide a field that does apply.
+  const tracksDistance = (exerciseId: string) => catalogueFor(exerciseId)?.tracksDistance ?? true;
 
   // An exercise added but never actually filled in (every set still at its
   // default zero) shouldn't be confirmable — it would still count toward
@@ -157,6 +161,14 @@ export function AddWorkoutScreen() {
       ) : (
         draftExercises.map((exercise) => {
           const cardio = isCardio(exercise.exerciseId);
+          const showDistance = cardio && tracksDistance(exercise.exerciseId);
+          // Boxing is worked in rounds, not "sessions" or "sets".
+          const entryNoun =
+            catalogueFor(exercise.exerciseId)?.category === 'boxing' && cardio
+              ? 'round'
+              : cardio
+                ? 'session'
+                : 'set';
           return (
             <Card key={exercise.id}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -185,9 +197,11 @@ export function AddWorkoutScreen() {
                     <Text style={[typography.caption, { color: colors.textMuted, flex: 1.4 }]}>
                       Duration (h : m : s)
                     </Text>
-                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
-                      Distance ({distanceUnit})
-                    </Text>
+                    {showDistance ? (
+                      <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
+                        Distance ({distanceUnit})
+                      </Text>
+                    ) : null}
                   </>
                 ) : (
                   <>
@@ -226,22 +240,24 @@ export function AddWorkoutScreen() {
                           updateSet(exercise.id, set.id, { durationSeconds })
                         }
                       />
-                      <TextInput
-                        keyboardType="numeric"
-                        value={set.distance === 0 ? '' : String(set.distance)}
-                        onChangeText={(t) => updateSet(exercise.id, set.id, { distance: Number(t) || 0 })}
-                        placeholder="0"
-                        placeholderTextColor={colors.textMuted}
-                        style={{
-                          flex: 1,
-                          minWidth: 0,
-                          borderColor: colors.border,
-                          borderWidth: 1,
-                          borderRadius: radius.sm,
-                          padding: spacing.sm,
-                          color: colors.textPrimary,
-                        }}
-                      />
+                      {showDistance ? (
+                        <TextInput
+                          keyboardType="numeric"
+                          value={set.distance === 0 ? '' : String(set.distance)}
+                          onChangeText={(t) => updateSet(exercise.id, set.id, { distance: Number(t) || 0 })}
+                          placeholder="0"
+                          placeholderTextColor={colors.textMuted}
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            borderColor: colors.border,
+                            borderWidth: 1,
+                            borderRadius: radius.sm,
+                            padding: spacing.sm,
+                            color: colors.textPrimary,
+                          }}
+                        />
+                      ) : null}
                     </>
                   ) : (
                     <>
@@ -287,7 +303,7 @@ export function AddWorkoutScreen() {
 
               <Pressable onPress={() => addSet(exercise.id)}>
                 <Text style={{ color: colors.primary, fontWeight: '600' }}>
-                  + Add {cardio ? 'session' : 'set'}
+                  + Add {entryNoun}
                 </Text>
               </Pressable>
             </Card>

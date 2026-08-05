@@ -8,15 +8,34 @@ import type {
   WeightUnit,
 } from '../types/models';
 
+interface DbExercise {
+  id: string;
+  name: string;
+  category: Category;
+  type: ExerciseType;
+  description: string | null;
+  tracks_distance: boolean | null;
+}
+
 export async function fetchExercises(): Promise<Exercise[]> {
   const { data, error } = await supabase
     .from('exercises')
-    .select('id, name, category, type, description')
+    .select('id, name, category, type, description, tracks_distance')
     .order('category')
-    .order('name');
+    .order('name')
+    .returns<DbExercise[]>();
 
   if (error) throw error;
-  return data as Exercise[];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    type: row.type,
+    description: row.description,
+    // Defaults to true so an exercise predating migration_023 still offers
+    // distance rather than silently losing the field.
+    tracksDistance: row.tracks_distance ?? true,
+  }));
 }
 
 export async function fetchWorkoutDatesInRange(

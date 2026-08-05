@@ -1,4 +1,4 @@
-export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'core' | 'cardio' | string;
+export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'core' | 'cardio' | 'boxing' | string;
 
 export type ExerciseType = 'strength' | 'cardio';
 
@@ -11,6 +11,13 @@ export interface Exercise {
   category: Category;
   type: ExerciseType;
   description: string | null;
+  /**
+   * Whether a distance is meaningful for this exercise. `type` only
+   * distinguishes rep-based from time-based, so without this every timed
+   * exercise — a plank, a skipping session, a round on the heavy bag —
+   * would also ask for a distance. See migration_023.
+   */
+  tracksDistance: boolean;
 }
 
 export interface SetEntry {
