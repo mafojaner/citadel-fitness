@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Sentry from '@sentry/react-native';
 import { Component, type ErrorInfo, type PropsWithChildren } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { darkColors, lightColors, radius, spacing, typography } from '../theme/tokens';
@@ -24,6 +25,9 @@ export class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundarySta
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('Unhandled render error:', error, info.componentStack);
+    // This boundary swallows the error to show a fallback UI, so Sentry.wrap's
+    // own boundary at the root never sees it — report it here instead.
+    Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
   }
 
   handleReset = () => {
