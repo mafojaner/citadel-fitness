@@ -31,14 +31,12 @@ const LABEL_BREAKPOINT = 600;
 
 const BAR_MARGIN = 12;
 const ICON_SIZE = 22;
-/** Fixed size of the icon-only highlight — a compact bubble around just the icon, not a full-segment pill. */
-const COMPACT_INDICATOR_SIZE = 44;
 /**
  * Inset for the row of tabs from the bar's own edges. The bar uses a full
  * stadium radius (`radius.pill`), which curves much more aggressively than
  * a normal rounded rect — without this, the first and last tab sit right
- * where that curve is steepest, crowding their icon and highlight against
- * it in a way the three middle tabs never have to deal with.
+ * where that curve is steepest, crowding their icon against it in a way
+ * the three middle tabs never have to deal with.
  */
 const ROW_INSET = 10;
 
@@ -48,35 +46,6 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
   const { width: windowWidth } = useWindowDimensions();
   const showLabels = windowWidth >= LABEL_BREAKPOINT;
   const barHeight = showLabels ? 60 : 54;
-
-  const [barWidth, setBarWidth] = useState(0);
-  const rowWidth = Math.max(0, barWidth - ROW_INSET * 2);
-  const tabWidth = rowWidth / state.routes.length;
-  const indicatorSize = showLabels ? tabWidth - 12 : COMPACT_INDICATOR_SIZE;
-  const indicatorHeight = showLabels ? barHeight - 12 : COMPACT_INDICATOR_SIZE;
-
-  const [indexAnim] = useState(() => new Animated.Value(state.index));
-  useEffect(() => {
-    Animated.spring(indexAnim, {
-      toValue: state.index,
-      useNativeDriver: true,
-      tension: 68,
-      friction: 12,
-    }).start();
-  }, [state.index, indexAnim]);
-
-  // Centres the indicator within each tab's segment regardless of its size,
-  // so the same formula covers both the full-width labelled pill and the
-  // smaller icon-only bubble.
-  const indicatorTranslateX =
-    barWidth === 0
-      ? 0
-      : indexAnim.interpolate({
-          inputRange: state.routes.map((_, i) => i),
-          outputRange: state.routes.map(
-            (_, i) => ROW_INSET + i * tabWidth + (tabWidth - indicatorSize) / 2
-          ),
-        });
 
   return (
     <View
@@ -98,28 +67,12 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
         shadowOffset: { width: 0, height: 6 },
         elevation: 8,
       }}
-      onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
     >
       <BlurView
         intensity={80}
         tint={scheme === 'dark' ? 'dark' : 'light'}
         style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}
       >
-        {barWidth > 0 ? (
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: (barHeight - indicatorHeight) / 2,
-              left: 0,
-              width: indicatorSize,
-              height: indicatorHeight,
-              borderRadius: radius.pill,
-              backgroundColor: colors.primaryMuted,
-              transform: [{ translateX: indicatorTranslateX }],
-            }}
-          />
-        ) : null}
-
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           return (
