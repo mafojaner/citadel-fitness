@@ -48,7 +48,7 @@ export interface UserProfile {
   preferences: Record<string, unknown>;
 }
 
-export type ArticleCategory = 'splits' | 'exercise' | 'nutrition' | 'recovery';
+export type ArticleCategory = 'splits' | 'exercise' | 'nutrition' | 'recovery' | 'updates';
 
 export interface Article {
   id: string;

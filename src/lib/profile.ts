@@ -27,6 +27,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
     exercise: true,
     nutrition: true,
     recovery: true,
+    updates: true,
   },
   hasSeenOnboarding: false,
   emailNewsletter: false,

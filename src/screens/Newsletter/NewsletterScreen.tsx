@@ -26,7 +26,7 @@ import type { NewsletterStackParamList } from '../../navigation/stacks/Newslette
 
 type FilterValue = ArticleCategory | 'favorites';
 
-const CATEGORY_ORDER: ArticleCategory[] = ['splits', 'exercise', 'nutrition', 'recovery'];
+const CATEGORY_ORDER: ArticleCategory[] = ['splits', 'exercise', 'nutrition', 'recovery', 'updates'];
 
 function formatPublished(iso: string) {
   const published = new Date(iso);
