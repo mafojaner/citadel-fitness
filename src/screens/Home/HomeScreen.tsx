@@ -26,7 +26,7 @@ import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
-import { gradients } from '../../theme/tokens';
+import { gradients, shadow } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
@@ -46,7 +46,7 @@ function formatShortDate(dateString: string, today: string) {
 }
 
 export function HomeScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, radius, typography, scheme } = useTheme();
   const navigation = useNavigation<HomeNavigationProp>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
@@ -91,56 +91,16 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer>
-      <TextInput
-        placeholder="Search exercises..."
-        placeholderTextColor={colors.textMuted}
-        value={query}
-        onChangeText={setQuery}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
+      {/* The action people actually open this screen for leads, rather than
+          sitting below two read-only summary cards. */}
+      <GradientButton
+        label="Log workout"
+        onPress={() => {
+          ensureDraftFor(today);
+          navigation.navigate('AddWorkout');
         }}
       />
 
-      {isSearching ? (
-        searchResults.length === 0 ? (
-          <Card>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No exercises match &quot;{query.trim()}&quot;.
-            </Text>
-          </Card>
-        ) : (
-          <View style={{ gap: spacing.sm }}>
-            {searchResults.map((exercise) => (
-              <AnimatedPressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)} scaleTo={0.98}>
-                <Card>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                    <GradientIconBadge
-                      icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-                      colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                      size={36}
-                    />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                        {exercise.name}
-                      </Text>
-                      <Text style={[typography.caption, { color: colors.textMuted }]}>
-                        {exercise.category}
-                      </Text>
-                    </View>
-                    <Ionicons name="add-circle" size={26} color={colors.primary} />
-                  </View>
-                </Card>
-              </AnimatedPressable>
-            ))}
-          </View>
-        )
-      ) : (
-        <>
       <AnimatedPressable
         onPress={() => navigation.navigate('Activity')}
         accessibilityRole="button"
@@ -271,31 +231,83 @@ export function HomeScreen() {
         </Card>
       </AnimatedPressable>
 
-      <GradientButton
-        label="Log workout"
-        onPress={() => {
-          ensureDraftFor(today);
-          navigation.navigate('AddWorkout');
-        }}
+      {/* Discovery section: search and category browsing are two entry
+          points into the same task (find something to log), so they share
+          one heading and sit together at the bottom, below the primary
+          action and status. */}
+      <Text style={[typography.subheading, { color: colors.textPrimary }]}>Find an exercise</Text>
+
+      <TextInput
+        placeholder="Search exercises..."
+        placeholderTextColor={colors.textMuted}
+        value={query}
+        onChangeText={setQuery}
+        style={[
+          shadow.card,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            borderWidth: 1,
+            borderRadius: radius.lg,
+            padding: spacing.md,
+            color: colors.textPrimary,
+            shadowOpacity: scheme === 'dark' ? 0.35 : 0.1,
+          },
+        ]}
       />
 
-      <Text style={[typography.subheading, { color: colors.textPrimary }]}>Browse by category</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-        {CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => {
-          const category = c.value as Category;
-          return (
-            <CategoryGridCard
-              key={c.value}
-              icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-              gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
-              label={c.label}
-              count={categoryCounts.get(category) ?? 0}
-              onPress={() => onSelectCategory(category)}
-            />
-          );
-        })}
-      </View>
-        </>
+      {/* Searching only swaps this section's own content — the CTA and
+          status cards above stay put, rather than the whole page being
+          replaced by a flat result list. */}
+      {isSearching ? (
+        searchResults.length === 0 ? (
+          <Card>
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              No exercises match &quot;{query.trim()}&quot;.
+            </Text>
+          </Card>
+        ) : (
+          <View style={{ gap: spacing.sm }}>
+            {searchResults.map((exercise) => (
+              <AnimatedPressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)} scaleTo={0.98}>
+                <Card>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                    <GradientIconBadge
+                      icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
+                      colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
+                      size={36}
+                    />
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                        {exercise.name}
+                      </Text>
+                      <Text style={[typography.caption, { color: colors.textMuted }]}>
+                        {exercise.category}
+                      </Text>
+                    </View>
+                    <Ionicons name="add-circle" size={26} color={colors.primary} />
+                  </View>
+                </Card>
+              </AnimatedPressable>
+            ))}
+          </View>
+        )
+      ) : (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          {CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => {
+            const category = c.value as Category;
+            return (
+              <CategoryGridCard
+                key={c.value}
+                icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+                gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
+                label={c.label}
+                count={categoryCounts.get(category) ?? 0}
+                onPress={() => onSelectCategory(category)}
+              />
+            );
+          })}
+        </View>
       )}
     </ScreenContainer>
   );

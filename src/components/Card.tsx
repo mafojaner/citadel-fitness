@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { shadow } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface CardProps extends PropsWithChildren {
@@ -7,17 +8,19 @@ interface CardProps extends PropsWithChildren {
 }
 
 export function Card({ title, children }: CardProps) {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, radius, typography, scheme } = useTheme();
   return (
     <View
       style={[
         styles.card,
+        shadow.card,
         {
           backgroundColor: colors.surface,
           borderColor: colors.border,
-          borderRadius: radius.md,
+          borderRadius: radius.lg,
           padding: spacing.md,
           gap: spacing.sm,
+          shadowOpacity: scheme === 'dark' ? 0.35 : 0.1,
         },
       ]}
     >
@@ -32,5 +35,6 @@ export function Card({ title, children }: CardProps) {
 const styles = StyleSheet.create({
   card: {
     borderWidth: StyleSheet.hairlineWidth,
+    elevation: 3,
   },
 });

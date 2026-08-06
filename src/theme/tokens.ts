@@ -14,6 +14,17 @@ export const radius = {
   pill: 999,
 } as const;
 
+// Shape only — shadowColor/shadowRadius/shadowOffset don't need to vary by
+// scheme, but shadowOpacity does (a shadow tuned to read on white is
+// invisible on near-black), so each consumer adds
+// `shadowOpacity: scheme === 'dark' ? X : Y` and its own `elevation`
+// itself, matching the pattern FloatingTabBar already established rather
+// than inventing a second theming mechanism.
+export const shadow = {
+  card: { shadowColor: '#000', shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+  floating: { shadowColor: '#000', shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
+} as const;
+
 export const typography = {
   title: { fontSize: 28, fontWeight: '700' as const },
   heading: { fontSize: 20, fontWeight: '600' as const },
