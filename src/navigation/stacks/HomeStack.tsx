@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ProfileIconButton } from '../../components/ProfileIconButton';
 import { HomeScreen } from '../../screens/Home/HomeScreen';
 import { AddWorkoutScreen } from '../../screens/Workouts/AddWorkoutScreen';
 import { ExerciseCatalogueScreen } from '../../screens/Workouts/ExerciseCatalogueScreen';
@@ -20,11 +19,7 @@ export function HomeStack() {
 
   return (
     <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerRight: () => <ProfileIconButton /> }}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="AddWorkout"
         component={AddWorkoutScreen}

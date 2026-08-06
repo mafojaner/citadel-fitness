@@ -4,13 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -26,7 +27,7 @@ import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
-import { gradients, shadow } from '../../theme/tokens';
+import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
@@ -46,7 +47,7 @@ function formatShortDate(dateString: string, today: string) {
 }
 
 export function HomeScreen() {
-  const { colors, spacing, radius, typography, scheme } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<HomeNavigationProp>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const addExercise = useWorkoutDraftStore((s) => s.addExercise);
@@ -90,7 +91,9 @@ export function HomeScreen() {
   };
 
   return (
-    <ScreenContainer>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <HeaderSearchBar title="Home" placeholder="Search exercises..." value={query} onChangeText={setQuery} />
+      <ScreenContainer>
       {/* The action people actually open this screen for leads, rather than
           sitting below two read-only summary cards. */}
       <GradientButton
@@ -237,25 +240,6 @@ export function HomeScreen() {
           action and status. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Find an exercise</Text>
 
-      <TextInput
-        placeholder="Search exercises..."
-        placeholderTextColor={colors.textMuted}
-        value={query}
-        onChangeText={setQuery}
-        style={[
-          shadow.card,
-          {
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-            borderWidth: 1,
-            borderRadius: radius.lg,
-            padding: spacing.md,
-            color: colors.textPrimary,
-            shadowOpacity: scheme === 'dark' ? 0.35 : 0.1,
-          },
-        ]}
-      />
-
       {/* Searching only swaps this section's own content — the CTA and
           status cards above stay put, rather than the whole page being
           replaced by a flat result list. */}
@@ -309,6 +293,7 @@ export function HomeScreen() {
           })}
         </View>
       )}
-    </ScreenContainer>
+      </ScreenContainer>
+    </View>
   );
 }

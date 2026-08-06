@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { InfoNote } from '../../components/InfoNote';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useRewards } from '../../hooks/useRewards';
@@ -108,7 +109,9 @@ export function RewardsScreen() {
   const weeksToGo = weeksPerReward - weeksIntoCurrentCycle;
 
   return (
-    <ScreenContainer>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <HeaderSearchBar title="Rewards" placeholder="Search rewards..." />
+      <ScreenContainer>
       <InfoNote
         label="About reward eligibility"
         text="Only workouts logged on their actual day count toward rewards — a day added later through the calendar won't count, even if the workout really happened that day."
@@ -180,6 +183,7 @@ export function RewardsScreen() {
         Rewards track your consistency now. Redeeming 10% off a premium membership isn&apos;t live yet —
         we&apos;ll let you know here as soon as it is.
       </Text>
-    </ScreenContainer>
+      </ScreenContainer>
+    </View>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
@@ -11,6 +11,7 @@ import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
+import { SearchField } from '../../components/SearchField';
 import {
   CATEGORY_FILTERS,
   CATEGORY_GRADIENTS,
@@ -26,7 +27,7 @@ import type { Category, Exercise } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
 export function ExerciseCatalogueScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const route = useRoute<RouteProp<WorkoutsStackParamList, 'ExerciseCatalogue'>>();
   const { exercises, loading, error } = useExercises();
@@ -87,22 +88,13 @@ export function ExerciseCatalogueScreen() {
         ListHeaderComponent={
           <View style={{ gap: spacing.md, marginBottom: listData.length > 0 ? spacing.md : 0 }}>
             <ProfileLoadBanner />
-            <TextInput
-              placeholder="Search exercises"
-              placeholderTextColor={colors.textMuted}
-              value={query}
-              onChangeText={setQuery}
-              style={{
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: radius.md,
-                padding: spacing.md,
-                color: colors.textPrimary,
-              }}
-            />
+            <SearchField placeholder="Search exercises" value={query} onChangeText={setQuery} size="large" />
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ flexDirection: 'row', gap: spacing.sm, paddingRight: spacing.md }}
+            >
               {CATEGORY_FILTERS.map((c) => (
                 <GradientPill
                   key={c.value}
@@ -111,7 +103,7 @@ export function ExerciseCatalogueScreen() {
                   onPress={() => setActiveCategory(c.value)}
                 />
               ))}
-            </View>
+            </ScrollView>
 
             {loading ? (
               <ActivityIndicator color={colors.primary} />

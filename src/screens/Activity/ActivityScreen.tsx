@@ -14,6 +14,7 @@ import { Card } from '../../components/Card';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientPill } from '../../components/GradientPill';
+import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatTile } from '../../components/StatTile';
@@ -135,8 +136,14 @@ export function ActivityScreen() {
   const metricWord = isMinutes ? 'cardio minutes' : `volume (reps × weight, ${units})`;
 
   return (
-    <ScreenContainer>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <HeaderSearchBar title="Activity" placeholder="Search activity..." />
+      <ScreenContainer>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ flexDirection: 'row', gap: spacing.sm, paddingRight: spacing.md }}
+      >
         {CATEGORY_FILTERS.map((c) => (
           <GradientPill
             key={c.value}
@@ -146,7 +153,7 @@ export function ActivityScreen() {
             colors={c.value === 'all' ? undefined : CATEGORY_GRADIENTS[c.value as Category]}
           />
         ))}
-      </View>
+      </ScrollView>
 
       {summaryError ? <ErrorNotice message={summaryError} /> : null}
 
@@ -353,6 +360,7 @@ export function ActivityScreen() {
           />
         </View>
       )}
-    </ScreenContainer>
+      </ScreenContainer>
+    </View>
   );
 }

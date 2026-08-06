@@ -10,5 +10,6 @@ export function stackScreenOptions(colors: ThemeColors): NativeStackNavigationOp
     headerShadowVisible: false,
     headerLeft: ({ canGoBack, tintColor }) =>
       canGoBack ? <CustomBackButton tintColor={tintColor} /> : null,
+    animation: 'fade',
   };
 }

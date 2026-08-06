@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ProfileIconButton } from '../../components/ProfileIconButton';
 import { RewardsScreen } from '../../screens/Rewards/RewardsScreen';
 import { useTheme } from '../../theme/useTheme';
 import { stackScreenOptions } from '../screenOptions';
@@ -15,11 +14,7 @@ export function RewardsStack() {
 
   return (
     <Stack.Navigator screenOptions={stackScreenOptions(colors)}>
-      <Stack.Screen
-        name="Rewards"
-        component={RewardsScreen}
-        options={{ headerRight: () => <ProfileIconButton /> }}
-      />
+      <Stack.Screen name="Rewards" component={RewardsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

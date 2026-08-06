@@ -3,7 +3,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -37,12 +37,15 @@ function formatPublished(iso: string) {
   return published.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export function NewsletterScreen() {
+interface NewsletterScreenProps {
+  query: string;
+}
+
+export function NewsletterScreen({ query }: NewsletterScreenProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<NewsletterStackParamList>>();
   const { articles, loading, error, reload } = useArticles();
   const [activeFilter, setActiveFilter] = useState<FilterValue | null>(null);
-  const [query, setQuery] = useState('');
 
   const userId = useAuthStore((s) => s.session?.user.id);
   const favoriteIds = useFavoriteArticlesStore((s) => s.ids);
@@ -126,21 +129,6 @@ export function NewsletterScreen() {
 
   return (
     <ScreenContainer>
-      <TextInput
-        placeholder="Search newsletters..."
-        placeholderTextColor={colors.textMuted}
-        value={query}
-        onChangeText={setQuery}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
-
       {loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : error ? (

@@ -10,6 +10,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientNumberBadge } from '../../components/GradientNumberBadge';
+import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -62,7 +63,7 @@ interface CalendarDayProps {
 }
 
 export function WorkoutsScreen() {
-  const { colors, spacing, typography, scheme } = useTheme();
+  const { colors, spacing, radius, typography, scheme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
@@ -185,7 +186,9 @@ export function WorkoutsScreen() {
   );
 
   return (
-    <ScreenContainer>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <HeaderSearchBar title="Workouts" placeholder="Search workouts..." />
+      <ScreenContainer>
       <GradientButton
         label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
         onPress={onEnterWorkout}
@@ -195,6 +198,7 @@ export function WorkoutsScreen() {
 
       <View
         style={{
+          borderRadius: radius.lg,
           shadowColor: gradients.calendar[1],
           shadowOpacity: 0.18,
           shadowRadius: 16,
@@ -280,6 +284,7 @@ export function WorkoutsScreen() {
           )}
         </Card>
       </AnimatedPressable>
-    </ScreenContainer>
+      </ScreenContainer>
+    </View>
   );
 }
