@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { FadeInView } from './FadeInView';
 import { ProfileLoadBanner } from './ProfileLoadBanner';
+import { FLOATING_TAB_BAR_CLEARANCE } from '../navigation/FloatingTabBar';
 import { useTheme } from '../theme/useTheme';
 
 export function ScreenContainer({ children }: PropsWithChildren) {
@@ -9,7 +10,10 @@ export function ScreenContainer({ children }: PropsWithChildren) {
   return (
     <ScrollView
       style={[styles.scroll, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { padding: spacing.md }]}
+      contentContainerStyle={[
+        styles.content,
+        { padding: spacing.md, paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE },
+      ]}
     >
       <FadeInView style={{ gap: spacing.md }}>
         <ProfileLoadBanner />

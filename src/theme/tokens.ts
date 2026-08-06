@@ -65,7 +65,10 @@ export const darkColors = {
   success: palette.success,
   danger: palette.danger,
   tabInactive: palette.ink500,
-  navBackground: '#05070C',
+  // Matches `background` rather than a separate near-black value — the
+  // mismatch between the two was exactly what read as a distinct dark bar
+  // sitting on top of the page.
+  navBackground: palette.ink900,
   navText: palette.white,
   navBorder: '#1C2230',
 };

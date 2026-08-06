@@ -6,7 +6,7 @@ export function stackScreenOptions(colors: ThemeColors): NativeStackNavigationOp
   return {
     headerStyle: { backgroundColor: colors.navBackground },
     headerTintColor: colors.navText,
-    headerTitleStyle: { color: colors.navText, fontWeight: '700' },
+    headerTitleStyle: { color: colors.navText, fontWeight: '700', fontSize: 22 },
     headerShadowVisible: false,
     headerLeft: ({ canGoBack, tintColor }) =>
       canGoBack ? <CustomBackButton tintColor={tintColor} /> : null,

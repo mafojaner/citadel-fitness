@@ -1,4 +1,4 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, View } from 'react-native';
@@ -26,7 +26,22 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
+  // Bridges this app's own theme into React Navigation's theming system,
+  // which otherwise defaults to its own internal light theme regardless of
+  // scheme — the container's own chrome (visible briefly during native
+  // transitions) would silently drift from the rest of the app without this.
+  const navTheme = {
+    ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(scheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.background,
+      card: colors.navBackground,
+      border: colors.navBorder,
+      primary: colors.primary,
+      text: colors.textPrimary,
+    },
+  };
   const session = useAuthStore((s) => s.session);
   const isInitializing = useAuthStore((s) => s.isInitializing);
   const loadProfile = useProfileStore((s) => s.load);
@@ -99,7 +114,7 @@ export function RootNavigator() {
 
   if (passwordRecovery) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
         <ResetPasswordScreen onDone={() => setPasswordRecovery(false)} />
       </NavigationContainer>
     );
@@ -127,7 +142,7 @@ export function RootNavigator() {
   const mode = !session ? 'auth' : profileLoaded && !hasSeenOnboarding ? 'onboarding' : 'main';
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       {/* `key={mode}` forces a fresh mount (and so a fresh fade-in) at each of
           the app's three big-picture transitions — signing in, finishing
           onboarding, signing out — instead of an abrupt instant cut. */}

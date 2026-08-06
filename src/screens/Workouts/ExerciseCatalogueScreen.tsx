@@ -19,6 +19,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
+import { FLOATING_TAB_BAR_CLEARANCE } from '../../navigation/FloatingTabBar';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
@@ -77,7 +78,11 @@ export function ExerciseCatalogueScreen() {
       <FlatList
         data={listData}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: spacing.md, flexGrow: 1 }}
+        contentContainerStyle={{
+          padding: spacing.md,
+          paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE,
+          flexGrow: 1,
+        }}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListHeaderComponent={
           <View style={{ gap: spacing.md, marginBottom: listData.length > 0 ? spacing.md : 0 }}>
