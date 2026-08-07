@@ -1,4 +1,4 @@
-// Citadel Fitness landing page — scroll reveal + nav state.
+// Citadel Fitness landing page: scroll reveal + nav state.
 // No framework, no build step: this is a static page served as-is by Vercel.
 
 (function () {

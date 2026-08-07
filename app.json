@@ -14,7 +14,7 @@
     "android": {
       "package": "com.citadelfitness.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0B0E14",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -41,7 +41,7 @@
           "image": "./assets/android-icon-foreground.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#F5F6F8",
+          "backgroundColor": "#0B0E14",
           "dark": {
             "image": "./assets/android-icon-foreground.png",
             "backgroundColor": "#0B0E14"

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Citadel Fitness — landing page
+   Citadel Fitness: landing page
    Brand tokens mirrored from the app's own theme (src/theme/tokens.ts)
    ========================================================================== */
 
@@ -88,43 +88,32 @@ a { text-decoration: none; color: inherit; }
   transition: width 0.1s linear;
 }
 
-/* ---------- ambient per-section glows: continuous, never stop ---------- */
+/* ---------- ambient per-section glows: continuous, never stop ----------
+   Deliberately no `filter: blur()` here — on some browser/GPU combinations
+   a large blurred+animated element renders as its raw hard-edged box
+   instead of softening, which showed up as a visible rectangle behind the
+   Features/Premium sections. A wide multi-stop radial-gradient looks just
+   as soft on its own and has no such failure mode. */
 .section-glow {
   position: absolute;
+  inset: 0;
   z-index: 0;
-  border-radius: 50%;
-  filter: blur(60px);
   pointer-events: none;
-  animation: drift 13s ease-in-out infinite;
+  animation: drift 15s ease-in-out infinite;
 }
 .section-glow--pulse {
-  width: 560px; height: 560px;
-  top: -120px; right: -140px;
-  background: radial-gradient(circle, rgba(34,211,238,0.16), transparent 70%);
-  animation-duration: 15s;
+  background: radial-gradient(ellipse 620px 480px at 88% 0%, rgba(34,211,238,0.16), rgba(34,211,238,0.06) 35%, transparent 65%);
 }
 .section-glow--identity {
-  width: 620px; height: 620px;
-  bottom: -160px; left: -160px;
-  background: radial-gradient(circle, rgba(139,92,246,0.16), transparent 70%);
-  animation-duration: 17s;
+  background: radial-gradient(ellipse 680px 520px at 4% 100%, rgba(139,92,246,0.16), rgba(139,92,246,0.06) 35%, transparent 65%);
   animation-delay: -4s;
 }
 .section-glow--flame {
-  width: 520px; height: 520px;
-  top: -100px; left: 50%;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(255,90,54,0.16), transparent 70%);
-  animation-duration: 12s;
+  background: radial-gradient(ellipse 600px 460px at 50% 0%, rgba(255,90,54,0.16), rgba(255,90,54,0.06) 35%, transparent 65%);
 }
 @keyframes drift {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(24px, -18px) scale(1.1); }
-}
-.section-glow--flame { animation-name: drift-center; }
-@keyframes drift-center {
-  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
-  50% { transform: translateX(-50%) translateY(-16px) scale(1.12); }
+  50% { transform: translate(16px, -12px) scale(1.05); }
 }
 
 /* ---------- icon idle pulse: small continuous life, everywhere ---------- */
@@ -206,14 +195,15 @@ a:hover .arrow, .nav-cta:hover .arrow { transform: translateX(3px); }
 }
 
 .hero-glow {
+  /* No `filter: blur()` — see the note above .section-glow. The gradient's
+     own gradual stops do the softening instead. */
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 900px;
-  height: 900px;
+  width: 1100px;
+  height: 1100px;
   transform: translate(-50%, -55%);
-  background: radial-gradient(circle at 40% 35%, rgba(255,90,54,0.28), rgba(139,92,246,0.14) 45%, transparent 70%);
-  filter: blur(40px);
+  background: radial-gradient(circle at 40% 35%, rgba(255,90,54,0.22), rgba(255,90,54,0.09) 30%, rgba(139,92,246,0.08) 45%, transparent 68%);
   pointer-events: none;
   animation: breathe 9s ease-in-out infinite;
 }
