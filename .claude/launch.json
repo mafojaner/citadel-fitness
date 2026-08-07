@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["expo", "start", "--web", "--port", "8085"],
       "port": 8085
+    },
+    {
+      "name": "landing",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4173", "--directory", "landing"],
+      "port": 4173
     }
   ]
 }
