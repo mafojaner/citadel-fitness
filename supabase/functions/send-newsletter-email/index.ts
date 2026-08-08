@@ -22,6 +22,7 @@
 // execution time limit, this should move to a queue instead.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { emailShell, emailButton } from '../_shared/email-template.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')!;
@@ -42,6 +43,14 @@ interface ArticleWebhookPayload {
   schema: string;
   record: { id: string; title: string; summary: string; category: string };
 }
+
+const CATEGORY_LABELS: Record<string, string> = {
+  splits: 'Workout Splits',
+  exercise: 'Exercise Guides',
+  nutrition: 'Nutrition',
+  recovery: 'Recovery',
+  updates: 'App Updates',
+};
 
 interface Recipient {
   user_id: string;
@@ -71,12 +80,14 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: recipient.email,
-        subject: `New in ${article.category}: ${article.title}`,
-        html: `
-          <p>${article.summary}</p>
-          <p>Open Citadel Fitness and check the Learn tab to read it.</p>
-          <p style="color:#888;font-size:12px;">You're getting this because you turned on email updates in Account &rarr; Notifications. Turn it off there anytime.</p>
-        `,
+        subject: `New in ${CATEGORY_LABELS[article.category] ?? article.category}: ${article.title}`,
+        html: emailShell(`
+          <p style="margin:0 0 10px;display:inline-block;background-color:#FDEDE8;color:#FF5A36;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:4px 12px;border-radius:999px;">${CATEGORY_LABELS[article.category] ?? article.category}</p>
+          <p style="margin:0 0 12px;font-size:20px;font-weight:700;">${article.title}</p>
+          <p style="margin:0;color:#4A5468;">${article.summary}</p>
+          ${emailButton('https://demo.citadelfitness.app', 'Read on Citadel Fitness')}
+          <p style="margin:0;color:#8A93A6;font-size:12px;">You're getting this because you turned on email updates in Account &rarr; Notifications. Turn it off there anytime.</p>
+        `),
       }),
     });
     if (emailResponse.ok) sent += 1;

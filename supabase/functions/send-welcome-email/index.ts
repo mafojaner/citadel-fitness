@@ -16,6 +16,8 @@
 // by anyone who merely finds the URL; WEBHOOK_SECRET is a function secret
 // you choose yourself (any long random string) and set on both sides.
 
+import { emailShell, emailButton } from '../_shared/email-template.ts';
+
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')!;
 const FROM_EMAIL = Deno.env.get('EMAIL_FROM') ?? 'Citadel Fitness <onboarding@resend.dev>';
@@ -70,12 +72,13 @@ Deno.serve(async (req) => {
       from: FROM_EMAIL,
       to: payload.record.email,
       subject: 'Welcome to Citadel Fitness',
-      html: `
-        <p>Hey ${name},</p>
-        <p>Your account's confirmed — you're ready to log your first workout.</p>
-        <p>Open the app, tap <strong>Log workout</strong>, and pick your first exercise from the catalogue. Everything you log builds your streak on the Activity tab.</p>
-        <p>&mdash; The Citadel Fitness team</p>
-      `,
+      html: emailShell(`
+        <p style="margin:0 0 4px;font-size:20px;font-weight:700;">Welcome, ${name}.</p>
+        <p style="margin:0 0 20px;color:#4A5468;">Your account's confirmed — you're ready to log your first workout.</p>
+        <p style="margin:0;color:#4A5468;">Open the app, tap <strong style="color:#0B0E14;">Log workout</strong>, and pick your first exercise from the catalogue. Everything you log builds your streak on the Activity tab.</p>
+        ${emailButton('https://demo.citadelfitness.app', 'Open Citadel Fitness')}
+        <p style="margin:0;color:#8A93A6;font-size:13px;">Strength, systemized.</p>
+      `),
     }),
   });
 

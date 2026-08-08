@@ -1,0 +1,50 @@
+<!--
+  Citadel Fitness — "Confirm signup" Auth email template
+
+  This is NOT deployed automatically — Supabase Auth's built-in templates
+  only live in the Dashboard (Authentication -> Emails -> Templates ->
+  Confirm signup), there's no CLI/API path that doesn't risk overwriting
+  unrelated auth settings. Kept here as the version-controlled source of
+  truth; paste the <body> of this file into that editor.
+
+  Uses Supabase's Go-template variables — {{ .ConfirmationURL }} is filled
+  in by Supabase itself at send time, not by us.
+-->
+<!doctype html>
+<html>
+  <body style="margin:0;padding:0;background-color:#F0F1F4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F1F4;padding:40px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" style="max-width:480px;background-color:#FFFFFF;border-radius:20px;overflow:hidden;">
+            <tr>
+              <td style="padding:28px 32px;text-align:center;background-color:#0B0E14;">
+                <img src="https://citadelfitness.app/og-image.png" width="48" height="48" alt="Citadel Fitness" style="border-radius:12px;display:block;margin:0 auto 10px;" />
+                <span style="color:#FFFFFF;font-size:13px;font-weight:700;letter-spacing:0.14em;">CITADEL</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 32px;color:#0B0E14;font-size:15px;line-height:1.6;">
+                <p style="margin:0 0 4px;font-size:20px;font-weight:700;">Confirm your email</p>
+                <p style="margin:0 0 20px;color:#4A5468;">One tap and your account's live — then it's straight to logging your first workout.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+                  <tr>
+                    <td style="border-radius:999px;background-color:#FF5A36;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;color:#FFFFFF;text-decoration:none;font-weight:700;font-size:15px;border-radius:999px;">Confirm email</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0;color:#8A93A6;font-size:13px;">If you didn't create a Citadel Fitness account, you can safely ignore this email.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 32px;border-top:1px solid #EEEEEE;text-align:center;">
+                <span style="color:#8A93A6;font-size:12px;">&copy; 2026 Citadel Fitness</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
