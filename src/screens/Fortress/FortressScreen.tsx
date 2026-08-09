@@ -40,6 +40,12 @@ const FEATURES: FortressFeature[] = [
     description: 'Every PR tracked automatically, with a full history so you can see exactly how far you have come.',
   },
   {
+    icon: 'download',
+    colors: gradients.arms,
+    title: 'Exercise data export',
+    description: 'Download your full workout history, every set, rep, and weight, as a CSV whenever you want it.',
+  },
+  {
     icon: 'nutrition',
     colors: gradients.pulse,
     title: 'Nutrition coaching',
@@ -88,6 +94,7 @@ const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean }[] = [
   { label: 'Streaks & activity charts', free: true, fortress: true },
   { label: 'AI progressive overload', free: false, fortress: true },
   { label: 'Advanced analytics & 1RM', free: false, fortress: true },
+  { label: 'Exercise data export', free: false, fortress: true },
   { label: 'Nutrition coaching', free: false, fortress: true },
   { label: 'Form check video reviews', free: false, fortress: true },
   { label: 'Friends & leaderboards', free: false, fortress: true },
