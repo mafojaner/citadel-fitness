@@ -10,6 +10,8 @@ interface HeaderSearchBarProps {
   placeholder?: string;
   value?: string;
   onChangeText?: (text: string) => void;
+  /** False on screens whose search moved to the dedicated Search tab — title-only header. */
+  showSearch?: boolean;
 }
 
 /**
@@ -21,7 +23,13 @@ interface HeaderSearchBarProps {
  * `headerRight`. Rendering our own row (with `headerShown: false` on these
  * screens) gives full, consistent flex control across web/iOS/Android.
  */
-export function HeaderSearchBar({ title, placeholder = 'Search...', value, onChangeText }: HeaderSearchBarProps) {
+export function HeaderSearchBar({
+  title,
+  placeholder = 'Search...',
+  value,
+  onChangeText,
+  showSearch = true,
+}: HeaderSearchBarProps) {
   const { colors, spacing, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const [localQuery, setLocalQuery] = useState('');
@@ -39,14 +47,21 @@ export function HeaderSearchBar({ title, placeholder = 'Search...', value, onCha
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
         <Text
-          style={[typography.heading, { color: colors.navText, fontWeight: '700', flexShrink: 0 }]}
+          style={[
+            typography.heading,
+            showSearch
+              ? { color: colors.navText, fontWeight: '700', flexShrink: 0 }
+              : { color: colors.navText, fontWeight: '700', flex: 1 },
+          ]}
           numberOfLines={1}
         >
           {title}
         </Text>
-        <View style={{ flex: 1 }}>
-          <SearchField placeholder={placeholder} value={query} onChangeText={setQuery} />
-        </View>
+        {showSearch ? (
+          <View style={{ flex: 1 }}>
+            <SearchField placeholder={placeholder} value={query} onChangeText={setQuery} />
+          </View>
+        ) : null}
         <ProfileIconButton />
       </View>
     </View>

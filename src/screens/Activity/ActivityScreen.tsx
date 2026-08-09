@@ -1,31 +1,43 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
   type LayoutChangeEvent,
 } from 'react-native';
 import { BarChart, LineChart } from 'react-native-gifted-charts';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
+import { RankAvatar } from '../../components/RankAvatar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatTile } from '../../components/StatTile';
 import { CATEGORY_FILTERS, CATEGORY_GRADIENTS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
+import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { useProgressSeries } from '../../hooks/useProgressSeries';
+import { useRewards } from '../../hooks/useRewards';
 import { addDays, todayISO } from '../../lib/analytics';
+import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
+import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 type RangePreset = '7d' | '30d' | '90d' | 'custom';
 
@@ -46,6 +58,130 @@ function formatRangeDate(dateString: string) {
     month: 'short',
     day: 'numeric',
   });
+}
+
+function RankingCard() {
+  const { colors, spacing, radius, typography, scheme } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
+  const userId = useAuthStore((s) => s.session?.user.id);
+  const { entries, loading, error } = useLeaderboard();
+
+  const myRank = entries.findIndex((e) => e.userId === userId);
+  const top = entries.slice(0, 3);
+
+  return (
+    <AnimatedPressable onPress={() => navigation.navigate('Leaderboard')} scaleTo={0.98}>
+      <View
+        style={{
+          borderRadius: radius.lg,
+          overflow: 'hidden',
+          backgroundColor: colors.surface,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+          shadowColor: gradients.rankGold[1],
+          shadowOpacity: scheme === 'dark' ? 0.3 : 0.16,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 4,
+        }}
+      >
+        <LinearGradient
+          colors={scheme === 'dark' ? ['#3A2A0F', '#1C2230'] : ['#FFF6E0', '#FFFFFF']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ padding: spacing.md, gap: spacing.md }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1, minWidth: 0 }}>
+              <GradientIconBadge icon="trophy" colors={gradients.rankGold} size={44} />
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity ranking</Text>
+                <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {loading
+                    ? 'Loading...'
+                    : error
+                      ? "Couldn't load the ranking"
+                      : entries.length === 0
+                        ? 'Log a workout to enter this week'
+                        : myRank >= 0
+                          ? `You're #${myRank + 1} this week`
+                          : `${entries.length} member${entries.length === 1 ? '' : 's'} ranked this week`}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+
+          {!loading && !error && top.length > 0 ? (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
+              {top.map((entry, index) => (
+                <View key={entry.userId} style={{ alignItems: 'center', gap: spacing.xs, maxWidth: 92 }}>
+                  <RankAvatar rank={index + 1} avatarUrl={entry.avatarUrl} size={40} />
+                  <Text
+                    style={[typography.caption, { color: colors.textSecondary, fontWeight: '600' }]}
+                    numberOfLines={1}
+                  >
+                    {entry.userId === userId ? 'You' : entry.displayName}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </LinearGradient>
+      </View>
+    </AnimatedPressable>
+  );
+}
+
+function RewardsCard() {
+  const { spacing, radius, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
+  const { weeklyStreak, rewardsEarned, loading } = useRewards();
+
+  return (
+    <AnimatedPressable onPress={() => navigation.navigate('Rewards')} scaleTo={0.98}>
+      <View
+        style={{
+          backgroundColor: '#FF5A36',
+          borderRadius: radius.lg,
+          padding: spacing.md,
+          gap: spacing.sm,
+          shadowColor: '#FF5A36',
+          shadowOpacity: 0.35,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 4,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(255,255,255,0.22)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="diamond" size={22} color="#FFFFFF" />
+          </View>
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.subheading, { color: '#FFFFFF' }]}>Rewards</Text>
+            <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>
+              {loading
+                ? 'Loading...'
+                : `${weeklyStreak} week streak · ${rewardsEarned} reward${rewardsEarned === 1 ? '' : 's'} earned`}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.85)" />
+        </View>
+        <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)', fontWeight: '600' }]}>
+          Tap to view your rewards
+        </Text>
+      </View>
+    </AnimatedPressable>
+  );
 }
 
 export function ActivityScreen() {
@@ -137,23 +273,9 @@ export function ActivityScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <HeaderSearchBar title="Activity" placeholder="Search activity..." />
+      <HeaderSearchBar title="Activity" showSearch={false} />
       <ScreenContainer>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ flexDirection: 'row', gap: spacing.sm, paddingRight: spacing.md }}
-      >
-        {CATEGORY_FILTERS.map((c) => (
-          <GradientPill
-            key={c.value}
-            label={c.label}
-            active={c.value === activeCategory}
-            onPress={() => setActiveCategory(c.value)}
-            colors={c.value === 'all' ? undefined : CATEGORY_GRADIENTS[c.value as Category]}
-          />
-        ))}
-      </ScrollView>
+      <CategoryFilterPicker options={CATEGORY_FILTERS} value={activeCategory} onChange={setActiveCategory} />
 
       {summaryError ? <ErrorNotice message={summaryError} /> : null}
 
@@ -334,6 +456,10 @@ export function ActivityScreen() {
           </Text>
         ) : null}
       </Card>
+
+      <RankingCard />
+
+      <RewardsCard />
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
       {summaryError ? null : summaryLoading ? (

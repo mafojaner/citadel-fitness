@@ -8,6 +8,7 @@ interface SearchFieldProps {
   onChangeText: (text: string) => void;
   /** 'compact' fits the header row; 'large' is for a field standing on its own in page content. */
   size?: 'compact' | 'large';
+  autoFocus?: boolean;
 }
 
 /**
@@ -16,7 +17,13 @@ interface SearchFieldProps {
  * shared by the header search bar and any in-page search fields so they
  * all read as the same control rather than each screen inventing its own.
  */
-export function SearchField({ placeholder = 'Search...', value, onChangeText, size = 'compact' }: SearchFieldProps) {
+export function SearchField({
+  placeholder = 'Search...',
+  value,
+  onChangeText,
+  size = 'compact',
+  autoFocus,
+}: SearchFieldProps) {
   const { colors, spacing, radius, scheme } = useTheme();
   const isLarge = size === 'large';
 
@@ -40,6 +47,7 @@ export function SearchField({ placeholder = 'Search...', value, onChangeText, si
           placeholderTextColor={colors.textMuted}
           value={value}
           onChangeText={onChangeText}
+          autoFocus={autoFocus}
           style={{
             paddingVertical: isLarge ? 14 : 7,
             paddingHorizontal: isLarge ? spacing.lg : spacing.md,

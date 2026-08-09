@@ -91,10 +91,14 @@ export type ThemeColors = typeof lightColors;
 export const gradients = {
   flame: ['#FF5A36', '#FF3D81'],
   calendar: ['#FF5A36', '#8B5CF6'],
+  reward: ['#FFB020', '#FF5A36'],
   pulse: ['#FF5A36', '#22D3EE'],
   volume: ['#FF8A36', '#FFC837'],
   identity: ['#8B5CF6', '#FF5A36'],
   action: ['#FF8A65', '#FF5A36'],
   arms: ['#22D3EE', '#34D399'],
   favorite: ['#FF3D81', '#E24C4C'],
+  rankGold: ['#FFDE7A', '#F5A623'],
+  rankSilver: ['#EAF0F7', '#9CA9B8'],
+  rankBronze: ['#E4A472', '#A15C2E'],
 } as const;

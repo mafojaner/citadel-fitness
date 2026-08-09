@@ -3,12 +3,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
-import { GradientPill } from '../../components/GradientPill';
 import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import { SearchField } from '../../components/SearchField';
@@ -90,20 +90,7 @@ export function ExerciseCatalogueScreen() {
             <ProfileLoadBanner />
             <SearchField placeholder="Search exercises" value={query} onChangeText={setQuery} size="large" />
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ flexDirection: 'row', gap: spacing.sm, paddingRight: spacing.md }}
-            >
-              {CATEGORY_FILTERS.map((c) => (
-                <GradientPill
-                  key={c.value}
-                  label={c.label}
-                  active={c.value === activeCategory}
-                  onPress={() => setActiveCategory(c.value)}
-                />
-              ))}
-            </ScrollView>
+            <CategoryFilterPicker options={CATEGORY_FILTERS} value={activeCategory} onChange={setActiveCategory} />
 
             {loading ? (
               <ActivityIndicator color={colors.primary} />

@@ -11,9 +11,9 @@ import { useTheme } from '../theme/useTheme';
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Workouts: 'barbell',
-  Rewards: 'diamond',
   Activity: 'stats-chart',
   Learn: 'book',
+  Search: 'search',
 };
 
 /**

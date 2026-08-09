@@ -2,14 +2,13 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { Calendar, type DateData } from 'react-native-calendars';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
-import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -50,20 +49,8 @@ function formatDayLabel(dateString: string, today: string) {
   return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
-interface CalendarDayMarking {
-  marked?: boolean;
-  selected?: boolean;
-}
-
-interface CalendarDayProps {
-  date?: DateData;
-  state?: '' | 'disabled' | 'today' | 'selected' | 'inactive';
-  marking?: CalendarDayMarking;
-  onPress?: (date?: DateData) => void;
-}
-
 export function WorkoutsScreen() {
-  const { colors, spacing, radius, typography, scheme } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
@@ -126,68 +113,11 @@ export function WorkoutsScreen() {
     navigation.navigate('AddWorkout');
   };
 
-  const marks = Object.fromEntries(
-    markedDates.map((d) => [d, { marked: true, selected: d === selectedDate }])
-  );
-  if (!marks[selectedDate]) {
-    marks[selectedDate] = { marked: false, selected: true };
-  }
-
   const summary = dayExercises ? summarize(dayExercises) : [];
-
-  const CalendarDay = useCallback(
-    ({ date, state, marking, onPress }: CalendarDayProps) => {
-      if (!date) return null;
-      const isSelected = !!marking?.selected;
-      const isMarked = !!marking?.marked;
-      const isToday = state === 'today';
-      const isOtherMonth = state === 'disabled' || state === 'inactive';
-
-      return (
-        <Pressable onPress={() => onPress?.(date)} style={{ alignItems: 'center', paddingVertical: 4 }}>
-          {isSelected ? (
-            <GradientNumberBadge value={date.day} colors={gradients.calendar} size={32} fontSize={14} />
-          ) : (
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: isToday ? 1.5 : 0,
-                borderColor: colors.primary,
-              }}
-            >
-              <Text
-                style={{
-                  color: isOtherMonth ? colors.textMuted : isToday ? colors.primary : colors.textPrimary,
-                  fontWeight: isToday ? '700' : '500',
-                  opacity: isOtherMonth ? 0.4 : 1,
-                }}
-              >
-                {date.day}
-              </Text>
-            </View>
-          )}
-          <View
-            style={{
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              marginTop: 3,
-              backgroundColor: isMarked && !isSelected ? colors.primary : 'transparent',
-            }}
-          />
-        </Pressable>
-      );
-    },
-    [colors.primary, colors.textMuted, colors.textPrimary]
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <HeaderSearchBar title="Workouts" placeholder="Search workouts..." />
+      <HeaderSearchBar title="Workouts" showSearch={false} />
       <ScreenContainer>
       <GradientButton
         label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
@@ -196,44 +126,12 @@ export function WorkoutsScreen() {
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
-      <View
-        style={{
-          borderRadius: radius.lg,
-          shadowColor: gradients.calendar[1],
-          shadowOpacity: 0.18,
-          shadowRadius: 16,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 3,
-        }}
-      >
-        <Card>
-          <Calendar
-            key={scheme}
-            current={selectedDate}
-            onDayPress={(day: DateData) => setSelectedDate(day.dateString)}
-            onMonthChange={(month: DateData) => loadMonth(month.dateString)}
-            markedDates={marks}
-            dayComponent={CalendarDay}
-            renderArrow={(direction: 'left' | 'right') => (
-              <Ionicons
-                name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
-                size={20}
-                color={colors.primary}
-              />
-            )}
-            theme={{
-              backgroundColor: colors.surface,
-              calendarBackground: colors.surface,
-              textSectionTitleColor: colors.textSecondary,
-              dayTextColor: colors.textPrimary,
-              monthTextColor: colors.textPrimary,
-              textMonthFontWeight: '700',
-              todayTextColor: colors.primary,
-              arrowColor: colors.primary,
-            }}
-          />
-        </Card>
-      </View>
+      <ActivityCalendar
+        selectedDate={selectedDate}
+        onDayPress={setSelectedDate}
+        onMonthChange={loadMonth}
+        markedDates={markedDates}
+      />
 
       <AnimatedPressable
         onPress={() => navigation.navigate('DayDetail', { date: selectedDate })}

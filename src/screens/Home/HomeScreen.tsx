@@ -3,7 +3,6 @@ import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
@@ -29,7 +28,7 @@ import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
-import type { Category, Exercise } from '../../types/models';
+import type { Category } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
 import type { MainTabsParamList } from '../../navigation/MainTabs';
 
@@ -50,7 +49,6 @@ export function HomeScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<HomeNavigationProp>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
-  const addExercise = useWorkoutDraftStore((s) => s.addExercise);
   const { exercises } = useExercises();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const {
@@ -65,7 +63,6 @@ export function HomeScreen() {
     error: recentError,
   } = useRecentWorkouts(3);
   const today = todayISO();
-  const [query, setQuery] = useState('');
 
   const categoryCounts = new Map<Category, number>();
   for (const e of exercises) {
@@ -77,22 +74,9 @@ export function HomeScreen() {
     navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
   };
 
-  const isSearching = query.trim().length > 0;
-  const searchResults = isSearching
-    ? exercises.filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()))
-    : [];
-
-  const onSelectSearchResult = (exercise: Exercise) => {
-    // Append to today's draft rather than replacing it, so picking a second
-    // exercise (or returning to an unsaved workout) doesn't wipe the first.
-    ensureDraftFor(today);
-    addExercise(exercise);
-    navigation.navigate('AddWorkout');
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <HeaderSearchBar title="Home" placeholder="Search exercises..." value={query} onChangeText={setQuery} />
+      <HeaderSearchBar title="Home" showSearch={false} />
       <ScreenContainer>
       {/* The action people actually open this screen for leads, rather than
           sitting below two read-only summary cards. */}
@@ -234,65 +218,26 @@ export function HomeScreen() {
         </Card>
       </AnimatedPressable>
 
-      {/* Discovery section: search and category browsing are two entry
-          points into the same task (find something to log), so they share
-          one heading and sit together at the bottom, below the primary
-          action and status. */}
+      {/* Discovery section: category browsing into the same task (find
+          something to log) people come here for — full-text search now
+          lives on its own tab, which has room to be the whole screen. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Find an exercise</Text>
 
-      {/* Searching only swaps this section's own content — the CTA and
-          status cards above stay put, rather than the whole page being
-          replaced by a flat result list. */}
-      {isSearching ? (
-        searchResults.length === 0 ? (
-          <Card>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No exercises match &quot;{query.trim()}&quot;.
-            </Text>
-          </Card>
-        ) : (
-          <View style={{ gap: spacing.sm }}>
-            {searchResults.map((exercise) => (
-              <AnimatedPressable key={exercise.id} onPress={() => onSelectSearchResult(exercise)} scaleTo={0.98}>
-                <Card>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                    <GradientIconBadge
-                      icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-                      colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                      size={36}
-                    />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                        {exercise.name}
-                      </Text>
-                      <Text style={[typography.caption, { color: colors.textMuted }]}>
-                        {exercise.category}
-                      </Text>
-                    </View>
-                    <Ionicons name="add-circle" size={26} color={colors.primary} />
-                  </View>
-                </Card>
-              </AnimatedPressable>
-            ))}
-          </View>
-        )
-      ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-          {CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => {
-            const category = c.value as Category;
-            return (
-              <CategoryGridCard
-                key={c.value}
-                icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
-                label={c.label}
-                count={categoryCounts.get(category) ?? 0}
-                onPress={() => onSelectCategory(category)}
-              />
-            );
-          })}
-        </View>
-      )}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+        {CATEGORY_FILTERS.filter((c) => c.value !== 'all').map((c) => {
+          const category = c.value as Category;
+          return (
+            <CategoryGridCard
+              key={c.value}
+              icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
+              gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
+              label={c.label}
+              count={categoryCounts.get(category) ?? 0}
+              onPress={() => onSelectCategory(category)}
+            />
+          );
+        })}
+      </View>
       </ScreenContainer>
     </View>
   );
