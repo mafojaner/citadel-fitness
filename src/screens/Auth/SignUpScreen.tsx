@@ -1,9 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Linking, Text, TextInput } from 'react-native';
+import { Linking, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { AuthScreenContainer } from '../../components/AuthScreenContainer';
+import { AuthTextInput } from '../../components/AuthTextInput';
+import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
@@ -15,7 +17,7 @@ import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
 
 export function SignUpScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,54 +49,53 @@ export function SignUpScreen() {
 
   return (
     <AuthScreenContainer>
-      <Text style={[typography.title, { color: colors.textPrimary }]}>Create account</Text>
-
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: emailInvalid ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
-      {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
-
-      <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} hasError={passwordInvalid} />
-      {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
-
-      <PasswordInput
-        placeholder="Confirm password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        hasError={mismatch}
-      />
-      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
-
-      {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
-      {info ? <Text style={{ color: colors.success }}>{info}</Text> : null}
-
-      <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center' }}>
-        By creating an account, you agree to our{' '}
-        <Text style={{ color: colors.primary }} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
-          Privacy Policy
-        </Text>
-        .
+      <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+        Create an account to start logging.
       </Text>
 
-      <GradientButton
-        label={submitting ? 'Creating account...' : 'Sign up'}
-        loading={submitting}
-        disabled={!canSubmit}
-        onPress={onSubmit}
-      />
+      <Card>
+        <AuthTextInput
+          icon="mail-outline"
+          placeholder="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          hasError={emailInvalid}
+        />
+        {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
+
+        <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} hasError={passwordInvalid} />
+        {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
+
+        <PasswordInput
+          placeholder="Confirm password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          hasError={mismatch}
+        />
+        {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
+
+        {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+        {info ? <Text style={{ color: colors.success }}>{info}</Text> : null}
+
+        <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center' }}>
+          By creating an account, you agree to our{' '}
+          <Text style={{ color: colors.primary }} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+            Privacy Policy
+          </Text>
+          .
+        </Text>
+
+        <View style={{ marginTop: spacing.xs }}>
+          <GradientButton
+            label={submitting ? 'Creating account...' : 'Sign up'}
+            loading={submitting}
+            disabled={!canSubmit}
+            onPress={onSubmit}
+          />
+        </View>
+      </Card>
 
       <AnimatedPressable
         onPress={() => navigation.navigate('SignIn')}

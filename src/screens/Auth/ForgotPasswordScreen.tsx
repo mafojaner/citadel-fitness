@@ -1,16 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Text, TextInput } from 'react-native';
+import { Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { AuthScreenContainer } from '../../components/AuthScreenContainer';
+import { AuthTextInput } from '../../components/AuthTextInput';
+import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { getPasswordResetRedirectUrl, supabase } from '../../lib/supabase';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
 
 export function ForgotPasswordScreen() {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -34,45 +36,45 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthScreenContainer>
-      <Text style={[typography.title, { color: colors.textPrimary }]}>Reset password</Text>
-      <Text style={[typography.body, { color: colors.textSecondary }]}>
-        Enter your email and we&apos;ll send you a link to reset your password.
-      </Text>
-
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        editable={!sent}
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          borderWidth: 1,
-          borderRadius: radius.md,
-          padding: spacing.md,
-          color: colors.textPrimary,
-        }}
-      />
-
-      {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
-      {sent ? (
-        <Text style={{ color: colors.success }}>
-          Check your email for a link to reset your password.
+      <View style={{ gap: 4 }}>
+        <Text style={[typography.heading, { color: colors.textPrimary, textAlign: 'center' }]}>
+          Reset password
         </Text>
-      ) : null}
+        <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+          Enter your email and we&apos;ll send you a link to reset your password.
+        </Text>
+      </View>
 
-      {sent ? (
-        <GradientButton label="Back to sign in" onPress={() => navigation.navigate('SignIn')} />
-      ) : (
-        <GradientButton
-          label={submitting ? 'Sending...' : 'Send reset link'}
-          loading={submitting}
-          onPress={onSubmit}
+      <Card>
+        <AuthTextInput
+          icon="mail-outline"
+          placeholder="Email"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          editable={!sent}
         />
-      )}
+
+        {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+        {sent ? (
+          <Text style={{ color: colors.success }}>
+            Check your email for a link to reset your password.
+          </Text>
+        ) : null}
+
+        <View style={{ marginTop: spacing.xs }}>
+          {sent ? (
+            <GradientButton label="Back to sign in" onPress={() => navigation.navigate('SignIn')} />
+          ) : (
+            <GradientButton
+              label={submitting ? 'Sending...' : 'Send reset link'}
+              loading={submitting}
+              onPress={onSubmit}
+            />
+          )}
+        </View>
+      </Card>
 
       {!sent ? (
         <AnimatedPressable

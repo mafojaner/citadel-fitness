@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import { AuthScreenContainer } from '../../components/AuthScreenContainer';
+import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
@@ -13,7 +14,7 @@ interface ResetPasswordScreenProps {
 }
 
 export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
-  const { colors, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -38,30 +39,43 @@ export function ResetPasswordScreen({ onDone }: ResetPasswordScreenProps) {
 
   return (
     <AuthScreenContainer>
-      <Text style={[typography.title, { color: colors.textPrimary }]}>Set a new password</Text>
-      <Text style={[typography.body, { color: colors.textSecondary }]}>
-        Choose a new password for your account.
-      </Text>
+      <View style={{ gap: 4 }}>
+        <Text style={[typography.heading, { color: colors.textPrimary, textAlign: 'center' }]}>
+          Set a new password
+        </Text>
+        <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+          Choose a new password for your account.
+        </Text>
+      </View>
 
-      <PasswordInput placeholder="New password" value={password} onChangeText={setPassword} hasError={passwordInvalid} />
-      {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
+      <Card>
+        <PasswordInput
+          placeholder="New password"
+          value={password}
+          onChangeText={setPassword}
+          hasError={passwordInvalid}
+        />
+        {password.length > 0 ? <PasswordRequirementsList password={password} /> : null}
 
-      <PasswordInput
-        placeholder="Confirm new password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        hasError={mismatch}
-      />
+        <PasswordInput
+          placeholder="Confirm new password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          hasError={mismatch}
+        />
 
-      {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
-      {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
+        {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
+        {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
 
-      <GradientButton
-        label={submitting ? 'Saving...' : 'Save new password'}
-        loading={submitting}
-        disabled={!canSubmit}
-        onPress={onSubmit}
-      />
+        <View style={{ marginTop: spacing.xs }}>
+          <GradientButton
+            label={submitting ? 'Saving...' : 'Save new password'}
+            loading={submitting}
+            disabled={!canSubmit}
+            onPress={onSubmit}
+          />
+        </View>
+      </Card>
     </AuthScreenContainer>
   );
 }

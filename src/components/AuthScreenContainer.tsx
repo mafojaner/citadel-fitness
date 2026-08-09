@@ -1,16 +1,19 @@
 import type { PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { FadeInView } from './FadeInView';
+import { FloatingLogo } from './FloatingLogo';
 import { useTheme } from '../theme/useTheme';
 
 /**
  * The shared shell for every Auth screen (sign in/up, forgot/reset password).
  * Unlike ScreenContainer, this centers its content rather than starting at
- * the top, and wraps in KeyboardAvoidingView so the keyboard never covers a
- * field or the submit button on a small device.
+ * the top, wraps in KeyboardAvoidingView so the keyboard never covers a
+ * field or the submit button on a small device, and carries the app's
+ * branding (floating crest + name) so every screen in the flow reads as
+ * Citadel Fitness instead of a bare form.
  */
 export function AuthScreenContainer({ children }: PropsWithChildren) {
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -20,7 +23,13 @@ export function AuthScreenContainer({ children }: PropsWithChildren) {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.lg }}
         keyboardShouldPersistTaps="handled"
       >
-        <FadeInView style={{ gap: spacing.md }}>{children}</FadeInView>
+        <FadeInView style={{ gap: spacing.md }}>
+          <View style={{ alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm }}>
+            <FloatingLogo size={88} />
+            <Text style={[typography.title, { color: colors.textPrimary }]}>Citadel Fitness</Text>
+          </View>
+          {children}
+        </FadeInView>
       </ScrollView>
     </KeyboardAvoidingView>
   );

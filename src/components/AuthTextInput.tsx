@@ -1,28 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { TextInput, View, type TextInputProps } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 
-interface PasswordInputProps {
+interface AuthTextInputProps
+  extends Pick<TextInputProps, 'autoCapitalize' | 'keyboardType' | 'editable' | 'autoComplete'> {
+  icon: keyof typeof Ionicons.glyphMap;
   placeholder: string;
   value: string;
   onChangeText: (text: string) => void;
-  editable?: boolean;
   hasError?: boolean;
-  backgroundColor?: string;
 }
 
-/** A password TextInput with a show/hide toggle, shared by every screen that collects a password. */
-export function PasswordInput({
+/** An icon-prefixed text field — the email-entry counterpart to PasswordInput's lock icon. */
+export function AuthTextInput({
+  icon,
   placeholder,
   value,
   onChangeText,
-  editable = true,
   hasError = false,
-  backgroundColor,
-}: PasswordInputProps) {
+  ...rest
+}: AuthTextInputProps) {
   const { colors, spacing, radius } = useTheme();
-  const [visible, setVisible] = useState(false);
 
   return (
     <View
@@ -30,27 +28,22 @@ export function PasswordInput({
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.sm,
-        backgroundColor: backgroundColor ?? colors.surface,
+        backgroundColor: colors.surface,
         borderColor: hasError ? colors.danger : colors.border,
         borderWidth: 1,
         borderRadius: radius.md,
         paddingHorizontal: spacing.md,
       }}
     >
-      <Ionicons name="lock-closed-outline" size={18} color={colors.textMuted} />
+      <Ionicons name={icon} size={18} color={colors.textMuted} />
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
-        secureTextEntry={!visible}
-        autoCapitalize="none"
         value={value}
         onChangeText={onChangeText}
-        editable={editable}
         style={{ flex: 1, paddingVertical: spacing.md, color: colors.textPrimary }}
+        {...rest}
       />
-      <Pressable onPress={() => setVisible((v) => !v)} hitSlop={8}>
-        <Ionicons name={visible ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
-      </Pressable>
     </View>
   );
 }
