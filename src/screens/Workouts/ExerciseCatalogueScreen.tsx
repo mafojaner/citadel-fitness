@@ -136,7 +136,7 @@ export function ExerciseCatalogueScreen() {
                   <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                     {exercise.name}
                   </Text>
-                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                  <Text style={[typography.caption, { color: colors.textMuted, textTransform: 'capitalize' }]}>
                     {exercise.category}
                   </Text>
                 </View>
@@ -196,7 +196,7 @@ export function ExerciseCatalogueScreen() {
                     <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                       {infoExercise?.name}
                     </Text>
-                    <Text style={[typography.caption, { color: colors.textMuted }]}>
+                    <Text style={[typography.caption, { color: colors.textMuted, textTransform: 'capitalize' }]}>
                       {infoExercise?.category}
                     </Text>
                   </View>

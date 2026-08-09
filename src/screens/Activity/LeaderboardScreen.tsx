@@ -64,7 +64,7 @@ export function LeaderboardScreen() {
     <ScreenContainer>
       <InfoNote
         label="How ranking works"
-        text="Ranked by distinct days logged in the last 7 — same-day only, so backdated entries don't count. Not a total-volume leaderboard, just consistency."
+        text="Ranked by distinct days logged in the last 7, same-day only, so backdated entries don't count. Not a total-volume leaderboard, just consistency."
       />
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}

@@ -71,7 +71,7 @@ export function RewardsScreen() {
     <ScreenContainer>
       <InfoNote
         label="About reward eligibility"
-        text="Only workouts logged on their actual day count toward rewards — a day added later through the calendar won't count, even if the workout really happened that day."
+        text="Only workouts logged on their actual day count toward rewards. A day added later through the calendar won't count, even if the workout really happened that day."
       />
 
       <Card>
@@ -113,14 +113,14 @@ export function RewardsScreen() {
             <Text style={[typography.caption, { color: colors.textSecondary }]}>
               {rewardsLoading
                 ? 'Loading...'
-                : `${weeksIntoCurrentCycle} of ${weeksPerReward} weeks toward your next 10% off — ${weeksToGo} more complete week${weeksToGo === 1 ? '' : 's'} to go.`}
+                : `${weeksIntoCurrentCycle} of ${weeksPerReward} weeks toward your next 10% off, ${weeksToGo} more complete week${weeksToGo === 1 ? '' : 's'} to go.`}
             </Text>
           </View>
         </View>
       </Card>
 
       <Text style={[typography.caption, { color: colors.textMuted }]}>
-        Rewards track your consistency now. Redeeming 10% off a premium membership isn&apos;t live yet —
+        Rewards track your consistency now. Redeeming 10% off a premium membership isn&apos;t live yet;
         we&apos;ll let you know here as soon as it is.
       </Text>
     </ScreenContainer>

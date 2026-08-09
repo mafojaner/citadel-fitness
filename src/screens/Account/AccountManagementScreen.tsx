@@ -33,7 +33,7 @@ export function AccountManagementScreen() {
   const onDeleteAccount = async () => {
     const confirmed = await confirmAsync(
       'Delete account?',
-      "This permanently deletes your account, workout history, streaks, and profile — including your photo. There's no way to undo this or recover your data afterward.",
+      "This permanently deletes your account, workout history, streaks, and profile, including your photo. There's no way to undo this or recover your data afterward.",
       'Delete account'
     );
     if (!confirmed) return;

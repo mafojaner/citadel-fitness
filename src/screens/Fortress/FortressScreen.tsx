@@ -55,7 +55,7 @@ const FEATURES: FortressFeature[] = [
     icon: 'cloud-done',
     colors: gradients.calendar,
     title: 'Offline mode & sync',
-    description: 'Log a workout anywhere, no signal required — everything syncs the moment you are back online.',
+    description: 'Log a workout anywhere, no signal required. Everything syncs the moment you are back online.',
   },
   {
     icon: 'book',
@@ -79,7 +79,7 @@ const FEATURES: FortressFeature[] = [
     icon: 'headset',
     colors: gradients.pulse,
     title: 'Priority support',
-    description: 'Skip the queue — Fortress members get a same-day response from our team, every time.',
+    description: 'Skip the queue: Fortress members get a same-day response from our team, every time.',
   },
 ];
 
@@ -238,7 +238,7 @@ function WaitlistAction({
 
       {alreadyJoinedNotice && joined ? (
         <Text style={[typography.caption, { color: colors.success }]}>
-          You&apos;re already signed up — sit tight, we&apos;ll be in touch.
+          You&apos;re already signed up, sit tight, we&apos;ll be in touch.
         </Text>
       ) : null}
     </View>
@@ -277,7 +277,7 @@ export function FortressScreen() {
         </View>
         <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>Fortress</Text>
         <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, textAlign: 'center' }}>
-          Everything Citadel Fitness can be — training intelligence, coaching, and rewards, all in one
+          Everything Citadel Fitness can be: training intelligence, coaching, and rewards, all in one
           membership.
         </Text>
       </LinearGradient>

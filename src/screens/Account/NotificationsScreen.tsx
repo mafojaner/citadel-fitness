@@ -120,7 +120,7 @@ export function NotificationsScreen() {
               Email me about new articles &amp; app news
             </Text>
             <Text style={[typography.caption, { color: colors.textMuted }]}>
-              Sent to your account email — separate from the push notifications above.
+              Sent to your account email, separate from the push notifications above.
             </Text>
           </View>
           <Switch

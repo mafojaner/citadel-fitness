@@ -217,10 +217,10 @@ export function AddWorkoutScreen() {
                   </>
                 ) : (
                   <>
-                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
                     <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>
                       Weight ({units})
                     </Text>
+                    <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
                   </>
                 )}
                 <View style={{ width: 24 }} />
@@ -275,8 +275,8 @@ export function AddWorkoutScreen() {
                     <>
                       <TextInput
                         keyboardType="numeric"
-                        value={set.reps === 0 ? '' : String(set.reps)}
-                        onChangeText={(t) => updateSet(exercise.id, set.id, { reps: Number(t) || 0 })}
+                        value={set.weight === 0 ? '' : String(set.weight)}
+                        onChangeText={(t) => updateSet(exercise.id, set.id, { weight: Number(t) || 0 })}
                         placeholder="0"
                         placeholderTextColor={colors.textMuted}
                         style={{
@@ -291,8 +291,8 @@ export function AddWorkoutScreen() {
                       />
                       <TextInput
                         keyboardType="numeric"
-                        value={set.weight === 0 ? '' : String(set.weight)}
-                        onChangeText={(t) => updateSet(exercise.id, set.id, { weight: Number(t) || 0 })}
+                        value={set.reps === 0 ? '' : String(set.reps)}
+                        onChangeText={(t) => updateSet(exercise.id, set.id, { reps: Number(t) || 0 })}
                         placeholder="0"
                         placeholderTextColor={colors.textMuted}
                         style={{

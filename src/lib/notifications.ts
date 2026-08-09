@@ -48,7 +48,7 @@ export async function scheduleDailyReminder(
     identifier: DAILY_REMINDER_ID,
     content: {
       title: 'Time to train',
-      body: "You haven't logged a workout today — keep the streak going.",
+      body: "You haven't logged a workout today. Keep the streak going.",
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,

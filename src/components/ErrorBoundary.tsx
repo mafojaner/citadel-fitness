@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundarySta
         <Text
           style={[typography.body, { color: lightColors.textSecondary, textAlign: 'center' }]}
         >
-          The app hit an unexpected error. You can try again — your logged workouts are safe.
+          The app hit an unexpected error. You can try again; your logged workouts are safe.
         </Text>
         {__DEV__ ? (
           <Text

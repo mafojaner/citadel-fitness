@@ -156,8 +156,8 @@ export function DayDetailScreen() {
                         </>
                       ) : (
                         <>
-                          <StatChip icon="repeat-outline" value={`${set.reps} reps`} />
                           <StatChip icon="barbell-outline" value={`${set.weight} ${set.weightUnit}`} />
+                          <StatChip icon="repeat-outline" value={`${set.reps} reps`} />
                         </>
                       )}
                     </View>

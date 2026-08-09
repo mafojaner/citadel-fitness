@@ -23,17 +23,17 @@ const FAQS: FaqItem[] = [
   },
   {
     question: 'Can I edit or delete a past workout?',
-    answer: 'Yes — open any day on the Workouts calendar to edit or remove what you logged for that day.',
+    answer: 'Yes, open any day on the Workouts calendar to edit or remove what you logged for that day.',
   },
   {
     question: 'How do streaks work?',
     answer:
-      'Your current streak counts consecutive days with at least one logged workout containing real values — it resets if a day is missed.',
+      'Your current streak counts consecutive days with at least one logged workout containing real values; it resets if a day is missed.',
   },
   {
     question: 'How do I change my units (lb/kg, mi/km)?',
     answer:
-      'Go to Account → Units and choose your preferred weight and distance units — this updates how weights and distances are shown throughout the app.',
+      'Go to Account → Units and choose your preferred weight and distance units. This updates how weights and distances are shown throughout the app.',
   },
   {
     question: 'How do I turn on notifications?',
@@ -43,11 +43,11 @@ const FAQS: FaqItem[] = [
   {
     question: 'What is Fortress?',
     answer:
-      "Fortress is Citadel Fitness's upcoming premium membership — AI coaching, advanced analytics, and more. Join the waitlist from the Learn tab to be notified at launch.",
+      "Fortress is Citadel Fitness's upcoming premium membership: AI coaching, advanced analytics, and more. Join the waitlist from the Learn tab to be notified at launch.",
   },
   {
     question: 'Is my data private?',
-    answer: 'Yes — read the full details in our Privacy Policy, linked from Account → Privacy policy.',
+    answer: 'Yes, read the full details in our Privacy Policy, linked from Account → Privacy policy.',
   },
   {
     question: 'How do I reset my password?',
@@ -56,7 +56,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'How do I delete my account?',
     answer:
-      "Go to Account → Account management → Delete account. This permanently removes your account, workout history, and profile — there's no way to undo it.",
+      "Go to Account → Account management → Delete account. This permanently removes your account, workout history, and profile; there's no way to undo it.",
   },
 ];
 
@@ -125,7 +125,7 @@ export function HelpScreen() {
 
       <Card title="Send feedback">
         <Text style={[typography.caption, { color: colors.textMuted }]}>
-          Found a bug, or have an idea? Tell us — this goes straight to the team.
+          Found a bug, or have an idea? Tell us, this goes straight to the team.
         </Text>
         <TextInput
           placeholder="What's on your mind?"
@@ -149,7 +149,7 @@ export function HelpScreen() {
           }}
         />
         {error ? <ErrorNotice message={error} onRetry={onSubmit} /> : null}
-        {sent ? <Text style={{ color: colors.success }}>Thanks — your feedback was sent.</Text> : null}
+        {sent ? <Text style={{ color: colors.success }}>Thanks, your feedback was sent.</Text> : null}
         <GradientButton
           label={submitting ? 'Sending...' : 'Send feedback'}
           loading={submitting}

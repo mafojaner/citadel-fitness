@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       subject: 'Welcome to Citadel Fitness',
       html: emailShell(`
         <p style="margin:0 0 4px;font-size:20px;font-weight:700;">Welcome, ${name}.</p>
-        <p style="margin:0 0 20px;color:#4A5468;">Your account's confirmed — you're ready to log your first workout.</p>
+        <p style="margin:0 0 20px;color:#4A5468;">Your account's confirmed, you're ready to log your first workout.</p>
         <p style="margin:0;color:#4A5468;">Open the app, tap <strong style="color:#0B0E14;">Log workout</strong>, and pick your first exercise from the catalogue. Everything you log builds your streak on the Activity tab.</p>
         ${emailButton('https://demo.citadelfitness.app', 'Open Citadel Fitness')}
         <p style="margin:0;color:#8A93A6;font-size:13px;">Strength, systemized.</p>
