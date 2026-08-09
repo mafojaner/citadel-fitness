@@ -161,11 +161,22 @@ a { text-decoration: none; color: inherit; }
   border-color: rgba(255,255,255,0.12);
 }
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 15px;
   letter-spacing: 0.14em;
   color: var(--white);
+}
+.nav-logo {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.4), 0 0 10px rgba(255,90,54,0.5);
+  animation: icon-glow 4.5s ease-in-out infinite;
 }
 .nav-cta {
   display: inline-flex;
