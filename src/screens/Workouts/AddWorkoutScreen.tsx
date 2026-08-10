@@ -1,14 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import ConfettiCannon from 'react-native-confetti-cannon';
+import { useRef, useState } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { InfoNote } from '../../components/InfoNote';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { WorkoutSavedAnimation } from '../../components/WorkoutSavedAnimation';
 import {
   CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
@@ -84,7 +84,6 @@ function DurationInputGroup({ totalSeconds, onChange }: DurationInputGroupProps)
 export function AddWorkoutScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
-  const { width } = useWindowDimensions();
   const { exercises: catalogue } = useExercises();
   const date = useWorkoutDraftStore((s) => s.date);
   const draftExercises = useWorkoutDraftStore((s) => s.exercises);
@@ -98,15 +97,8 @@ export function AddWorkoutScreen() {
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const finishedRef = useRef(false);
-  const finishTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (finishTimeoutRef.current) clearTimeout(finishTimeoutRef.current);
-    };
-  }, []);
 
   const catalogueFor = (exerciseId: string) => catalogue.find((e) => e.id === exerciseId);
   const nameFor = (exerciseId: string) => catalogueFor(exerciseId)?.name ?? 'Exercise';
@@ -140,8 +132,7 @@ export function AddWorkoutScreen() {
     try {
       await saveWorkout(date, draftExercises, units, distanceUnit);
       finishedRef.current = false;
-      setShowConfetti(true);
-      finishTimeoutRef.current = setTimeout(finishAndLeave, 2500);
+      setShowSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save workout');
     } finally {
@@ -344,17 +335,7 @@ export function AddWorkoutScreen() {
       />
     </ScreenContainer>
 
-    {showConfetti ? (
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <ConfettiCannon
-          count={120}
-          origin={{ x: width / 2, y: -20 }}
-          colors={[colors.primary, colors.success, '#FFD166', colors.primaryMuted]}
-          fadeOut
-          onAnimationEnd={finishAndLeave}
-        />
-      </View>
-    ) : null}
+    {showSuccess ? <WorkoutSavedAnimation onDone={finishAndLeave} /> : null}
     </>
   );
 }
