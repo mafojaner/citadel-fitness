@@ -23,7 +23,8 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://ulyduorkvikeyxtpshoq.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseWR1b3JrdmlrZXl4dHBzaG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4OTk3MzUsImV4cCI6MjEwMDQ3NTczNX0.GhQReBBp46PIezzm-ShmGDj6rVl-8RqITskUzWa7MMQ"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVseWR1b3JrdmlrZXl4dHBzaG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4OTk3MzUsImV4cCI6MjEwMDQ3NTczNX0.GhQReBBp46PIezzm-ShmGDj6rVl-8RqITskUzWa7MMQ",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://00251889d742d87391001013fa7b22da@o4511855927427072.ingest.de.sentry.io/4511888705716304"
       }
     }
   },
