@@ -8,98 +8,17 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { APP_FEATURES } from '../../constants/featureCatalog';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import { isEmailValid } from '../../lib/email';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
-interface FortressFeature {
-  icon: keyof typeof Ionicons.glyphMap;
-  colors: readonly [string, string, ...string[]];
-  title: string;
-  description: string;
-}
+const FEATURES = APP_FEATURES.filter((feature) => feature.tier === 'fortress');
 
-const FEATURES: FortressFeature[] = [
-  {
-    icon: 'sparkles',
-    colors: gradients.identity,
-    title: 'AI progressive overload',
-    description: 'A smarter weight and rep suggestion for every set, tuned to how your last session actually went.',
-  },
-  {
-    icon: 'trending-up',
-    colors: gradients.volume,
-    title: 'Advanced analytics',
-    description: 'Muscle-group balance, volume trends, and an estimated one-rep max for every lift you log.',
-  },
-  {
-    icon: 'trophy',
-    colors: gradients.flame,
-    title: 'Personal records vault',
-    description: 'Every PR tracked automatically, with a full history so you can see exactly how far you have come.',
-  },
-  {
-    icon: 'download',
-    colors: gradients.arms,
-    title: 'Exercise data export',
-    description: 'Download your full workout history, every set, rep, and weight, as a CSV whenever you want it.',
-  },
-  {
-    icon: 'nutrition',
-    colors: gradients.pulse,
-    title: 'Nutrition coaching',
-    description: 'Macro targets built around your training load, adjusted automatically as your program changes.',
-  },
-  {
-    icon: 'videocam',
-    colors: gradients.action,
-    title: 'Form check reviews',
-    description: 'Submit a set on video and get feedback from a real coach within 48 hours.',
-  },
-  {
-    icon: 'cloud-done',
-    colors: gradients.calendar,
-    title: 'Offline mode & sync',
-    description: 'Log a workout anywhere, no signal required. Everything syncs the moment you are back online.',
-  },
-  {
-    icon: 'book',
-    colors: gradients.arms,
-    title: 'Expert guide library',
-    description: 'In-depth programs and technique breakdowns written by coaches, with new guides added monthly.',
-  },
-  {
-    icon: 'people',
-    colors: gradients.favorite,
-    title: 'Friends & leaderboards',
-    description: 'Compare streaks and PRs with friends, and see where you rank in the Fortress community.',
-  },
-  {
-    icon: 'flash',
-    colors: gradients.identity,
-    title: 'Early access',
-    description: 'New features land in your hands first, weeks before they reach everyone else.',
-  },
-  {
-    icon: 'headset',
-    colors: gradients.pulse,
-    title: 'Priority support',
-    description: 'Skip the queue: Fortress members get a same-day response from our team, every time.',
-  },
-];
-
-const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean }[] = [
-  { label: 'Workout logging & catalogue', free: true, fortress: true },
-  { label: 'Streaks & activity charts', free: true, fortress: true },
-  { label: 'AI progressive overload', free: false, fortress: true },
-  { label: 'Advanced analytics & 1RM', free: false, fortress: true },
-  { label: 'Exercise data export', free: false, fortress: true },
-  { label: 'Nutrition coaching', free: false, fortress: true },
-  { label: 'Form check video reviews', free: false, fortress: true },
-  { label: 'Friends & leaderboards', free: false, fortress: true },
-  { label: 'Priority support', free: false, fortress: true },
-];
+const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean }[] = APP_FEATURES.filter(
+  (feature) => feature.showInComparison
+).map((feature) => ({ label: feature.title, free: feature.tier === 'free', fortress: true }));
 
 function ComparisonMark({
   on,
