@@ -344,7 +344,7 @@
     <h1>Privacy Policy</h1>
     <div class="doc-meta sans">
       <span><strong>App</strong> Citadel Fitness</span>
-      <span><strong>Effective</strong> July 26, 2026</span>
+      <span><strong>Effective</strong> August 10, 2026</span>
       <span><strong>Applies to</strong> iOS, Android, and Web versions</span>
     </div>
     <p class="lede">This explains what Citadel Fitness collects when you use the app, why, who we share it with (almost no one), and how to see or delete it.</p>
@@ -369,10 +369,11 @@
     <div class="eyebrow sans">In short</div>
     <ul>
       <li>We collect your email, an optional name and photo, and the workouts you log; that's what makes the app work.</li>
-      <li>We never sell your data, and we don't use ad networks or third-party trackers of any kind.</li>
+      <li>We never sell your data, and we don't use ad networks or trackers of any kind.</li>
       <li>Data is stored with Supabase, our backend provider, protected by access rules that only let you read or write your own records.</li>
-      <li>Reminder notifications are scheduled entirely on your own device; nothing about them is sent to us or anyone else.</li>
-      <li>You can delete your account and everything tied to it, permanently, from <span class="mono">Account → Delete account</span> in the app. No email required.</li>
+      <li>A couple of infrastructure providers — Resend and Sentry, both described in Section 8 — see a narrow slice of data strictly to send email or diagnose crashes; neither can use it for anything else.</li>
+      <li>Workout reminders and in-app article alerts are scheduled entirely on your own device; nothing about them is sent to us or anyone else.</li>
+      <li>You can delete your account and everything tied to it, permanently, from <span class="mono">Account → Account management → Delete account</span> in the app. No email required.</li>
     </ul>
   </div>
 
@@ -415,11 +416,20 @@
               <td class="what">Favorited articles</td>
               <td class="why">Which newsletter posts you've saved, so they show up under Favorites.</td>
             </tr>
+            <tr>
+              <td class="what">Feedback messages</td>
+              <td class="why">If you submit feedback from Account → Help &amp; feedback, we store your message and the email you're signed in with, so we can read and reply to it.</td>
+            </tr>
+            <tr>
+              <td class="what">Crash &amp; error diagnostics</td>
+              <td class="why">If the app crashes or hits an unexpected error, technical details — device model, OS version, app version, and the error itself — are sent to Sentry, our crash-reporting tool, so we can find and fix the bug. See Section 8 for what's deliberately excluded from that.</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <p>We don't ask for your location, don't integrate with Apple Health or Google Fit, and don't request camera access; photo uploads use your device's photo library picker only.</p>
+      <p>We don't ask for your location, don't integrate with Apple Health or Google Fit, and don't request camera access. Photo uploads use your device's photo library picker only and land in a Supabase Storage bucket scoped to your account, at a path only your account can write to.</p>
+      <p>We don't generate or store a push-notification token for your device — see Section 4 for how reminders actually reach you without one.</p>
     </section>
 
     <section class="doc-section" id="use">
@@ -434,6 +444,10 @@
         <li>Calculating streaks, weekly volume, and the progress charts on the Activity tab.</li>
         <li>Formatting numbers in the units you chose (lb/kg, mi/km).</li>
         <li>Deciding which newsletter articles to notify you about, based on the categories you've enabled.</li>
+        <li>Sending the emails a normal account needs: confirming your sign-up, a password-reset link if you request one, and a one-time welcome email.</li>
+        <li>Emailing you about new newsletter articles and app news, but only if you've turned that on — it's off by default.</li>
+        <li>Reading and replying to feedback you submit from Account → Help &amp; feedback.</li>
+        <li>Diagnosing crashes and bugs using the technical details described in Section 1, so issues get fixed faster.</li>
       </ul>
       <p>We do not use your data for advertising, we do not build behavioral profiles, and we do not use it to train any model.</p>
     </section>
@@ -453,7 +467,8 @@
         <span class="section-num">04</span>
         <h2>Notifications</h2>
       </div>
-      <p>Workout reminders and newsletter alerts are scheduled <strong>locally, on your own device</strong>, using the operating system's own notification scheduler. There is no push server involved; nothing about the content or timing of a notification is transmitted to us or to any third party. If you deny notification permission, or you're using the web version, this feature simply does nothing; it fails silently rather than nagging you.</p>
+      <p>Your daily workout reminder and the in-app alerts for new newsletter articles are scheduled <strong>locally, on your own device</strong>, using the operating system's own notification scheduler. There is no push server involved: the app checks for new articles when you open it, and if there's anything new in a category you follow, it asks your device's OS to show a notification right then. Nothing about the content or timing of these is transmitted to us or to any third party. If you deny notification permission, or you're using the web version, this feature simply does nothing; it fails silently rather than nagging you.</p>
+      <p>Separately, if you turn on <span class="mono">Email me about new articles &amp; app news</span> in <span class="mono">Account → Preferences → Notifications</span>, we send you an actual email — through Resend, our transactional email provider — whenever something new is published. This is off by default, is entirely independent of the on-device reminders above, and turning it off stops the emails without touching your other notification settings.</p>
     </section>
 
     <section class="doc-section" id="control">
@@ -464,13 +479,14 @@
       <p>Everything here is available directly in the app; none of it requires emailing us and waiting.</p>
       <ul>
         <li><strong>View &amp; edit</strong> your name and photo from <span class="mono">Account → Profile settings</span>.</li>
-        <li><strong>Change</strong> your password from <span class="mono">Account → Change password</span>.</li>
-        <li><strong>Adjust</strong> unit preferences and notification categories from <span class="mono">Account → Preferences</span>.</li>
+        <li><strong>Change</strong> your password from <span class="mono">Account → Account management → Change password</span>.</li>
+        <li><strong>Adjust</strong> weight/distance units from <span class="mono">Account → Preferences → Units</span>, and workout reminders, article alerts, and the newsletter email toggle from <span class="mono">Account → Preferences → Notifications</span>.</li>
+        <li><strong>Send</strong> feedback, which we read and can reply to at the email you're signed in with, from <span class="mono">Account → Help &amp; feedback</span>.</li>
       </ul>
 
       <div class="callout accent">
         <div class="callout-label">Deleting your account</div>
-        <p><span class="mono">Account → Delete account</span> permanently removes your account and everything tied to it: your profile, every logged workout and set, your saved favorites, and your uploaded photo. This runs immediately, cannot be undone from within the app, and does not require contacting support first.</p>
+        <p><span class="mono">Account → Account management → Delete account</span> permanently removes your account and everything tied to it: your profile, every logged workout and set, your saved favorites, and your uploaded photo. This runs immediately, cannot be undone from within the app, and does not require contacting support first.</p>
       </div>
     </section>
 
@@ -495,8 +511,31 @@
         <span class="section-num">08</span>
         <h2>Sharing &amp; sale</h2>
       </div>
-      <p><strong>We do not sell your data.</strong> We don't share it with advertisers, and the app has no ad network or third-party analytics SDK embedded in it. The only outside party involved at all is Supabase, described in Section 3, acting strictly as our infrastructure provider.</p>
-      <p>We would only disclose information if legally required to, for example in response to a valid court order, and would limit that disclosure to exactly what's requested.</p>
+      <p><strong>We do not sell your data.</strong> We don't share it with advertisers, and the app has no ad network, social-media SDK, or analytics-tracking SDK embedded in it. A small, fixed set of infrastructure providers process data strictly on our behalf, only to run the features described above, and none of them are permitted to use it for their own purposes:</p>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Provider</th><th>What they get, and why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="what">Supabase</td>
+              <td class="why">Our database, authentication, and file storage. Holds everything in the Section 1 table — this is the app's backend.</td>
+            </tr>
+            <tr>
+              <td class="what">Resend</td>
+              <td class="why">Our transactional email provider. Sees your email address (and display name, for the welcome email) only when the app needs to send you something you triggered or opted into: sign-up confirmation, a password-reset link, the one-time welcome email, a feedback reply, or a newsletter alert you've turned on.</td>
+            </tr>
+            <tr>
+              <td class="what">Sentry</td>
+              <td class="why">Our crash-reporting tool. Receives the technical crash details from Section 1 when the app hits an unexpected error. It's configured not to attach your IP address, name, or email to those reports.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>We would only disclose information beyond this if legally required to, for example in response to a valid court order, and would limit that disclosure to exactly what's requested.</p>
     </section>
 
     <section class="doc-section" id="security">
