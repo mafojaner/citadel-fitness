@@ -16,11 +16,15 @@
 // by anyone who merely finds the URL; WEBHOOK_SECRET is a function secret
 // you choose yourself (any long random string) and set on both sides.
 
-import { emailShell, emailButton } from '../_shared/email-template.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { emailShell } from '../_shared/email-template.ts';
+import { welcomeEmailBody } from '../_shared/welcome-email-content.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')!;
 const FROM_EMAIL = Deno.env.get('EMAIL_FROM') ?? 'Citadel Fitness <onboarding@resend.dev>';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {
@@ -72,13 +76,7 @@ Deno.serve(async (req) => {
       from: FROM_EMAIL,
       to: payload.record.email,
       subject: 'Welcome to Citadel Fitness',
-      html: emailShell(`
-        <p style="margin:0 0 4px;font-size:20px;font-weight:700;">Welcome, ${name}.</p>
-        <p style="margin:0 0 20px;color:#4A5468;">Your account's confirmed, you're ready to log your first workout.</p>
-        <p style="margin:0;color:#4A5468;">Open the app, tap <strong style="color:#0B0E14;">Log workout</strong>, and pick your first exercise from the catalogue. Everything you log builds your streak on the Activity tab.</p>
-        ${emailButton('https://demo.citadelfitness.app', 'Open Citadel Fitness')}
-        <p style="margin:0;color:#8A93A6;font-size:13px;">Strength, systemized.</p>
-      `),
+      html: emailShell(welcomeEmailBody(name)),
     }),
   });
 
@@ -86,6 +84,15 @@ Deno.serve(async (req) => {
     const detail = await emailResponse.text();
     return json({ error: 'Failed to send welcome email', detail }, 502);
   }
+
+  // Marks this user done regardless of the backfill function's own lookup —
+  // the two paths share this one column, so neither can double-send to the
+  // same person even if both happen to run close together.
+  const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  await adminClient
+    .from('profiles')
+    .update({ welcome_email_sent_at: new Date().toISOString() })
+    .eq('id', payload.record.id);
 
   return json({ success: true }, 200);
 });
