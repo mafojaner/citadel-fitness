@@ -23,6 +23,15 @@ function toArticle(row: DbArticle): Article {
   };
 }
 
+export function formatPublished(iso: string) {
+  const published = new Date(iso);
+  const days = Math.floor((Date.now() - published.getTime()) / 86_400_000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return published.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export async function fetchArticles(): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')

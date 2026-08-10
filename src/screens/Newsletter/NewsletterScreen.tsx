@@ -17,6 +17,7 @@ import {
   ARTICLE_CATEGORY_LABELS,
 } from '../../constants/articles';
 import { useArticles } from '../../hooks/useArticles';
+import { formatPublished } from '../../lib/articles';
 import { useAuthStore } from '../../state/authStore';
 import { useFavoriteArticlesStore } from '../../state/favoriteArticlesStore';
 import { gradients } from '../../theme/tokens';
@@ -28,20 +29,7 @@ type FilterValue = ArticleCategory | 'favorites';
 
 const CATEGORY_ORDER: ArticleCategory[] = ['splits', 'exercise', 'nutrition', 'recovery', 'updates'];
 
-function formatPublished(iso: string) {
-  const published = new Date(iso);
-  const days = Math.floor((Date.now() - published.getTime()) / 86_400_000);
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  return published.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-interface NewsletterScreenProps {
-  query: string;
-}
-
-export function NewsletterScreen({ query }: NewsletterScreenProps) {
+export function NewsletterScreen() {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<NewsletterStackParamList>>();
   const { articles, loading, error, reload } = useArticles();
@@ -71,15 +59,6 @@ export function NewsletterScreen({ query }: NewsletterScreenProps) {
     if (activeFilter === 'favorites') return articles.filter((a) => favoriteIds.has(a.id));
     return articles.filter((a) => a.category === activeFilter);
   }, [articles, activeFilter, favoriteIds]);
-
-  const isSearching = query.trim().length > 0;
-  const searchResults = useMemo(() => {
-    if (!isSearching) return [];
-    const q = query.trim().toLowerCase();
-    return articles.filter(
-      (a) => a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q)
-    );
-  }, [articles, query, isSearching]);
 
   const activeLabel =
     activeFilter === 'favorites'
@@ -133,16 +112,6 @@ export function NewsletterScreen({ query }: NewsletterScreenProps) {
         <ActivityIndicator color={colors.primary} />
       ) : error ? (
         <ErrorNotice message={error} onRetry={reload} />
-      ) : isSearching ? (
-        searchResults.length === 0 ? (
-          <Card>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              No newsletters match &quot;{query.trim()}&quot;.
-            </Text>
-          </Card>
-        ) : (
-          <View style={{ gap: spacing.md }}>{searchResults.map(renderArticleRow)}</View>
-        )
       ) : activeFilter === null ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
           {CATEGORY_ORDER.map((cat) => {
