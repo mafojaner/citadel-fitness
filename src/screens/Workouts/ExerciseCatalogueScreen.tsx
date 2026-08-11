@@ -83,22 +83,27 @@ export function ExerciseCatalogueScreen() {
       <FlatList
         data={listData}
         keyExtractor={(item) => item.id}
+        // The column itself is capped and centred, rather than centring each
+        // row inside a full-width container. Doing it per row needs
+        // `alignItems: center` here, which makes every FlatList cell
+        // shrink-wrap its contents — so a row's `width: 100%` resolved
+        // against that shrunken cell and each one came out as wide as its own
+        // exercise name. Capping the container means rows are ordinary
+        // stretched children and are all identical width for free.
         contentContainerStyle={{
           padding: isDesktop ? spacing.lg : spacing.md,
           paddingBottom: isDesktop ? spacing.lg : spacing.md + FLOATING_TAB_BAR_CLEARANCE,
           flexGrow: 1,
-          alignItems: 'center',
+          width: '100%',
+          maxWidth,
+          alignSelf: 'center',
         }}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: spacing.sm, width: '100%', maxWidth, alignSelf: 'center' }} />
-        )}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListHeaderComponent={
           <View
             style={{
               gap: spacing.md,
               marginBottom: listData.length > 0 ? spacing.md : 0,
-              width: '100%',
-              maxWidth,
             }}
           >
             <ProfileLoadBanner />
@@ -131,21 +136,15 @@ export function ExerciseCatalogueScreen() {
         }
         ListEmptyComponent={
           !loading && !error && !showCategoryGrid ? (
-            <View style={{ width: '100%', maxWidth }}>
-              <Card>
-                <Text style={[typography.body, { color: colors.textSecondary }]}>
-                  No exercises match your search.
-                </Text>
-              </Card>
-            </View>
+            <Card>
+              <Text style={[typography.body, { color: colors.textSecondary }]}>
+                No exercises match your search.
+              </Text>
+            </Card>
           ) : null
         }
         renderItem={({ item: exercise }) => (
-          <AnimatedPressable
-            onPress={() => onSelect(exercise)}
-            scaleTo={0.98}
-            style={{ width: '100%', maxWidth }}
-          >
+          <AnimatedPressable onPress={() => onSelect(exercise)} scaleTo={0.98}>
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <GradientIconBadge
