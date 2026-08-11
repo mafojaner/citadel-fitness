@@ -100,7 +100,19 @@ a { text-decoration: none; color: inherit; }
    a large blurred+animated element renders as its raw hard-edged box
    instead of softening, which showed up as a visible rectangle behind the
    Features/Premium sections. A wide multi-stop radial-gradient looks just
-   as soft on its own and has no such failure mode. */
+   as soft on its own and has no such failure mode.
+
+   Two rules keep these from showing a hard cut, both learned the hard way:
+
+   1. The centre stays well inside the box and the radii are percentages of
+      it, so the falloff always completes before an edge. These used to be
+      anchored ON the edge (`at 88% 0%`) with px radii wider than the gap to
+      that edge, which meant the gradient was still near peak opacity exactly
+      where the section's `overflow: hidden` cut it — a hard seam between
+      every section, and worse the wider the viewport.
+   2. The final stop is the same hue at zero alpha, never the `transparent`
+      keyword. `transparent` is rgba(0,0,0,0), so fading to it can drag the
+      midpoint toward black and leave a dirty ring instead of a clean fade. */
 .section-glow {
   position: absolute;
   inset: 0;
@@ -109,18 +121,45 @@ a { text-decoration: none; color: inherit; }
   animation: drift 15s ease-in-out infinite;
 }
 .section-glow--pulse {
-  background: radial-gradient(ellipse 620px 480px at 88% 0%, rgba(34,211,238,0.16), rgba(34,211,238,0.06) 35%, transparent 65%);
+  background: radial-gradient(
+    ellipse 30% 30% at 66% 34%,
+    rgba(34,211,238,0.17) 0%,
+    rgba(34,211,238,0.13) 20%,
+    rgba(34,211,238,0.085) 40%,
+    rgba(34,211,238,0.05) 58%,
+    rgba(34,211,238,0.022) 78%,
+    rgba(34,211,238,0) 100%
+  );
 }
 .section-glow--identity {
-  background: radial-gradient(ellipse 680px 520px at 4% 100%, rgba(139,92,246,0.16), rgba(139,92,246,0.06) 35%, transparent 65%);
+  background: radial-gradient(
+    ellipse 30% 30% at 34% 66%,
+    rgba(139,92,246,0.17) 0%,
+    rgba(139,92,246,0.13) 20%,
+    rgba(139,92,246,0.085) 40%,
+    rgba(139,92,246,0.05) 58%,
+    rgba(139,92,246,0.022) 78%,
+    rgba(139,92,246,0) 100%
+  );
   animation-delay: -4s;
 }
 .section-glow--flame {
-  background: radial-gradient(ellipse 600px 460px at 50% 0%, rgba(255,90,54,0.16), rgba(255,90,54,0.06) 35%, transparent 65%);
+  background: radial-gradient(
+    ellipse 32% 32% at 50% 36%,
+    rgba(255,90,54,0.17) 0%,
+    rgba(255,90,54,0.13) 20%,
+    rgba(255,90,54,0.085) 40%,
+    rgba(255,90,54,0.05) 58%,
+    rgba(255,90,54,0.022) 78%,
+    rgba(255,90,54,0) 100%
+  );
 }
+/* Translate only — the old `scale(1.05)` grew the glow past its section's
+   `overflow: hidden`, so whatever edge the gradient hadn't finished fading
+   by got cut mid-fade, and the cut visibly pulsed as it animated. */
 @keyframes drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(16px, -12px) scale(1.05); }
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(14px, -10px); }
 }
 
 /* ---------- icon idle pulse: small continuous life, everywhere ---------- */
@@ -213,31 +252,29 @@ a:hover .arrow, .nav-cta:hover .arrow { transform: translateX(3px); }
 }
 
 .hero-glow {
-  /* No `filter: blur()` — see the note above .section-glow. The gradient's
-     own gradual stops do the softening instead. Static rather than
-     animated: at 1100px wide, a scale/opacity pulse here read as the whole
-     hero visibly breathing in and out rather than ambient motion.
-     Many close-together stops with a smoothly decaying alpha, rather than
-     a few widely-spaced ones — a big flat-ish stretch between stops (the
-     old 30%→45% one barely changed alpha) reads as a visible ring on a
-     near-black background once nothing is animating to blur it. Was
-     invisible on mobile too: at narrow widths this 1100px circle's edge
-     falls off-screen instead of landing inside the viewport. */
+  /* No `filter: blur()` — see the note above .section-glow, and the same two
+     rules apply here: centre well inside the box, radii as percentages of it,
+     and a final stop that's the same hue at zero alpha.
+
+     Fills the hero rather than being a fixed 1100px square. As a square it
+     had its own hard edges: on a 1440px viewport the box started at x=170,
+     so its left edge sat right in the middle of the screen with the gradient
+     still tinted there — a vertical line down the hero. It only looked fine
+     on mobile because the box was wider than the phone, putting that edge
+     off-screen. Sized to the hero instead, the only edges are the viewport's
+     own, and the falloff finishes before the hero's bottom so there's no
+     seam where it meets Features. */
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 1100px;
-  height: 1100px;
-  transform: translate(-50%, -55%);
+  inset: 0;
   background: radial-gradient(
-    circle at 40% 35%,
+    ellipse 44% 36% at 44% 36%,
     rgba(255,90,54,0.22) 0%,
-    rgba(248,86,68,0.17) 12%,
-    rgba(230,82,95,0.12) 24%,
-    rgba(200,86,130,0.085) 36%,
-    rgba(165,90,180,0.055) 48%,
-    rgba(139,92,246,0.03) 60%,
-    transparent 74%
+    rgba(248,86,68,0.17) 16%,
+    rgba(230,82,95,0.12) 32%,
+    rgba(200,86,130,0.08) 48%,
+    rgba(165,90,180,0.05) 64%,
+    rgba(139,92,246,0.022) 82%,
+    rgba(139,92,246,0) 100%
   );
   pointer-events: none;
 }
