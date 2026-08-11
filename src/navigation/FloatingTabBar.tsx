@@ -2,8 +2,9 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
@@ -41,7 +42,16 @@ const ICON_SIZE = 22;
  */
 const ROW_INSET = 10;
 
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar(props: BottomTabBarProps) {
+  const isDesktop = useIsDesktop();
+  // MainTabs sets tabBarPosition to 'left' at the same breakpoint, so the
+  // navigator lays this out as a column beside the screens rather than
+  // stacked under them — the sidebar takes part in layout instead of
+  // floating over content the way the phone bar does.
+  return isDesktop ? <SidebarTabBar {...props} /> : <BottomPillTabBar {...props} />;
+}
+
+function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, spacing, radius, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
@@ -117,6 +127,136 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
         </BlurView>
       </View>
     </View>
+  );
+}
+
+/**
+ * The desktop counterpart: a fixed left rail. A bottom bar on a wide screen
+ * is the clearest "this is a phone app" tell — the targets sit miles from
+ * the content and the whole top-left of the window goes unused — so on
+ * desktop navigation moves to the edge that has room for it, with labels
+ * always visible and the brand mark at the top.
+ */
+function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, spacing, typography } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={{
+        width: layout.sidebarWidth,
+        backgroundColor: colors.navBackground,
+        borderRightWidth: 1,
+        borderRightColor: colors.navBorder,
+        paddingTop: insets.top + spacing.lg,
+        paddingBottom: insets.bottom + spacing.lg,
+        paddingHorizontal: spacing.md,
+        gap: spacing.xs,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          marginBottom: spacing.lg,
+        }}
+      >
+        {/* Static, unlike the drifting crest on the auth screens — this one
+            is on screen the whole session, where idle motion is a distraction
+            rather than a flourish. */}
+        <View style={{ width: 32, height: 32, borderRadius: 16, overflow: 'hidden' }}>
+          <Image source={require('../../assets/icon.png')} style={{ width: 32, height: 32 }} resizeMode="cover" />
+        </View>
+        <Text style={[typography.subheading, { color: colors.navText, letterSpacing: 0.5 }]}>Citadel</Text>
+      </View>
+
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        return (
+          <SidebarTabButton
+            key={route.key}
+            label={route.name}
+            icon={TAB_ICONS[route.name] ?? 'ellipse'}
+            isFocused={isFocused}
+            onPress={() => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            }}
+            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+            accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+interface SidebarTabButtonProps {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  isFocused: boolean;
+  onPress: () => void;
+  onLongPress: () => void;
+  accessibilityLabel?: string;
+}
+
+function SidebarTabButton({
+  label,
+  icon,
+  isFocused,
+  onPress,
+  onLongPress,
+  accessibilityLabel,
+}: SidebarTabButtonProps) {
+  const { colors, spacing, radius, typography } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={accessibilityLabel ?? label}
+      style={(state) => {
+        // `hovered` is react-native-web's addition to the pressable state and
+        // isn't in React Native's own type, but a pointer-driven platform is
+        // exactly where a hover affordance matters — so read it defensively
+        // rather than going without one.
+        const hovered = (state as { hovered?: boolean }).hovered ?? false;
+        return {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          paddingVertical: spacing.sm + 2,
+          paddingHorizontal: spacing.sm,
+          borderRadius: radius.md,
+          backgroundColor: isFocused ? colors.primaryMuted : hovered ? colors.surface : 'transparent',
+        };
+      }}
+    >
+      <Ionicons
+        name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
+        size={ICON_SIZE}
+        color={isFocused ? colors.primary : colors.tabInactive}
+      />
+      <Text
+        style={[
+          typography.body,
+          { color: isFocused ? colors.primary : colors.tabInactive, fontWeight: isFocused ? '700' : '500' },
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 

@@ -17,6 +17,7 @@ import {
   ARTICLE_CATEGORY_LABELS,
 } from '../../constants/articles';
 import { useArticles } from '../../hooks/useArticles';
+import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { formatPublished } from '../../lib/articles';
 import { useAuthStore } from '../../state/authStore';
 import { useFavoriteArticlesStore } from '../../state/favoriteArticlesStore';
@@ -31,6 +32,10 @@ const CATEGORY_ORDER: ArticleCategory[] = ['splits', 'exercise', 'nutrition', 'r
 
 export function NewsletterScreen() {
   const { colors, spacing, radius, typography } = useTheme();
+  // Three across on desktop: at two, each tile is over 500px wide and barely
+  // 90 tall, which reads as a stack of bars rather than a grid of cards.
+  // Basis + grow rather than a plain width, for the reason in CategoryGridCard.
+  const categoryTile = { flexBasis: useIsDesktop() ? '30%' : '47%', flexGrow: 1, minWidth: 0 } as const;
   const navigation = useNavigation<NativeStackNavigationProp<NewsletterStackParamList>>();
   const { articles, loading, error, reload } = useArticles();
   const [activeFilter, setActiveFilter] = useState<FilterValue | null>(null);
@@ -117,7 +122,7 @@ export function NewsletterScreen() {
           {CATEGORY_ORDER.map((cat) => {
             const count = categoryCounts.get(cat) ?? 0;
             return (
-              <AnimatedPressable key={cat} onPress={() => setActiveFilter(cat)} scaleTo={0.96} style={{ width: '47%' }}>
+              <AnimatedPressable key={cat} onPress={() => setActiveFilter(cat)} scaleTo={0.96} style={categoryTile}>
                 <LinearGradient
                   colors={ARTICLE_CATEGORY_GRADIENTS[cat]}
                   start={{ x: 0, y: 0 }}
@@ -143,7 +148,7 @@ export function NewsletterScreen() {
             );
           })}
 
-          <AnimatedPressable onPress={() => setActiveFilter('favorites')} scaleTo={0.96} style={{ width: '47%' }}>
+          <AnimatedPressable onPress={() => setActiveFilter('favorites')} scaleTo={0.96} style={categoryTile}>
             <LinearGradient
               colors={gradients.favorite}
               start={{ x: 0, y: 0 }}

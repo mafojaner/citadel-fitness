@@ -26,7 +26,7 @@ import { useArticles } from '../../hooks/useArticles';
 import { useExercises } from '../../hooks/useExercises';
 import { formatPublished } from '../../lib/articles';
 import { todayISO } from '../../lib/analytics';
-import { layout } from '../../theme/tokens';
+import { useContentMaxWidth } from '../../hooks/useResponsiveLayout';
 import { useTheme } from '../../theme/useTheme';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,6 +43,7 @@ import type { SearchStackParamList } from '../../navigation/stacks/SearchStack';
 export function SearchScreen() {
   const { colors, spacing, typography } = useTheme();
   const insets = useSafeAreaInsets();
+  const maxWidth = useContentMaxWidth();
   const navigation = useNavigation<NativeStackNavigationProp<SearchStackParamList>>();
   const { exercises } = useExercises();
   const { articles } = useArticles();
@@ -87,7 +88,7 @@ export function SearchScreen() {
             alignItems: 'center',
             gap: spacing.sm,
             width: '100%',
-            maxWidth: layout.contentMaxWidth,
+            maxWidth,
           }}
         >
           <View style={{ flex: 1 }}>

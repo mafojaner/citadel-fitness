@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileIconButton } from './ProfileIconButton';
 import { SearchField } from './SearchField';
-import { layout } from '../theme/tokens';
+import { useContentMaxWidth } from '../hooks/useResponsiveLayout';
 import { useTheme } from '../theme/useTheme';
 
 interface HeaderSearchBarProps {
@@ -33,6 +33,7 @@ export function HeaderSearchBar({
 }: HeaderSearchBarProps) {
   const { colors, spacing, typography } = useTheme();
   const insets = useSafeAreaInsets();
+  const maxWidth = useContentMaxWidth();
   const [localQuery, setLocalQuery] = useState('');
   const query = value ?? localQuery;
   const setQuery = onChangeText ?? setLocalQuery;
@@ -52,7 +53,7 @@ export function HeaderSearchBar({
           alignItems: 'center',
           gap: spacing.sm,
           width: '100%',
-          maxWidth: layout.contentMaxWidth,
+          maxWidth,
           alignSelf: 'center',
         }}
       >

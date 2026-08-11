@@ -20,9 +20,14 @@ export const radius = {
 // already use for their own readable-column widths.
 export const layout = {
   contentMaxWidth: 640,
+  /** Wider cap once there's a sidebar taking the left edge and screens lay
+      content out in columns — 640 there is the "phone app in the middle of a
+      monitor" look rather than a desktop layout. */
+  desktopContentMaxWidth: 1120,
   /** Narrower cap for single-column forms (auth screens) — 640 reads as an
       oddly wide text input; a login form wants roughly phone-width even on desktop. */
   formMaxWidth: 420,
+  sidebarWidth: 232,
 } as const;
 
 // Shape only — shadowColor/shadowRadius/shadowOffset don't need to vary by

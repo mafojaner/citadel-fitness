@@ -18,6 +18,7 @@ import {
   DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
+import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { todayISO } from '../../lib/analytics';
 import { fetchWorkoutForDate, fetchWorkoutDatesInRange, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
@@ -51,6 +52,7 @@ function formatDayLabel(dateString: string, today: string) {
 
 export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
+  const isDesktop = useIsDesktop();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
@@ -119,10 +121,13 @@ export function WorkoutsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <HeaderSearchBar title="Workouts" showSearch={false} />
       <ScreenContainer>
-      <GradientButton
-        label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
-        onPress={onEnterWorkout}
-      />
+      {/* Natural width on desktop, matching Home's CTA — see the note there. */}
+      <View style={isDesktop ? { alignSelf: 'flex-start', minWidth: 220 } : undefined}>
+        <GradientButton
+          label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
+          onPress={onEnterWorkout}
+        />
+      </View>
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 

@@ -21,14 +21,17 @@ import {
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
 import { FLOATING_TAB_BAR_CLEARANCE } from '../../navigation/FloatingTabBar';
+import { useCategoryColumns, useContentMaxWidth, useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
-import { layout } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
 export function ExerciseCatalogueScreen() {
   const { colors, spacing, typography } = useTheme();
+  const isDesktop = useIsDesktop();
+  const maxWidth = useContentMaxWidth();
+  const categoryColumns = useCategoryColumns();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const route = useRoute<RouteProp<WorkoutsStackParamList, 'ExerciseCatalogue'>>();
   const { exercises, loading, error } = useExercises();
@@ -81,13 +84,13 @@ export function ExerciseCatalogueScreen() {
         data={listData}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{
-          padding: spacing.md,
-          paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE,
+          padding: isDesktop ? spacing.lg : spacing.md,
+          paddingBottom: isDesktop ? spacing.lg : spacing.md + FLOATING_TAB_BAR_CLEARANCE,
           flexGrow: 1,
           alignItems: 'center',
         }}
         ItemSeparatorComponent={() => (
-          <View style={{ height: spacing.sm, width: '100%', maxWidth: layout.contentMaxWidth, alignSelf: 'center' }} />
+          <View style={{ height: spacing.sm, width: '100%', maxWidth, alignSelf: 'center' }} />
         )}
         ListHeaderComponent={
           <View
@@ -95,7 +98,7 @@ export function ExerciseCatalogueScreen() {
               gap: spacing.md,
               marginBottom: listData.length > 0 ? spacing.md : 0,
               width: '100%',
-              maxWidth: layout.contentMaxWidth,
+              maxWidth,
             }}
           >
             <ProfileLoadBanner />
@@ -118,6 +121,7 @@ export function ExerciseCatalogueScreen() {
                     gradientColors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
                     label={c.label}
                     count={c.count}
+                    columns={categoryColumns}
                     onPress={() => setActiveCategory(c.value)}
                   />
                 ))}
@@ -127,7 +131,7 @@ export function ExerciseCatalogueScreen() {
         }
         ListEmptyComponent={
           !loading && !error && !showCategoryGrid ? (
-            <View style={{ width: '100%', maxWidth: layout.contentMaxWidth }}>
+            <View style={{ width: '100%', maxWidth }}>
               <Card>
                 <Text style={[typography.body, { color: colors.textSecondary }]}>
                   No exercises match your search.
@@ -140,7 +144,7 @@ export function ExerciseCatalogueScreen() {
           <AnimatedPressable
             onPress={() => onSelect(exercise)}
             scaleTo={0.98}
-            style={{ width: '100%', maxWidth: layout.contentMaxWidth }}
+            style={{ width: '100%', maxWidth }}
           >
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

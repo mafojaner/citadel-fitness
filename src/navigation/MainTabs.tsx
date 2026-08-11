@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { FloatingTabBar } from './FloatingTabBar';
 import { ActivityStack } from './stacks/ActivityStack';
 import { HomeStack } from './stacks/HomeStack';
@@ -17,9 +18,17 @@ export type MainTabsParamList = {
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 export function MainTabs() {
+  const isDesktop = useIsDesktop();
   return (
     <Tab.Navigator
-      screenOptions={{ headerShown: false, animation: 'fade' }}
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade',
+        // Makes the navigator lay the tab bar out as a column beside the
+        // screens instead of below them; FloatingTabBar switches to its
+        // sidebar form at the same breakpoint.
+        tabBarPosition: isDesktop ? 'left' : 'bottom',
+      }}
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeStack} />

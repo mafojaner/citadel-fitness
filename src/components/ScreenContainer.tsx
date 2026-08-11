@@ -2,21 +2,30 @@ import type { PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { FadeInView } from './FadeInView';
 import { ProfileLoadBanner } from './ProfileLoadBanner';
+import { useContentMaxWidth, useIsDesktop } from '../hooks/useResponsiveLayout';
 import { FLOATING_TAB_BAR_CLEARANCE } from '../navigation/FloatingTabBar';
-import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 export function ScreenContainer({ children }: PropsWithChildren) {
   const { colors, spacing } = useTheme();
+  const isDesktop = useIsDesktop();
+  const maxWidth = useContentMaxWidth();
+  const pad = isDesktop ? spacing.lg : spacing.md;
+
   return (
     <ScrollView
       style={[styles.scroll, { backgroundColor: colors.background }]}
       contentContainerStyle={[
         styles.content,
-        { padding: spacing.md, paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE },
+        {
+          padding: pad,
+          // Only the floating phone bar overlaps content and needs reserving
+          // for; the desktop sidebar sits beside it in layout.
+          paddingBottom: isDesktop ? pad : pad + FLOATING_TAB_BAR_CLEARANCE,
+        },
       ]}
     >
-      <FadeInView style={{ gap: spacing.md, width: '100%', maxWidth: layout.contentMaxWidth, alignSelf: 'center' }}>
+      <FadeInView style={{ gap: spacing.md, width: '100%', maxWidth, alignSelf: 'center' }}>
         <ProfileLoadBanner />
         {children}
       </FadeInView>

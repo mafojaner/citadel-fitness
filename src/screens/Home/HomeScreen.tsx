@@ -23,6 +23,7 @@ import {
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useExercises } from '../../hooks/useExercises';
 import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
+import { useCategoryColumns, useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -47,6 +48,8 @@ function formatShortDate(dateString: string, today: string) {
 
 export function HomeScreen() {
   const { colors, spacing, radius, typography } = useTheme();
+  const isDesktop = useIsDesktop();
+  const categoryColumns = useCategoryColumns();
   const navigation = useNavigation<HomeNavigationProp>();
   const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
   const { exercises } = useExercises();
@@ -79,20 +82,38 @@ export function HomeScreen() {
       <HeaderSearchBar title="Home" showSearch={false} />
       <ScreenContainer>
       {/* The action people actually open this screen for leads, rather than
-          sitting below two read-only summary cards. */}
-      <GradientButton
-        label="Log workout"
-        onPress={() => {
-          ensureDraftFor(today);
-          navigation.navigate('AddWorkout');
-        }}
-      />
+          sitting below two read-only summary cards. Full width is right on a
+          phone, where it's a thumb target; stretched across a desktop content
+          column it just reads as a banner, so it takes its natural size there. */}
+      <View style={isDesktop ? { alignSelf: 'flex-start', minWidth: 220 } : undefined}>
+        <GradientButton
+          label="Log workout"
+          onPress={() => {
+            ensureDraftFor(today);
+            navigation.navigate('AddWorkout');
+          }}
+        />
+      </View>
 
+      {/* Side by side once there's width for it: these are two peer summaries,
+          and stacking them on desktop pushes the category grid below the fold
+          for no reason. Top-aligned rather than stretched — the activity card
+          is a couple of lines against the workout card's list, so matching
+          their heights would leave it mostly empty and, since the card doesn't
+          fill its pressable, would extend its tap target into that gap. */}
+      <View
+        style={{
+          flexDirection: isDesktop ? 'row' : 'column',
+          alignItems: isDesktop ? 'flex-start' : 'stretch',
+          gap: spacing.md,
+        }}
+      >
       <AnimatedPressable
         onPress={() => navigation.navigate('Activity')}
         accessibilityRole="button"
         accessibilityLabel="Open Activity"
         scaleTo={0.98}
+        style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -129,6 +150,7 @@ export function HomeScreen() {
         accessibilityRole="button"
         accessibilityLabel="Open Workouts"
         scaleTo={0.98}
+        style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -217,6 +239,7 @@ export function HomeScreen() {
           </Text>
         </Card>
       </AnimatedPressable>
+      </View>
 
       {/* Discovery section: category browsing into the same task (find
           something to log) people come here for — full-text search now
@@ -233,6 +256,7 @@ export function HomeScreen() {
               gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
               label={c.label}
               count={categoryCounts.get(category) ?? 0}
+              columns={categoryColumns}
               onPress={() => onSelectCategory(category)}
             />
           );
