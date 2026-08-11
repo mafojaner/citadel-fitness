@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { motion } from '../theme/motion';
+import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 /** Solid variant shown for the active tab, outline for every inactive one — the standard iOS tab-bar convention. */
@@ -48,58 +49,73 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
   const barHeight = showLabels ? 60 : 54;
 
   return (
+    // Full-bleed positioning wrapper, invisible itself — centers the actual
+    // bar below via alignItems rather than the old left/right inset, so on
+    // wide (desktop web) viewports the bar caps at contentMaxWidth instead
+    // of stretching edge to edge. box-none lets clicks in the now-empty
+    // margin on either side fall through to whatever's underneath.
     <View
+      pointerEvents="box-none"
       style={{
         position: 'absolute',
-        left: spacing.lg,
-        right: spacing.lg,
+        left: 0,
+        right: 0,
         bottom: insets.bottom + BAR_MARGIN,
-        height: barHeight,
-        borderRadius: radius.pill,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.navBorder,
-        // Blur alone can render flat without a shadow to lift it off busy
-        // content — the actual "floating" part of a floating bar.
-        shadowColor: '#000',
-        shadowOpacity: scheme === 'dark' ? 0.4 : 0.15,
-        shadowRadius: 16,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 8,
+        alignItems: 'center',
+        paddingHorizontal: spacing.lg,
       }}
     >
-      <BlurView
-        intensity={80}
-        tint={scheme === 'dark' ? 'dark' : 'light'}
-        style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}
+      <View
+        style={{
+          width: '100%',
+          maxWidth: layout.contentMaxWidth,
+          height: barHeight,
+          borderRadius: radius.pill,
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: colors.navBorder,
+          // Blur alone can render flat without a shadow to lift it off busy
+          // content — the actual "floating" part of a floating bar.
+          shadowColor: '#000',
+          shadowOpacity: scheme === 'dark' ? 0.4 : 0.15,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 8,
+        }}
       >
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          return (
-            <TabButton
-              key={route.key}
-              label={route.name}
-              showLabel={showLabels}
-              icon={TAB_ICONS[route.name] ?? 'ellipse'}
-              isFocused={isFocused}
-              activeColor={colors.primary}
-              inactiveColor={colors.tabInactive}
-              onPress={() => {
-                const event = navigation.emit({
-                  type: 'tabPress',
-                  target: route.key,
-                  canPreventDefault: true,
-                });
-                if (!isFocused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
-                }
-              }}
-              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
-              accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
-            />
-          );
-        })}
-      </BlurView>
+        <BlurView
+          intensity={80}
+          tint={scheme === 'dark' ? 'dark' : 'light'}
+          style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}
+        >
+          {state.routes.map((route, index) => {
+            const isFocused = state.index === index;
+            return (
+              <TabButton
+                key={route.key}
+                label={route.name}
+                showLabel={showLabels}
+                icon={TAB_ICONS[route.name] ?? 'ellipse'}
+                isFocused={isFocused}
+                activeColor={colors.primary}
+                inactiveColor={colors.tabInactive}
+                onPress={() => {
+                  const event = navigation.emit({
+                    type: 'tabPress',
+                    target: route.key,
+                    canPreventDefault: true,
+                  });
+                  if (!isFocused && !event.defaultPrevented) {
+                    navigation.navigate(route.name);
+                  }
+                }}
+                onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+                accessibilityLabel={descriptors[route.key].options.tabBarAccessibilityLabel}
+              />
+            );
+          })}
+        </BlurView>
+      </View>
     </View>
   );
 }

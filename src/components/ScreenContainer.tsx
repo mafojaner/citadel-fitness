@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { FadeInView } from './FadeInView';
 import { ProfileLoadBanner } from './ProfileLoadBanner';
 import { FLOATING_TAB_BAR_CLEARANCE } from '../navigation/FloatingTabBar';
+import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 export function ScreenContainer({ children }: PropsWithChildren) {
@@ -15,7 +16,7 @@ export function ScreenContainer({ children }: PropsWithChildren) {
         { padding: spacing.md, paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE },
       ]}
     >
-      <FadeInView style={{ gap: spacing.md }}>
+      <FadeInView style={{ gap: spacing.md, width: '100%', maxWidth: layout.contentMaxWidth, alignSelf: 'center' }}>
         <ProfileLoadBanner />
         {children}
       </FadeInView>

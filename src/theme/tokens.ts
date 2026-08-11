@@ -14,6 +14,17 @@ export const radius = {
   pill: 999,
 } as const;
 
+// Caps content width on wide (desktop web) viewports so the mobile-first
+// layout doesn't stretch edge-to-edge — centered via alignSelf on whichever
+// element gets capped, same pattern the landing page and privacy policy
+// already use for their own readable-column widths.
+export const layout = {
+  contentMaxWidth: 640,
+  /** Narrower cap for single-column forms (auth screens) — 640 reads as an
+      oddly wide text input; a login form wants roughly phone-width even on desktop. */
+  formMaxWidth: 420,
+} as const;
+
 // Shape only — shadowColor/shadowRadius/shadowOffset don't need to vary by
 // scheme, but shadowOpacity does (a shadow tuned to read on white is
 // invisible on near-black), so each consumer adds

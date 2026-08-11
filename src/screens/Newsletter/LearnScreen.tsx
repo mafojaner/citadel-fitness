@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { FortressScreen } from '../Fortress/FortressScreen';
+import { layout } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import { NewsletterScreen } from './NewsletterScreen';
 
@@ -27,8 +28,10 @@ export function LearnScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <HeaderSearchBar title="Learn" showSearch={false} />
-      <View style={{ padding: spacing.md, paddingBottom: spacing.sm, backgroundColor: colors.background }}>
-        <SegmentedControl options={TABS} value={tab} onChange={setTab} />
+      <View style={{ padding: spacing.md, paddingBottom: spacing.sm, backgroundColor: colors.background, alignItems: 'center' }}>
+        <View style={{ width: '100%', maxWidth: layout.contentMaxWidth }}>
+          <SegmentedControl options={TABS} value={tab} onChange={setTab} />
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         {tab === 'newsletter' ? <NewsletterScreen /> : <FortressScreen />}

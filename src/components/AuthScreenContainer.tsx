@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { FadeInView } from './FadeInView';
 import { FloatingLogo } from './FloatingLogo';
+import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 /**
@@ -23,7 +24,7 @@ export function AuthScreenContainer({ children }: PropsWithChildren) {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.lg }}
         keyboardShouldPersistTaps="handled"
       >
-        <FadeInView style={{ gap: spacing.md }}>
+        <FadeInView style={{ gap: spacing.md, width: '100%', maxWidth: layout.formMaxWidth, alignSelf: 'center' }}>
           <View style={{ alignItems: 'center', marginBottom: spacing.sm, gap: spacing.sm }}>
             <FloatingLogo size={88} />
             <Text style={[typography.title, { color: colors.textPrimary }]}>Citadel Fitness</Text>

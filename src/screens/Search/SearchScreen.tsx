@@ -26,6 +26,7 @@ import { useArticles } from '../../hooks/useArticles';
 import { useExercises } from '../../hooks/useExercises';
 import { formatPublished } from '../../lib/articles';
 import { todayISO } from '../../lib/analytics';
+import { layout } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -77,21 +78,29 @@ export function SearchScreen() {
           paddingTop: insets.top + spacing.sm,
           paddingBottom: spacing.sm,
           paddingHorizontal: spacing.md,
-          flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.sm,
         }}
       >
-        <View style={{ flex: 1 }}>
-          <SearchField
-            placeholder="Search exercises, newsletters..."
-            value={query}
-            onChangeText={setQuery}
-            size="large"
-            autoFocus
-          />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.sm,
+            width: '100%',
+            maxWidth: layout.contentMaxWidth,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <SearchField
+              placeholder="Search exercises, newsletters..."
+              value={query}
+              onChangeText={setQuery}
+              size="large"
+              autoFocus
+            />
+          </View>
+          <ProfileIconButton />
         </View>
-        <ProfileIconButton />
       </View>
 
       <ScreenContainer>

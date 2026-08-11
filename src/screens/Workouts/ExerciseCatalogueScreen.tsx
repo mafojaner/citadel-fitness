@@ -22,6 +22,7 @@ import {
 import { useExercises } from '../../hooks/useExercises';
 import { FLOATING_TAB_BAR_CLEARANCE } from '../../navigation/FloatingTabBar';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
+import { layout } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category, Exercise } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -83,10 +84,20 @@ export function ExerciseCatalogueScreen() {
           padding: spacing.md,
           paddingBottom: spacing.md + FLOATING_TAB_BAR_CLEARANCE,
           flexGrow: 1,
+          alignItems: 'center',
         }}
-        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: spacing.sm, width: '100%', maxWidth: layout.contentMaxWidth, alignSelf: 'center' }} />
+        )}
         ListHeaderComponent={
-          <View style={{ gap: spacing.md, marginBottom: listData.length > 0 ? spacing.md : 0 }}>
+          <View
+            style={{
+              gap: spacing.md,
+              marginBottom: listData.length > 0 ? spacing.md : 0,
+              width: '100%',
+              maxWidth: layout.contentMaxWidth,
+            }}
+          >
             <ProfileLoadBanner />
             <SearchField placeholder="Search exercises" value={query} onChangeText={setQuery} size="large" />
 
@@ -116,15 +127,21 @@ export function ExerciseCatalogueScreen() {
         }
         ListEmptyComponent={
           !loading && !error && !showCategoryGrid ? (
-            <Card>
-              <Text style={[typography.body, { color: colors.textSecondary }]}>
-                No exercises match your search.
-              </Text>
-            </Card>
+            <View style={{ width: '100%', maxWidth: layout.contentMaxWidth }}>
+              <Card>
+                <Text style={[typography.body, { color: colors.textSecondary }]}>
+                  No exercises match your search.
+                </Text>
+              </Card>
+            </View>
           ) : null
         }
         renderItem={({ item: exercise }) => (
-          <AnimatedPressable onPress={() => onSelect(exercise)} scaleTo={0.98}>
+          <AnimatedPressable
+            onPress={() => onSelect(exercise)}
+            scaleTo={0.98}
+            style={{ width: '100%', maxWidth: layout.contentMaxWidth }}
+          >
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <GradientIconBadge

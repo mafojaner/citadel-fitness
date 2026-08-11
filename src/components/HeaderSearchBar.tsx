@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProfileIconButton } from './ProfileIconButton';
 import { SearchField } from './SearchField';
+import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface HeaderSearchBarProps {
@@ -45,7 +46,16 @@ export function HeaderSearchBar({
         paddingHorizontal: spacing.md,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          width: '100%',
+          maxWidth: layout.contentMaxWidth,
+          alignSelf: 'center',
+        }}
+      >
         <Text
           style={[
             typography.heading,

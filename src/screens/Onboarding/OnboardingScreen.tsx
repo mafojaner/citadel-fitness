@@ -9,7 +9,7 @@ import { GradientButton } from '../../components/GradientButton';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { motion } from '../../theme/motion';
-import { gradients } from '../../theme/tokens';
+import { gradients, layout } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 type SlideIcon =
@@ -86,7 +86,7 @@ export function OnboardingScreen() {
           key={index}
           duration={motion.duration.base}
           slideDistance={16}
-          style={{ alignItems: 'center', gap: spacing.lg }}
+          style={{ alignItems: 'center', gap: spacing.lg, width: '100%', maxWidth: layout.formMaxWidth }}
         >
           <LinearGradient
             colors={slide.colors}
@@ -114,8 +114,16 @@ export function OnboardingScreen() {
         </FadeInView>
       </View>
 
-      <View style={{ padding: spacing.lg, gap: spacing.md }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xs }}>
+      <View style={{ padding: spacing.lg, gap: spacing.md, alignItems: 'center' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: spacing.xs,
+            width: '100%',
+            maxWidth: layout.formMaxWidth,
+          }}
+        >
           {SLIDES.map((s, i) => (
             <View
               key={s.title}
@@ -129,13 +137,15 @@ export function OnboardingScreen() {
           ))}
         </View>
 
-        {error ? <ErrorNotice message={error} onRetry={finish} /> : null}
+        <View style={{ width: '100%', maxWidth: layout.formMaxWidth, gap: spacing.md }}>
+          {error ? <ErrorNotice message={error} onRetry={finish} /> : null}
 
-        <GradientButton
-          label={isLast ? "Let's go" : 'Next'}
-          loading={finishing}
-          onPress={() => (isLast ? finish() : setIndex((i) => i + 1))}
-        />
+          <GradientButton
+            label={isLast ? "Let's go" : 'Next'}
+            loading={finishing}
+            onPress={() => (isLast ? finish() : setIndex((i) => i + 1))}
+          />
+        </View>
       </View>
     </View>
   );
