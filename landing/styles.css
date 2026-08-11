@@ -216,14 +216,29 @@ a:hover .arrow, .nav-cta:hover .arrow { transform: translateX(3px); }
   /* No `filter: blur()` — see the note above .section-glow. The gradient's
      own gradual stops do the softening instead. Static rather than
      animated: at 1100px wide, a scale/opacity pulse here read as the whole
-     hero visibly breathing in and out rather than ambient motion. */
+     hero visibly breathing in and out rather than ambient motion.
+     Many close-together stops with a smoothly decaying alpha, rather than
+     a few widely-spaced ones — a big flat-ish stretch between stops (the
+     old 30%→45% one barely changed alpha) reads as a visible ring on a
+     near-black background once nothing is animating to blur it. Was
+     invisible on mobile too: at narrow widths this 1100px circle's edge
+     falls off-screen instead of landing inside the viewport. */
   position: absolute;
   top: 50%;
   left: 50%;
   width: 1100px;
   height: 1100px;
   transform: translate(-50%, -55%);
-  background: radial-gradient(circle at 40% 35%, rgba(255,90,54,0.22), rgba(255,90,54,0.09) 30%, rgba(139,92,246,0.08) 45%, transparent 68%);
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgba(255,90,54,0.22) 0%,
+    rgba(248,86,68,0.17) 12%,
+    rgba(230,82,95,0.12) 24%,
+    rgba(200,86,130,0.085) 36%,
+    rgba(165,90,180,0.055) 48%,
+    rgba(139,92,246,0.03) 60%,
+    transparent 74%
+  );
   pointer-events: none;
 }
 
