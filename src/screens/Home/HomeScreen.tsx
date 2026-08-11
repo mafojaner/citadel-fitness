@@ -11,6 +11,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
+import { MiniProgressChart } from '../../components/MiniProgressChart';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -82,29 +83,27 @@ export function HomeScreen() {
       <HeaderSearchBar title="Home" showSearch={false} />
       <ScreenContainer>
       {/* The action people actually open this screen for leads, rather than
-          sitting below two read-only summary cards. Full width is right on a
-          phone, where it's a thumb target; stretched across a desktop content
-          column it just reads as a banner, so it takes its natural size there. */}
-      <View style={isDesktop ? { alignSelf: 'flex-start', minWidth: 220 } : undefined}>
-        <GradientButton
-          label="Log workout"
-          onPress={() => {
-            ensureDraftFor(today);
-            navigation.navigate('AddWorkout');
-          }}
-        />
-      </View>
+          sitting below two read-only summary cards. Full width at every size:
+          it spans the pair of summary cards below it, which keeps the column
+          reading as one block instead of a small button floating above it. */}
+      <GradientButton
+        label="Log workout"
+        onPress={() => {
+          ensureDraftFor(today);
+          navigation.navigate('AddWorkout');
+        }}
+      />
 
       {/* Side by side once there's width for it: these are two peer summaries,
           and stacking them on desktop pushes the category grid below the fold
-          for no reason. Top-aligned rather than stretched — the activity card
-          is a couple of lines against the workout card's list, so matching
-          their heights would leave it mostly empty and, since the card doesn't
-          fill its pressable, would extend its tap target into that gap. */}
+          for no reason. Stretched to equal height, with the cards told to fill
+          their pressable so their bottom edges line up whichever one happens
+          to be taller — and so neither leaves a slab of tappable dead space
+          below itself. */}
       <View
         style={{
           flexDirection: isDesktop ? 'row' : 'column',
-          alignItems: isDesktop ? 'flex-start' : 'stretch',
+          alignItems: 'stretch',
           gap: spacing.md,
         }}
       >
@@ -115,7 +114,7 @@ export function HomeScreen() {
         scaleTo={0.98}
         style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}
       >
-        <Card>
+        <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
             <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
@@ -139,7 +138,15 @@ export function HomeScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </View>
-          <Text style={[typography.caption, { color: colors.textMuted }]}>
+          {/* Desktop only: this card is two lines tall next to the workout
+              list beside it, leaving the column half empty. The trend is the
+              natural thing to fill it with, and it's the same data the card
+              already summarises in words. */}
+          {isDesktop ? <MiniProgressChart /> : null}
+          {/* Pinned to the bottom of the stretched card so both captions sit
+              on the same line, rather than one trailing its content with the
+              leftover height dangling below it. */}
+          <Text style={[typography.caption, { color: colors.textMuted }, isDesktop && { marginTop: 'auto' }]}>
             Select to view your full activity breakdown
           </Text>
         </Card>
@@ -152,7 +159,7 @@ export function HomeScreen() {
         scaleTo={0.98}
         style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}
       >
-        <Card>
+        <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
             <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
@@ -234,7 +241,7 @@ export function HomeScreen() {
               ))}
             </View>
           )}
-          <Text style={[typography.caption, { color: colors.textMuted }]}>
+          <Text style={[typography.caption, { color: colors.textMuted }, isDesktop && { marginTop: 'auto' }]}>
             Select to view your full workout history
           </Text>
         </Card>
