@@ -14,6 +14,7 @@ import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { MiniProgressChart } from '../../components/MiniProgressChart';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
+import { WelcomeBackBanner } from '../../components/WelcomeBackBanner';
 import {
   CATEGORY_FILTERS,
   CATEGORY_GRADIENTS,
@@ -270,6 +271,11 @@ export function HomeScreen() {
         })}
       </View>
       </ScreenContainer>
+
+      {/* Last child so it layers over the header and content. Lives on Home
+          because that's where signing in always lands, and because the streak
+          it reads is already loaded here. */}
+      <WelcomeBackBanner streakDays={currentStreakDays} />
     </View>
   );
 }

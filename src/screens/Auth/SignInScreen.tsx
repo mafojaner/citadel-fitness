@@ -9,6 +9,7 @@ import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../state/authStore';
 import { useTheme } from '../../theme/useTheme';
 import type { AuthStackParamList } from '../../navigation/stacks/AuthStack';
 
@@ -19,12 +20,20 @@ export function SignInScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const markJustSignedIn = useAuthStore((s) => s.markJustSignedIn);
 
   const onSubmit = async () => {
     setSubmitting(true);
     setError(null);
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) setError(signInError.message);
+    if (signInError) {
+      setError(signInError.message);
+    } else {
+      // Arms the welcome greeting Home shows. Set here rather than off the
+      // SIGNED_IN event so it fires for a deliberate sign-in only, not for a
+      // restored session on every app open.
+      markJustSignedIn();
+    }
     setSubmitting(false);
   };
 
