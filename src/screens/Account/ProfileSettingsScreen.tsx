@@ -3,11 +3,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { AvatarCropModal } from '../../components/AvatarCropModal';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { uploadAvatar } from '../../lib/profile';
+import { confirmAsync } from '../../lib/confirm';
+import { removeAvatar, uploadAvatar } from '../../lib/profile';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
@@ -32,12 +34,15 @@ export function ProfileSettingsScreen() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [removingAvatar, setRemovingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   /** Non-null while an image is waiting to be cropped in-app (web only). */
   const [cropUri, setCropUri] = useState<string | null>(null);
 
   const initial = (name || email || '?')[0]?.toUpperCase();
   const dirty = name.trim() !== storedName && name.trim().length > 0;
+  /** Either avatar operation locks the other out, so a tap can't race a removal. */
+  const avatarBusy = uploadingAvatar || removingAvatar;
 
   const onSave = async () => {
     if (!userId || !dirty) return;
@@ -65,6 +70,27 @@ export function ProfileSettingsScreen() {
       setAvatarError(err instanceof Error ? err.message : 'Failed to upload avatar');
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  const onRemoveAvatar = async () => {
+    if (!userId) return;
+    const confirmed = await confirmAsync(
+      'Remove photo?',
+      'Your profile will go back to showing your initial. You can upload a new photo any time.',
+      'Remove'
+    );
+    if (!confirmed) return;
+
+    setRemovingAvatar(true);
+    setAvatarError(null);
+    try {
+      await removeAvatar(userId);
+      setAvatarUrl(null);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Failed to remove photo');
+    } finally {
+      setRemovingAvatar(false);
     }
   };
 
@@ -103,7 +129,7 @@ export function ProfileSettingsScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <Pressable onPress={onPickAvatar} disabled={uploadingAvatar}>
+          <Pressable onPress={onPickAvatar} disabled={avatarBusy}>
             <View style={{ width: 72, height: 72 }}>
               {avatarUrl ? (
                 <Image
@@ -126,7 +152,7 @@ export function ProfileSettingsScreen() {
                   <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '700' }}>{initial}</Text>
                 </LinearGradient>
               )}
-              {uploadingAvatar ? (
+              {avatarBusy ? (
                 <View
                   style={{
                     position: 'absolute',
@@ -162,8 +188,25 @@ export function ProfileSettingsScreen() {
             </View>
           </Pressable>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
-            {uploadingAvatar ? 'Uploading...' : 'Tap to change photo'}
+            {uploadingAvatar ? 'Uploading...' : removingAvatar ? 'Removing...' : 'Tap to change photo'}
           </Text>
+
+          {/* Only offered when there's actually a photo to remove — otherwise
+              it's a control that does nothing to the initials fallback. */}
+          {avatarUrl ? (
+            <AnimatedPressable
+              onPress={onRemoveAvatar}
+              disabled={avatarBusy}
+              accessibilityRole="button"
+              accessibilityLabel="Remove profile photo"
+              scaleTo={0.96}
+            >
+              <Text style={[typography.caption, { color: colors.danger, fontWeight: '600' }]}>
+                Remove photo
+              </Text>
+            </AnimatedPressable>
+          ) : null}
+
           {avatarError ? <Text style={{ color: colors.danger }}>{avatarError}</Text> : null}
         </View>
       </Card>

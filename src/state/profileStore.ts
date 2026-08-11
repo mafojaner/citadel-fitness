@@ -23,7 +23,8 @@ interface ProfileState {
   load: (userId: string) => Promise<void>;
   saveName: (userId: string, name: string) => Promise<void>;
   savePreferences: (userId: string, patch: Partial<ProfilePreferences>) => Promise<void>;
-  setAvatarUrl: (url: string) => void;
+  /** null when the photo is removed, which clears it back to the initials fallback. */
+  setAvatarUrl: (url: string | null) => void;
   reset: () => void;
 }
 

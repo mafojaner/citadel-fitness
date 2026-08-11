@@ -89,3 +89,36 @@ export async function uploadAvatar(
 
   return avatarUrl;
 }
+
+/**
+ * Deletes the stored image and clears the profile's reference to it.
+ *
+ * Clears every file in the user's folder rather than the one path the
+ * current avatar_url points at: uploads are named avatar.<ext> from the
+ * source image's mime type, so switching formats (jpg then png) leaves the
+ * earlier file behind. Those strays are still fetchable by anyone holding
+ * the old public URL, which is the opposite of what removing a photo is
+ * meant to do.
+ *
+ * Storage first, database second. If this fails halfway the profile is left
+ * pointing at a now-missing image, which shows up immediately and can be
+ * retried — the other order would report success while the photo was still
+ * retrievable.
+ */
+export async function removeAvatar(userId: string): Promise<void> {
+  const { data: files, error: listError } = await supabase.storage.from('avatars').list(userId);
+  if (listError) throw listError;
+
+  if (files && files.length > 0) {
+    const { error: removeError } = await supabase.storage
+      .from('avatars')
+      .remove(files.map((file) => `${userId}/${file.name}`));
+    if (removeError) throw removeError;
+  }
+
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({ avatar_url: null })
+    .eq('id', userId);
+  if (updateError) throw updateError;
+}
