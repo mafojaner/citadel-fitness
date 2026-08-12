@@ -119,6 +119,16 @@ export function AccountScreen() {
         <FortressFeatureCard featureId="data-export" variant="row" />
       </SettingsSection>
 
+      {/* early-access and priority-support are account-wide policies with no
+          content of their own to attach to — nowhere on Home, Activity or
+          Learn is any more "theirs" than here. offline-sync joins them for
+          the same reason: it's a background capability, not a screen. */}
+      <SettingsSection title="Fortress perks">
+        <FortressFeatureCard featureId="priority-support" variant="row" />
+        <FortressFeatureCard featureId="early-access" variant="row" />
+        <FortressFeatureCard featureId="offline-sync" variant="row" />
+      </SettingsSection>
+
       <SettingsSection title="Support">
         <SettingsRow
           icon="help-buoy"

@@ -335,11 +335,17 @@ export function AddWorkoutScreen() {
         onPress={onConfirm}
       />
 
-      {/* Only once something is being logged: on an empty draft this is an
-          advert on a blank screen, but next to real sets it's showing where
-          the suggestions will appear. Below Confirm so it never sits between
-          the user and saving. */}
-      {draftExercises.length > 0 ? <FortressFeatureCard featureId="ai-progressive-overload" /> : null}
+      {/* Only once something is being logged: on an empty draft these are an
+          advert on a blank screen, but next to real sets they're showing
+          where the coaching will appear. Below Confirm so neither sits
+          between the user and saving. Paired together — both are "feedback
+          on what you just logged," one from a model and one from a person. */}
+      {draftExercises.length > 0 ? (
+        <>
+          <FortressFeatureCard featureId="ai-progressive-overload" />
+          <FortressFeatureCard featureId="form-check" />
+        </>
+      ) : null}
     </ScreenContainer>
 
     {showSuccess ? <WorkoutSavedAnimation onDone={finishAndLeave} /> : null}

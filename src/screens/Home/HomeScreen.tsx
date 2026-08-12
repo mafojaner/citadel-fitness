@@ -10,6 +10,7 @@ import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { MiniProgressChart } from '../../components/MiniProgressChart';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -270,6 +271,11 @@ export function HomeScreen() {
           );
         })}
       </View>
+
+      {/* Nutrition has no logging surface anywhere in the app to attach
+          this to, so it sits here instead: Home is the "what's next for
+          you" screen, which is the closest thing it has to a natural home. */}
+      <FortressFeatureCard featureId="nutrition-coaching" />
       </ScreenContainer>
 
       {/* Last child so it layers over the header and content. Lives on Home
