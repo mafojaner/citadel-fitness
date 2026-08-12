@@ -397,6 +397,27 @@
   }
   .callout svg { width: 16px; height: 16px; flex-shrink: 0; }
   .callout a { color: var(--flag); font-weight: 700; }
+  .callout.good { border-color: color-mix(in srgb, var(--good) 45%, var(--border)); background: var(--good-soft); color: var(--good); }
+  .callout.good a { color: var(--good); }
+  .callout.bad { border-color: color-mix(in srgb, var(--bad) 45%, var(--border)); background: var(--bad-soft); color: var(--bad); }
+  .callout.bad a { color: var(--bad); }
+
+  .level-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 999px;
+  }
+  .level-badge.error, .level-badge.fatal { color: var(--bad); background: var(--bad-soft); }
+  .level-badge.warning { color: var(--flag); background: var(--flag-soft); }
+  .level-badge.info, .level-badge.debug { color: var(--mist); background: var(--paper); }
+  .issue-title { font-weight: 600; }
+  .issue-title a { color: var(--ink); text-decoration: none; }
+  .issue-title a:hover { text-decoration: underline; }
+  .issue-culprit { color: var(--mist); font-size: 12px; margin-top: 2px; }
 
   /* ---------- Roadmap / launch calendar ---------- */
 
@@ -591,9 +612,44 @@
 
       <section class="block">
         <div class="block-head"><span class="dot"></span><h3>App health</h3></div>
-        <div class="callout">
+
+        <div id="health-not-configured" class="callout" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span>Crash and error data isn't wired up here yet — <a href="https://sentry.io" target="_blank" rel="noopener">open Sentry directly</a> for now.</span>
+          <span>Sentry isn't connected yet. Create an Internal Integration token at sentry.io (Settings → Developer Settings, with Project and Issue &amp; Event read access), then in your own terminal run <code class="mono">supabase secrets set SENTRY_AUTH_TOKEN=&lt;token&gt; --project-ref ulyduorkvikeyxtpshoq</code> and redeploy <code class="mono">admin-sentry-health</code>. In the meantime, <a href="https://sentry.io" target="_blank" rel="noopener">open Sentry directly</a>.</span>
+        </div>
+
+        <div id="health-error" class="callout bad" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="health-error-detail">Couldn't reach Sentry.</span>
+        </div>
+
+        <div id="health-content" style="display:none;">
+          <div id="health-clean" class="callout good" style="display:none; margin-bottom:14px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span>No unresolved issues in Sentry right now.</span>
+          </div>
+
+          <div class="stat-grid" style="margin-bottom:14px;">
+            <div class="stat-card" style="--tint: var(--bad);">
+              <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 17h.01"/></svg></div>
+              <div class="value" id="stat-unresolved">—</div>
+              <div class="label">Unresolved issues</div>
+            </div>
+            <div class="stat-card" style="--tint: var(--ember);">
+              <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7v8l10-12h-7z"/></svg></div>
+              <div class="value" id="stat-events">—</div>
+              <div class="label">Events, top issues</div>
+            </div>
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Issue</th><th>Level</th><th>Events</th><th>Users</th><th>Last seen</th></tr></thead>
+              <tbody id="health-issue-rows"></tbody>
+            </table>
+          </div>
+
+          <p style="margin-top:10px;"><a id="health-sentry-link" href="https://sentry.io" target="_blank" rel="noopener" class="mono" style="font-size:12px;">Open full project in Sentry →</a></p>
         </div>
       </section>
 
@@ -880,6 +936,55 @@
       document.getElementById('feedback-empty').style.display = feedback.length ? 'none' : 'block';
     }
 
+    function timeAgo(iso) {
+      const ms = Date.now() - new Date(iso).getTime();
+      const mins = Math.round(ms / 60000);
+      if (mins < 60) return mins <= 1 ? 'just now' : mins + 'm ago';
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      return Math.round(hours / 24) + 'd ago';
+    }
+
+    function renderSentryHealth(data) {
+      const notConfigured = document.getElementById('health-not-configured');
+      const errorBox = document.getElementById('health-error');
+      const content = document.getElementById('health-content');
+      notConfigured.style.display = 'none';
+      errorBox.style.display = 'none';
+      content.style.display = 'none';
+
+      if (!data || data.configured === false) {
+        notConfigured.style.display = 'flex';
+        return;
+      }
+      if (data.error) {
+        document.getElementById('health-error-detail').textContent = data.error;
+        errorBox.style.display = 'flex';
+        return;
+      }
+
+      content.style.display = 'block';
+      document.getElementById('health-clean').style.display = data.unresolvedCount === 0 ? 'flex' : 'none';
+      document.getElementById('stat-unresolved').textContent = data.unresolvedCount;
+      document.getElementById('stat-events').textContent = data.totalEvents.toLocaleString();
+      document.getElementById('health-sentry-link').href = data.projectUrl;
+
+      document.getElementById('health-issue-rows').innerHTML = data.unresolvedIssues
+        .map(
+          (issue) => `<tr>
+            <td>
+              <div class="issue-title"><a href="${issue.permalink}" target="_blank" rel="noopener">${escapeHtml(issue.title)}</a></div>
+              ${issue.culprit ? `<div class="issue-culprit">${escapeHtml(issue.culprit)}</div>` : ''}
+            </td>
+            <td><span class="level-badge ${escapeHtml(issue.level)}">${escapeHtml(issue.level)}</span></td>
+            <td class="mono">${issue.count.toLocaleString()}</td>
+            <td class="mono">${issue.userCount.toLocaleString()}</td>
+            <td class="mono">${timeAgo(issue.lastSeen)}</td>
+          </tr>`
+        )
+        .join('');
+    }
+
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -930,6 +1035,31 @@
         'Updated ' + new Date(data.generatedAt).toLocaleString();
 
       showDashboard();
+
+      // Its own request, after showDashboard() rather than blocking it:
+      // Sentry being slow or unreachable shouldn't hold the rest of the
+      // dashboard — which just proved itself fully loaded — hostage.
+      loadSentryHealth();
+    }
+
+    async function loadSentryHealth() {
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-sentry-health');
+        if (error) {
+          let detail = error?.message ?? 'Unknown error';
+          try {
+            const body = await error.context.clone().json();
+            if (body?.error) detail = body.error;
+          } catch {
+            // context wasn't a Response with a JSON body — fall back to error.message
+          }
+          renderSentryHealth({ configured: true, error: detail });
+          return;
+        }
+        renderSentryHealth(data);
+      } catch (err) {
+        renderSentryHealth({ configured: true, error: err?.message ?? String(err) });
+      }
     }
 
     loginForm.addEventListener('submit', async (e) => {
