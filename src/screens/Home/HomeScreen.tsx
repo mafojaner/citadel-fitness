@@ -14,6 +14,7 @@ import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { MiniProgressChart } from '../../components/MiniProgressChart';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { WaterIntakeCard } from '../../components/WaterIntakeCard';
 import { StatChip } from '../../components/StatChip';
 import { WelcomeBackBanner } from '../../components/WelcomeBackBanner';
 import {
@@ -249,6 +250,8 @@ export function HomeScreen() {
         </Card>
       </AnimatedPressable>
       </View>
+
+      <WaterIntakeCard />
 
       {/* Discovery section: category browsing into the same task (find
           something to log) people come here for — full-text search now

@@ -16,6 +16,9 @@ export interface ProfilePreferences {
    * everyone in unannounced.
    */
   emailNewsletter: boolean;
+  /** Independent of `units` — matches how distanceUnit is its own toggle rather than following weight. */
+  waterUnit: 'oz' | 'ml';
+  dailyWaterGoalMl: number;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -31,6 +34,9 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
   },
   hasSeenOnboarding: false,
   emailNewsletter: false,
+  waterUnit: 'oz',
+  // 2000ml (~68 fl oz) — close to the common "8 glasses a day" guideline and a round number to start from; fully editable in Account → Units.
+  dailyWaterGoalMl: 2000,
 };
 
 export interface RawProfile {

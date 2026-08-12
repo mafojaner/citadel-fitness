@@ -117,4 +117,5 @@ export const gradients = {
   rankGold: ['#FFDE7A', '#F5A623'],
   rankSilver: ['#EAF0F7', '#9CA9B8'],
   rankBronze: ['#E4A472', '#A15C2E'],
+  water: ['#22D3EE', '#3B82F6'],
 } as const;
