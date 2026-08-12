@@ -6,6 +6,9 @@ import { useTheme } from '../theme/useTheme';
 interface WaterProgressBarProps {
   /** 0–1, already clamped by the caller — this component just renders it. */
   progress: number;
+  /** Defaults suit a neutral Card background; the water card passes lighter, translucent values since it sits on a solid blue background instead. */
+  trackColor?: string;
+  fillColor?: string;
 }
 
 const HEIGHT = 10;
@@ -16,7 +19,7 @@ const HEIGHT = 10;
  * accepts internally for MiniProgressChart's line fill. A single bar
  * re-animating on each log is cheap enough that it doesn't matter here.
  */
-export function WaterProgressBar({ progress }: WaterProgressBarProps) {
+export function WaterProgressBar({ progress, trackColor, fillColor }: WaterProgressBarProps) {
   const { colors, radius } = useTheme();
   const [widthAnim] = useState(() => new Animated.Value(0));
 
@@ -33,7 +36,7 @@ export function WaterProgressBar({ progress }: WaterProgressBarProps) {
       style={{
         height: HEIGHT,
         borderRadius: radius.pill,
-        backgroundColor: colors.border,
+        backgroundColor: trackColor ?? colors.border,
         overflow: 'hidden',
       }}
     >
@@ -41,7 +44,7 @@ export function WaterProgressBar({ progress }: WaterProgressBarProps) {
         style={{
           height: '100%',
           borderRadius: radius.pill,
-          backgroundColor: gradients.water[1],
+          backgroundColor: fillColor ?? gradients.water[1],
           width: widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
         }}
       />
