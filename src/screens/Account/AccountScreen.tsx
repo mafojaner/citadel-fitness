@@ -113,9 +113,10 @@ export function AccountScreen() {
 
       {/* Its own section rather than a row inside Account management: export
           is about getting data out, not about the account's credentials or
-          deletion, and it needs the Fortress treatment those rows don't. */}
+          deletion. Row variant so it reads as one of this screen's settings
+          rows — the section already draws the surface a card would double. */}
       <SettingsSection title="Your data">
-        <FortressFeatureCard featureId="data-export" />
+        <FortressFeatureCard featureId="data-export" variant="row" />
       </SettingsSection>
 
       <SettingsSection title="Support">
