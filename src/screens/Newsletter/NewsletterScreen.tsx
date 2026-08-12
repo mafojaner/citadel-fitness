@@ -8,6 +8,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FavoriteButton } from '../../components/FavoriteButton';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -170,7 +171,14 @@ export function NewsletterScreen() {
             </LinearGradient>
           </AnimatedPressable>
         </View>
-      ) : (
+      ) : null}
+
+      {/* Below the category grid, and only on it: the guide library is more
+          of the same reading material, so it belongs beside the categories
+          rather than inside a filtered list of articles. */}
+      {activeFilter === null ? <FortressFeatureCard featureId="expert-guides" /> : null}
+
+      {activeFilter !== null ? (
         <>
           <AnimatedPressable
             onPress={() => setActiveFilter(null)}
@@ -195,7 +203,7 @@ export function NewsletterScreen() {
             <View style={{ gap: spacing.md }}>{filtered.map(renderArticleRow)}</View>
           )}
         </>
-      )}
+      ) : null}
     </ScreenContainer>
   );
 }

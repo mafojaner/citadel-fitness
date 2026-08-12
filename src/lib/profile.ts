@@ -37,17 +37,24 @@ export interface RawProfile {
   name: string;
   preferences: Partial<ProfilePreferences>;
   avatarUrl: string | null;
+  /** When this account became a Fortress member; null on the free tier. */
+  fortressSince: string | null;
 }
 
 export async function fetchProfile(userId: string): Promise<RawProfile> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('name, preferences, avatar_url')
+    .select('name, preferences, avatar_url, fortress_since')
     .eq('id', userId)
     .single();
 
   if (error) throw error;
-  return { name: data.name, preferences: data.preferences, avatarUrl: data.avatar_url };
+  return {
+    name: data.name,
+    preferences: data.preferences,
+    avatarUrl: data.avatar_url,
+    fortressSince: data.fortress_since,
+  };
 }
 
 export async function updateProfileName(userId: string, name: string): Promise<void> {

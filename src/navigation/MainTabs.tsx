@@ -1,6 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { FloatingTabBar } from './FloatingTabBar';
+import type { NewsletterStackParamList } from './stacks/NewsletterStack';
 import { ActivityStack } from './stacks/ActivityStack';
 import { HomeStack } from './stacks/HomeStack';
 import { NewsletterStack } from './stacks/NewsletterStack';
@@ -11,7 +13,8 @@ export type MainTabsParamList = {
   Home: undefined;
   Workouts: undefined;
   Activity: undefined;
-  Learn: undefined;
+  /** Nested params so a locked feature elsewhere can open the Fortress pane directly. */
+  Learn: NavigatorScreenParams<NewsletterStackParamList>;
   Search: undefined;
 };
 

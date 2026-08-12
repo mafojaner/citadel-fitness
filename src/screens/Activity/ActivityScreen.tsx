@@ -19,6 +19,7 @@ import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
@@ -486,6 +487,13 @@ export function ActivityScreen() {
           />
         </View>
       )}
+
+      {/* Both sit under Analytics Summary because that's the section they
+          extend: deeper cuts of the same workout history the tiles above
+          summarise. */}
+      <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
+      <FortressFeatureCard featureId="advanced-analytics" />
+      <FortressFeatureCard featureId="pr-vault" />
       </ScreenContainer>
     </View>
   );

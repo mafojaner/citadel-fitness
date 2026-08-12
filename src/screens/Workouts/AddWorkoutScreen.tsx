@@ -7,6 +7,7 @@ import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { InfoNote } from '../../components/InfoNote';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { WorkoutSavedAnimation } from '../../components/WorkoutSavedAnimation';
 import {
@@ -333,6 +334,12 @@ export function AddWorkoutScreen() {
         disabled={draftExercises.length === 0 || !hasMeaningfulData}
         onPress={onConfirm}
       />
+
+      {/* Only once something is being logged: on an empty draft this is an
+          advert on a blank screen, but next to real sets it's showing where
+          the suggestions will appear. Below Confirm so it never sits between
+          the user and saving. */}
+      {draftExercises.length > 0 ? <FortressFeatureCard featureId="ai-progressive-overload" /> : null}
     </ScreenContainer>
 
     {showSuccess ? <WorkoutSavedAnimation onDone={finishAndLeave} /> : null}

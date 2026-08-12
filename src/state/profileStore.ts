@@ -10,6 +10,8 @@ import {
 interface ProfileState {
   name: string;
   avatarUrl: string | null;
+  /** Fortress join date, or null on the free tier. Read via useIsFortress rather than directly. */
+  fortressSince: string | null;
   preferences: ProfilePreferences;
   loaded: boolean;
   loading: boolean;
@@ -31,6 +33,7 @@ interface ProfileState {
 const INITIAL = {
   name: '',
   avatarUrl: null,
+  fortressSince: null,
   preferences: DEFAULT_PREFERENCES,
   loaded: false,
   loading: false,
@@ -68,6 +71,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({
         name: profile.name,
         avatarUrl: profile.avatarUrl,
+        fortressSince: profile.fortressSince,
         preferences: {
           ...DEFAULT_PREFERENCES,
           ...profile.preferences,

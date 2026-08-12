@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import appJson from '../../../app.json';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
@@ -108,6 +109,13 @@ export function AccountScreen() {
           subtitle="Password, sign out, delete account"
           onPress={() => navigation.navigate('AccountManagement')}
         />
+      </SettingsSection>
+
+      {/* Its own section rather than a row inside Account management: export
+          is about getting data out, not about the account's credentials or
+          deletion, and it needs the Fortress treatment those rows don't. */}
+      <SettingsSection title="Your data">
+        <FortressFeatureCard featureId="data-export" />
       </SettingsSection>
 
       <SettingsSection title="Support">
