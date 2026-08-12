@@ -344,6 +344,7 @@ export function AddWorkoutScreen() {
         <>
           <FortressFeatureCard featureId="ai-progressive-overload" />
           <FortressFeatureCard featureId="form-check" />
+          <FortressFeatureCard featureId="advanced-logging" />
         </>
       ) : null}
     </ScreenContainer>

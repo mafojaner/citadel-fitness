@@ -460,6 +460,10 @@ export function ActivityScreen() {
 
       <RankingCard />
 
+      {/* Directly below the public leaderboard it extends: a private,
+          invite-only version of the same ranking concept. */}
+      <FortressFeatureCard featureId="private-groups" />
+
       <RewardsCard />
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
@@ -494,6 +498,7 @@ export function ActivityScreen() {
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
       <FortressFeatureCard featureId="advanced-analytics" />
       <FortressFeatureCard featureId="pr-vault" />
+      <FortressFeatureCard featureId="goal-forecasting" />
       </ScreenContainer>
     </View>
   );

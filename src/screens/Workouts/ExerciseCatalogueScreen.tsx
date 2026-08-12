@@ -8,6 +8,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
+import { FortressFeatureCard } from '../../components/FortressFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
@@ -196,7 +197,7 @@ export function ExerciseCatalogueScreen() {
           }}
         >
           <Pressable onPress={() => {}}>
-            <PopInView key={infoExercise?.id}>
+            <PopInView key={infoExercise?.id} style={{ gap: spacing.md }}>
               <Card>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                   <GradientIconBadge
@@ -233,6 +234,12 @@ export function ExerciseCatalogueScreen() {
                   {infoExercise?.description ?? 'No description yet for this exercise.'}
                 </Text>
               </Card>
+
+              {/* Sibling to the Card above, not nested in it — SettingsSection
+                  taught us that stacking one bordered surface inside another
+                  doubles the background and clips the shadow. This is where
+                  the text description ends and a video would begin. */}
+              <FortressFeatureCard featureId="video-guides" />
             </PopInView>
           </Pressable>
         </Pressable>

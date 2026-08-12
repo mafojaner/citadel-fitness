@@ -127,6 +127,9 @@ export function AccountScreen() {
         <FortressFeatureCard featureId="priority-support" variant="row" />
         <FortressFeatureCard featureId="early-access" variant="row" />
         <FortressFeatureCard featureId="offline-sync" variant="row" />
+        <FortressFeatureCard featureId="weekly-digest" variant="row" />
+        <FortressFeatureCard featureId="wearable-sync" variant="row" />
+        <FortressFeatureCard featureId="referral" variant="row" />
       </SettingsSection>
 
       <SettingsSection title="Support">
