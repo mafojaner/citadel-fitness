@@ -19,22 +19,19 @@ import {
   DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
+import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
-import { fetchWorkoutForDate, fetchWorkoutDatesInRange, type WorkoutDetailExercise } from '../../lib/workouts';
+import {
+  fetchWorkoutForDate,
+  fetchWorkoutDatesInRange,
+  monthRange,
+  type WorkoutDetailExercise,
+} from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
-import { useProfileStore } from '../../state/profileStore';
-import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
-
-function monthRange(dateString: string) {
-  const [year, month] = dateString.split('-').map(Number);
-  const start = `${year}-${String(month).padStart(2, '0')}-01`;
-  const end = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
-  return { start, end };
-}
 
 function summarize(exercises: WorkoutDetailExercise[]) {
   const byCategory = new Map<Category, number>();
@@ -53,16 +50,14 @@ function formatDayLabel(dateString: string, today: string) {
 export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
-  const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
-  const loadDraftFromExisting = useWorkoutDraftStore((s) => s.loadFromExisting);
+  const openWorkoutDraft = useOpenWorkoutDraft();
   const userId = useAuthStore((s) => s.session?.user.id);
-  const units = useProfileStore((s) => s.preferences.units);
-  const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const today = todayISO();
   const [selectedDate, setSelectedDate] = useState(today);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [dayExercises, setDayExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadMonth = useCallback(
@@ -104,14 +99,15 @@ export function WorkoutsScreen() {
 
   useFocusEffect(reload);
 
-  const onEnterWorkout = () => {
-    if (dayExercises && dayExercises.length > 0) {
-      loadDraftFromExisting(selectedDate, dayExercises, units, distanceUnit);
-    } else {
-      // Keeps an unsaved draft for this day rather than discarding it.
-      ensureDraftFor(selectedDate);
+  const onEnterWorkout = async () => {
+    if (entering) return;
+    setEntering(true);
+    try {
+      await openWorkoutDraft(selectedDate);
+      navigation.navigate('AddWorkout');
+    } finally {
+      setEntering(false);
     }
-    navigation.navigate('AddWorkout');
   };
 
   const summary = dayExercises ? summarize(dayExercises) : [];
@@ -123,6 +119,7 @@ export function WorkoutsScreen() {
       {/* Full width at every size, matching Home's CTA — see the note there. */}
       <GradientButton
         label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}
+        loading={entering}
         onPress={onEnterWorkout}
       />
 

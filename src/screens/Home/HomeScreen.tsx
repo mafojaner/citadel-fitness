@@ -3,6 +3,7 @@ import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
@@ -26,11 +27,11 @@ import {
 } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
 import { useExercises } from '../../hooks/useExercises';
+import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { useCategoryColumns, useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
-import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
@@ -55,7 +56,8 @@ export function HomeScreen() {
   const isDesktop = useIsDesktop();
   const categoryColumns = useCategoryColumns();
   const navigation = useNavigation<HomeNavigationProp>();
-  const ensureDraftFor = useWorkoutDraftStore((s) => s.ensureDraftFor);
+  const openWorkoutDraft = useOpenWorkoutDraft();
+  const [openingDraft, setOpeningDraft] = useState(false);
   const { exercises } = useExercises();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const {
@@ -76,9 +78,29 @@ export function HomeScreen() {
     categoryCounts.set(e.category, (categoryCounts.get(e.category) ?? 0) + 1);
   }
 
-  const onSelectCategory = (category: Category) => {
-    ensureDraftFor(today);
-    navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
+  const onSelectCategory = async (category: Category) => {
+    if (openingDraft) return;
+    setOpeningDraft(true);
+    try {
+      // Checks the database before opening the draft, so exercises already
+      // saved to today through another entry point (e.g. the Workouts
+      // calendar) aren't silently treated as if they don't exist.
+      await openWorkoutDraft(today);
+      navigation.navigate('ExerciseCatalogue', { initialCategory: category, standalone: true });
+    } finally {
+      setOpeningDraft(false);
+    }
+  };
+
+  const onLogWorkout = async () => {
+    if (openingDraft) return;
+    setOpeningDraft(true);
+    try {
+      await openWorkoutDraft(today);
+      navigation.navigate('AddWorkout');
+    } finally {
+      setOpeningDraft(false);
+    }
   };
 
   return (
@@ -89,13 +111,7 @@ export function HomeScreen() {
           sitting below two read-only summary cards. Full width at every size:
           it spans the pair of summary cards below it, which keeps the column
           reading as one block instead of a small button floating above it. */}
-      <GradientButton
-        label="Log workout"
-        onPress={() => {
-          ensureDraftFor(today);
-          navigation.navigate('AddWorkout');
-        }}
-      />
+      <GradientButton label="Log workout" loading={openingDraft} onPress={onLogWorkout} />
 
       {/* Side by side once there's width for it: these are two peer summaries,
           and stacking them on desktop pushes the category grid below the fold

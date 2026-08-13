@@ -1,8 +1,9 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
@@ -17,9 +18,10 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
+import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
 import { partsToSeconds, secondsToParts } from '../../lib/units';
-import { saveWorkout } from '../../lib/workouts';
+import { fetchWorkoutDatesInRange, monthRange, saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -93,13 +95,47 @@ export function AddWorkoutScreen() {
   const removeSet = useWorkoutDraftStore((s) => s.removeSet);
   const removeExercise = useWorkoutDraftStore((s) => s.removeExercise);
   const reset = useWorkoutDraftStore((s) => s.reset);
+  const openWorkoutDraft = useOpenWorkoutDraft();
   const userId = useAuthStore((s) => s.session?.user.id);
   const units = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [markedDates, setMarkedDates] = useState<string[]>([]);
+  const [switchingDate, setSwitchingDate] = useState(false);
   const finishedRef = useRef(false);
+
+  const loadMonth = useCallback(
+    async (dateString: string) => {
+      if (!userId) return;
+      const { start, end } = monthRange(dateString);
+      try {
+        const dates = await fetchWorkoutDatesInRange(userId, start, end);
+        setMarkedDates(dates);
+      } catch {
+        // The dot markers are a convenience, not load-bearing — a failed
+        // fetch just leaves the calendar without them for this month.
+      }
+    },
+    [userId]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMonth(date);
+    }, [loadMonth, date])
+  );
+
+  const onSelectDate = async (nextDate: string) => {
+    if (nextDate === date || switchingDate) return;
+    setSwitchingDate(true);
+    try {
+      await openWorkoutDraft(nextDate);
+    } finally {
+      setSwitchingDate(false);
+    }
+  };
 
   const catalogueFor = (exerciseId: string) => catalogue.find((e) => e.id === exerciseId);
   const nameFor = (exerciseId: string) => catalogueFor(exerciseId)?.name ?? 'Exercise';
@@ -150,11 +186,20 @@ export function AddWorkoutScreen() {
           label="About this date"
           text={
             date === todayISO()
-              ? "Log workout always adds to today. To add or edit a previous day, use the calendar on the Workouts tab."
+              ? "Entries logged today count toward this week's reward. Tap a different day below to add or edit a past workout."
               : `You're logging ${date} through the calendar. Since it wasn't logged the day it happened, it won't count toward your weekly reward.`
           }
         />
       </View>
+
+      <ActivityCalendar
+        selectedDate={date}
+        onDayPress={onSelectDate}
+        onMonthChange={loadMonth}
+        markedDates={markedDates}
+      />
+
+      {switchingDate ? <ActivityIndicator color={colors.primary} /> : null}
 
       {draftExercises.length === 0 ? (
         <Card>

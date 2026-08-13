@@ -39,6 +39,14 @@ export async function fetchExercises(): Promise<Exercise[]> {
   }));
 }
 
+/** The first-to-last day of the month containing dateString, for range-querying a calendar month. */
+export function monthRange(dateString: string) {
+  const [year, month] = dateString.split('-').map(Number);
+  const start = `${year}-${String(month).padStart(2, '0')}-01`;
+  const end = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  return { start, end };
+}
+
 export async function fetchWorkoutDatesInRange(
   userId: string,
   startDate: string,
