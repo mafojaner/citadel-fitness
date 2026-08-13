@@ -94,6 +94,11 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
         }}
       >
         <BlurView
+          // Keyed on scheme: BlurView's tint is a native prop, same class of
+          // bug as the stack header (see screenOptions.tsx) — it doesn't
+          // reliably repaint on a live theme change, so force a remount
+          // instead of relying on a prop update.
+          key={scheme}
           intensity={80}
           tint={scheme === 'dark' ? 'dark' : 'light'}
           style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}
