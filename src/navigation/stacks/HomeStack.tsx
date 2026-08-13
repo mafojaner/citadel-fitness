@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from '../../screens/Home/HomeScreen';
+import { WaterHistoryScreen } from '../../screens/Home/WaterHistoryScreen';
 import { AddWorkoutScreen } from '../../screens/Workouts/AddWorkoutScreen';
 import { ExerciseCatalogueScreen } from '../../screens/Workouts/ExerciseCatalogueScreen';
 import { useTheme } from '../../theme/useTheme';
@@ -10,6 +11,7 @@ export type HomeStackParamList = {
   Home: undefined;
   AddWorkout: undefined;
   ExerciseCatalogue: { initialCategory?: Category; standalone?: boolean } | undefined;
+  WaterHistory: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -30,6 +32,7 @@ export function HomeStack() {
         component={ExerciseCatalogueScreen}
         options={{ title: 'Exercise Catalogue' }}
       />
+      <Stack.Screen name="WaterHistory" component={WaterHistoryScreen} options={{ title: 'Water Intake' }} />
     </Stack.Navigator>
   );
 }

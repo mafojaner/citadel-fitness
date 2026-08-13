@@ -56,3 +56,31 @@ export async function deleteWaterEntry(entryId: string): Promise<void> {
   const { error } = await supabase.from('water_logs').delete().eq('id', entryId);
   if (error) throw error;
 }
+
+export interface WaterDayTotal {
+  date: string;
+  totalMl: number;
+}
+
+/** Daily totals (not individual entries) for the hydration history list. */
+export async function fetchWaterHistory(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<WaterDayTotal[]> {
+  const { data, error } = await supabase
+    .from('water_logs')
+    .select('logged_date, amount_ml')
+    .eq('user_id', userId)
+    .gte('logged_date', startDate)
+    .lte('logged_date', endDate);
+  if (error) throw error;
+
+  const totals = new Map<string, number>();
+  for (const row of data ?? []) {
+    totals.set(row.logged_date, (totals.get(row.logged_date) ?? 0) + row.amount_ml);
+  }
+  return Array.from(totals.entries())
+    .map(([date, totalMl]) => ({ date, totalMl }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+}

@@ -102,6 +102,12 @@ export const darkColors = {
 
 export type ThemeColors = typeof lightColors;
 
+// Solid blue used by the water intake card and its detail screen — shared
+// so the screen you land on after tapping the card is unmistakably the same
+// feature, not a re-themed generic page. Same reasoning as RewardsCard's
+// solid orange; see WaterIntakeCard.
+export const waterBlue = '#3B82F6';
+
 // Accent gradients for stat badges — deliberately vivid against the
 // otherwise neutral card surfaces, shared across light and dark theme.
 export const gradients = {

@@ -1,14 +1,16 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
-import { WaterGoalModal } from './WaterGoalModal';
 import { WaterProgressBar } from './WaterProgressBar';
-import { QUICK_ADD_ML, formatWaterAmount } from '../lib/water';
+import { QUICK_ADD_ML, formatWaterAmount, ozToMl } from '../lib/water';
 import { useWaterIntake } from '../hooks/useWaterIntake';
-import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
+import { waterBlue } from '../theme/tokens';
+import type { HomeStackParamList } from '../navigation/stacks/HomeStack';
 
 /**
  * Solid blue, matching how Activity's RewardsCard is solid orange rather
@@ -17,7 +19,7 @@ import { useTheme } from '../theme/useTheme';
  * rewards) rather than a summary to glance at, and the color is what marks
  * that difference at a glance.
  */
-const BLUE = '#3B82F6';
+const BLUE = waterBlue;
 
 /**
  * Free, not Fortress — everyone gets hydration tracking. Lives on Home
@@ -26,21 +28,23 @@ const BLUE = '#3B82F6';
  */
 export function WaterIntakeCard() {
   const { spacing, radius, typography } = useTheme();
-  const userId = useAuthStore((s) => s.session?.user.id);
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const unit = useProfileStore((s) => s.preferences.waterUnit);
   const goalMl = useProfileStore((s) => s.preferences.dailyWaterGoalMl);
-  const savePreferences = useProfileStore((s) => s.savePreferences);
   const { entries, totalMl, loading, error, mutating, addWater, removeLastEntry } = useWaterIntake();
-  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customValue, setCustomValue] = useState('');
 
   const progress = goalMl > 0 ? totalMl / goalMl : 0;
   const metGoal = totalMl >= goalMl && goalMl > 0;
   const presets = QUICK_ADD_ML[unit];
 
-  const onSaveGoal = async (newGoalMl: number) => {
-    if (!userId) return;
-    await savePreferences(userId, { dailyWaterGoalMl: newGoalMl });
-    setGoalModalOpen(false);
+  const submitCustom = () => {
+    const parsed = Number(customValue);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    addWater(Math.round(unit === 'ml' ? parsed : ozToMl(parsed)));
+    setCustomValue('');
+    setCustomOpen(false);
   };
 
   return (
@@ -58,10 +62,10 @@ export function WaterIntakeCard() {
       }}
     >
       <AnimatedPressable
-        onPress={() => setGoalModalOpen(true)}
+        onPress={() => navigation.navigate('WaterHistory')}
         scaleTo={0.98}
         accessibilityRole="button"
-        accessibilityLabel={`${formatWaterAmount(totalMl, unit)} of ${formatWaterAmount(goalMl, unit)}${metGoal ? ', goal reached' : ''}. Tap to set daily goal.`}
+        accessibilityLabel={`${formatWaterAmount(totalMl, unit)} of ${formatWaterAmount(goalMl, unit)}${metGoal ? ', goal reached' : ''}. Tap to view hydration history and set your goal.`}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <View
@@ -96,7 +100,7 @@ export function WaterIntakeCard() {
           ) : null}
         </View>
         <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)', fontWeight: '600' }]}>
-          Tap to set daily goal
+          Tap to view history &amp; set your goal
         </Text>
       </AnimatedPressable>
 
@@ -130,15 +134,65 @@ export function WaterIntakeCard() {
         ))}
       </View>
 
-      {error ? <Text style={{ color: '#FFE1E1', fontSize: 12 }}>{error}</Text> : null}
+      {customOpen ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <TextInput
+            value={customValue}
+            onChangeText={setCustomValue}
+            onSubmitEditing={submitCustom}
+            keyboardType="numeric"
+            autoFocus
+            placeholder={unit === 'ml' ? 'Amount in ml' : 'Amount in fl oz'}
+            placeholderTextColor="rgba(255,255,255,0.6)"
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              borderColor: 'rgba(255,255,255,0.35)',
+              borderWidth: 1,
+              borderRadius: radius.md,
+              padding: spacing.sm,
+              color: '#FFFFFF',
+            }}
+          />
+          <Pressable
+            onPress={submitCustom}
+            disabled={mutating}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Add custom amount"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: 'rgba(255,255,255,0.22)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setCustomOpen(false);
+              setCustomValue('');
+            }}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel custom amount"
+            style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Ionicons name="close" size={18} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable onPress={() => setCustomOpen(true)} hitSlop={8}>
+          <Text style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 13 }}>
+            + Custom amount
+          </Text>
+        </Pressable>
+      )}
 
-      <WaterGoalModal
-        visible={goalModalOpen}
-        unit={unit}
-        currentGoalMl={goalMl}
-        onSave={onSaveGoal}
-        onClose={() => setGoalModalOpen(false)}
-      />
+      {error ? <Text style={{ color: '#FFE1E1', fontSize: 12 }}>{error}</Text> : null}
     </View>
   );
 }

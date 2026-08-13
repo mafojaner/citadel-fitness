@@ -66,22 +66,30 @@ export function useWaterIntake() {
     [userId]
   );
 
-  const removeLastEntry = useCallback(async () => {
-    const last = entries[entries.length - 1];
-    if (!last || last.id.startsWith('optimistic-')) return;
-    setMutating(true);
-    setError(null);
-    const previous = entries;
-    setEntries((prev) => prev.slice(0, -1));
-    try {
-      await deleteWaterEntry(last.id);
-    } catch (err) {
-      setEntries(previous);
-      setError(err instanceof Error ? err.message : 'Failed to remove entry');
-    } finally {
-      setMutating(false);
-    }
-  }, [entries]);
+  const removeEntry = useCallback(
+    async (entryId: string) => {
+      if (entryId.startsWith('optimistic-')) return;
+      setMutating(true);
+      setError(null);
+      const previous = entries;
+      setEntries((prev) => prev.filter((e) => e.id !== entryId));
+      try {
+        await deleteWaterEntry(entryId);
+      } catch (err) {
+        setEntries(previous);
+        setError(err instanceof Error ? err.message : 'Failed to remove entry');
+      } finally {
+        setMutating(false);
+      }
+    },
+    [entries]
+  );
 
-  return { entries, totalMl, loading, error, mutating, addWater, removeLastEntry };
+  const removeLastEntry = useCallback(() => {
+    const last = entries[entries.length - 1];
+    if (!last) return Promise.resolve();
+    return removeEntry(last.id);
+  }, [entries, removeEntry]);
+
+  return { entries, totalMl, loading, error, mutating, addWater, removeEntry, removeLastEntry };
 }
