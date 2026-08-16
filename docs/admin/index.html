@@ -661,7 +661,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped. Analytics, all three test days and the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
+          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped, plus the <code>profiles</code> privilege lockdown (<code>migration_036</code>) pulled forward from Aug 20 and applied today. Analytics, all three test days and the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
         </div>
 
         <div class="month-card">
@@ -767,7 +767,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Move to tracked migrations:</strong> port the 35 files in <code>supabase/</code> to <code>supabase/migrations/</code> + <code>db push</code>, so applied state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production. While in there: close the <code>profiles</code> RLS gap (add a <code>with check</code> so a user can't self-grant <code>fortress_since</code>).</div>
+            <div class="agenda-task"><strong>Move to tracked migrations:</strong> port the 36 files in <code>supabase/</code> to <code>supabase/migrations/</code> + <code>db push</code>, so applied state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production. (The <code>profiles</code> RLS fix that was bundled here shipped early, on Aug 17.)</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
@@ -840,8 +840,8 @@
 
         <div class="card-body" style="margin-bottom:16px;">
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>profiles RLS gap:</strong> the UPDATE policy has no <code>with check</code> — any signed-in user can currently set their own <code>fortress_since</code> via a direct REST call, self-granting Fortress. Scope the policy so only a server-side/service-role write can set it.</div>
-            <span class="priority critical">Open</span>
+            <div class="agenda-task"><strong>profiles RLS gap</strong> — closed Aug 17 (<code>migration_036</code>, applied and verified). The UPDATE policy had no <code>with check</code>, so any signed-in user could PATCH their own row and self-grant <code>fortress_since</code>. Fixed with column privileges rather than policy changes — RLS can't see the old row, so it can't detect the column changing. <code>authenticated</code> now holds UPDATE on exactly <code>name</code>, <code>preferences</code>, <code>avatar_url</code>.</div>
+            <span class="priority done">Done</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly.</div>
@@ -893,7 +893,7 @@
         <div class="card-body">
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 1</span></div>
-            <div class="agenda-task"><strong>Security sprint:</strong> confirm <code>backfill-welcome-emails</code> auth, rotate any long-lived secrets, and verify the <code>profiles</code> RLS fix from Aug 20 actually holds (try to self-grant <code>fortress_since</code> via a direct REST call and confirm it's rejected).</div>
+            <div class="agenda-task"><strong>Security sprint:</strong> confirm <code>backfill-welcome-emails</code> auth, rotate any long-lived secrets, and re-test the Aug 17 <code>profiles</code> lockdown from a real signed-in session (PATCH <code>fortress_since</code> against your own row; expect <code>42501</code>) — the column grant was verified, the live rejection wasn't.</div>
             <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day">
