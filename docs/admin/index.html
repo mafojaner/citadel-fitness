@@ -482,6 +482,9 @@
   .priority.medium { background: var(--paper); color: var(--slate); border: 1px solid var(--border); }
   .priority.rest { background: transparent; color: var(--mist); }
   .priority.done { background: var(--good-soft); color: var(--good); }
+  .priority.slipped { background: var(--bad-soft); color: var(--bad); }
+  .agenda-day.slipped .agenda-task { color: var(--mist); }
+  .agenda-day.slipped .agenda-task strong { color: var(--slate); }
 </style>
 </head>
 <body>
@@ -656,14 +659,19 @@
       <section class="block">
         <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
 
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped. Analytics, all three test days and the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
+        </div>
+
         <div class="month-card">
           <div class="month-label">August 2026</div>
           <div class="month-grid">
             <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
             <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
-            <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done today">5</div><div class="day active">6</div><div class="day active">7</div><div class="day active weekend">8</div>
+            <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
             <div class="day active weekend">9</div><div class="day active">10</div><div class="day active">11</div><div class="day active">12</div><div class="day active">13</div><div class="day active">14</div><div class="day active weekend">15</div>
-            <div class="day active weekend">16</div><div class="day active">17</div><div class="day active">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">16</div><div class="day active today">17</div><div class="day active">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
             <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
             <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
           </div>
@@ -688,12 +696,12 @@
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 6</span></div>
             <div class="agenda-task"><strong>Finish the email system:</strong> Resend SMTP, deploy the three Edge Functions, wire the two database webhooks, run <code>migration_021</code>.</div>
-            <span class="priority critical">Critical</span>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 7</span></div>
             <div class="agenda-task"><strong>Staging environment:</strong> second free-tier Supabase project; point EAS's development/preview profiles at it.</div>
-            <span class="priority high">High</span>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 8</span></div>
@@ -706,35 +714,35 @@
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day slipped">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
-            <div class="agenda-task"><strong>Analytics:</strong> PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged).</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Analytics:</strong> PostHog or Amplitude — screen views + key events. Neither package is installed. &rarr; <strong>Aug 25</strong></div>
+            <span class="priority slipped">Slipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day slipped">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. &rarr; <strong>Aug 18</strong></div>
+            <span class="priority slipped">Slipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day slipped">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. &rarr; <strong>Aug 19</strong></div>
+            <span class="priority slipped">Slipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day slipped">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>.</div>
-            <span class="priority medium">Medium</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. &rarr; <strong>Aug 19</strong></div>
+            <span class="priority slipped">Slipped</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
-            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows.</div>
-            <span class="priority medium">Medium</span>
+            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows. No way to confirm from the repo either way &mdash; recheck when the test suite lands.</div>
+            <span class="priority medium">Unverified</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend slipped">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
-            <div class="agenda-task"><strong>Move to tracked migrations:</strong> port the 33 files in <code>supabase/</code> to <code>supabase/migrations/</code> + <code>db push</code>, so applied state is recorded instead of assumed. Nothing tracks it today, which is how 015, 016 and 017 sat unapplied against production. Then buffer: regression pass over Weeks 1&ndash;2.</div>
-            <span class="priority medium">Medium</span>
+            <div class="agenda-task"><strong>Move to tracked migrations:</strong> <code>supabase/migrations/</code> still doesn't exist; all 35 files sit flat in <code>supabase/</code>. &rarr; <strong>Aug 20</strong></div>
+            <span class="priority slipped">Slipped</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
@@ -744,68 +752,68 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
-            <div class="agenda-task"><strong>Responsive/accessibility pass:</strong> tablet grids, touch targets, accessibility labels.</div>
-            <span class="priority medium">Medium</span>
+            <div class="agenda-task"><strong>Start both store enrollments today</strong> — Apple Developer Program and Google Play Developer account. Moved up from Aug 18/19: approval isn't instant (Google can take several days) and it blocks the Aug 21 builds, so the wait runs in the background while the rest of the week proceeds. Then: responsive/accessibility pass.</div>
+            <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
-            <div class="agenda-task"><strong>Apple Developer Program</strong> enrollment; fill real credentials into <code>eas.json</code>.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Stand up the test runner</strong> (Jest or Vitest + a <code>test</code> script, then add it to the CI gate alongside lint/typecheck), and write the first suite: unit conversion, password/email validation.</div>
+            <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
-            <div class="agenda-task"><strong>Google Play Developer account;</strong> same credential fill-in for Android.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>; weekly reward calculation in <code>rewards.ts</code>.</div>
+            <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>First real production builds:</strong> <code>eas build</code> for iOS and Android.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Move to tracked migrations:</strong> port the 35 files in <code>supabase/</code> to <code>supabase/migrations/</code> + <code>db push</code>, so applied state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production. While in there: close the <code>profiles</code> RLS gap (add a <code>with check</code> so a user can't self-grant <code>fortress_since</code>).</div>
+            <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
-            <div class="agenda-task"><strong>Store listings:</strong> App Privacy questionnaire, screenshots, description, icon/feature graphic.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>First real production builds:</strong> <code>eas build</code> for iOS and Android; fill real credentials into <code>eas.json</code> (still <code>REPLACE_WITH_*</code> placeholders today). Needs both enrollments approved.</div>
+            <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 22</span></div>
-            <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing.</div>
+            <div class="agenda-task"><strong>Store listings:</strong> App Privacy questionnaire, Play Data Safety form, screenshots, description, icon/feature graphic.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 23</span></div>
-            <div class="agenda-task">Buffer — Apple's first-build review typically lands here.</div>
+            <div class="agenda-task">Buffer — absorbs enrollment approval or build failures, the two things most likely to slip this week.</div>
             <span class="priority rest">Rest</span>
           </div>
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 24</span></div>
-            <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing.</div>
+            <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
-            <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
+            <div class="agenda-task"><strong>Analytics</strong> (slipped from Aug 10): PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged). Worth having live before testers arrive, so their sessions actually produce data.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
-            <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
+            <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 27</span></div>
-            <div class="agenda-task"><strong>TestFlight public:</strong> move from internal to a public link.</div>
+            <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 28</span></div>
-            <div class="agenda-task"><strong>Play Console public:</strong> move to Closed/Open testing, generate the opt-in link.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
+            <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 29</span></div>
-            <div class="agenda-task">Watch the dashboards live — this page, plus Sentry once wired up.</div>
+            <div class="agenda-task"><strong>Public testing links:</strong> TestFlight public link; Play Console Closed/Open testing opt-in link. Then watch the dashboards live — this page, plus Sentry.</div>
             <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day weekend">
@@ -816,8 +824,180 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
-            <div class="agenda-task"><strong>Wrap-up:</strong> compile the backlog from tester feedback and real usage data.</div>
+            <div class="agenda-task"><strong>Wrap-up:</strong> compile the backlog from tester feedback and real usage data; confirm what carries into the September plan below.</div>
             <span class="priority medium">Medium</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Premium (Fortress) &amp; security hardening — September 2026</h3></div>
+
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Launch gate: the production release goes to Play Console only once every row below is checked — not on a fixed date. Grounded in a code audit run 2026-08-14.</span>
+        </div>
+
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>profiles RLS gap:</strong> the UPDATE policy has no <code>with check</code> — any signed-in user can currently set their own <code>fortress_since</code> via a direct REST call, self-granting Fortress. Scope the policy so only a server-side/service-role write can set it.</div>
+            <span class="priority critical">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly.</div>
+            <span class="priority critical">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>backfill-welcome-emails:</strong> confirm it's deployed with the platform's default <code>verify_jwt</code> on (not <code>--no-verify-jwt</code>) — nothing in the function body itself blocks an unauthenticated call otherwise.</div>
+            <span class="priority high">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Dependency audit:</strong> <code>npm audit</code> shows 14 high / 9 moderate, all in the build-tooling chain (<code>uuid</code> via <code>expo</code> config-plugins) — no runtime path in the shipped bundle, but clear it with a planned Expo SDK bump before submission.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Play Data Safety form:</strong> fill it out against what the app actually collects and shares — should match the RLS-scoped tables exactly, nothing more.</div>
+            <span class="priority high">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Target SDK / permissions review:</strong> confirm Expo's managed defaults still satisfy Play's current target API requirement; the app requests no extra dangerous Android permissions today — keep it that way.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Restore purchases + cancellation:</strong> tested end to end in sandbox before anyone can pay for real.</div>
+            <span class="priority high">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Privacy policy:</strong> update to disclose subscription billing once Fortress purchases ship.</div>
+            <span class="priority medium">Open</span>
+          </div>
+        </div>
+
+        <div class="month-card">
+          <div class="month-label">September 2026</div>
+          <div class="month-grid">
+            <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
+            <div class="day">30</div><div class="day">31</div><div class="day active">1</div><div class="day active">2</div><div class="day active">3</div><div class="day active">4</div><div class="day active weekend">5</div>
+            <div class="day active weekend">6</div><div class="day active">7</div><div class="day active">8</div><div class="day active">9</div><div class="day active">10</div><div class="day active">11</div><div class="day active weekend">12</div>
+            <div class="day active weekend">13</div><div class="day active">14</div><div class="day active">15</div><div class="day active">16</div><div class="day active">17</div><div class="day active">18</div><div class="day active weekend">19</div>
+            <div class="day active weekend">20</div><div class="day active">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div>
+            <div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">1</div><div class="day">2</div><div class="day">3</div>
+          </div>
+          <div class="legend">
+            <span><span class="sw a"></span>Fortress + security plan (Sep 1&ndash;21)</span>
+            <span><span class="sw w"></span>Weekend / lighter day</span>
+            <span><span class="sw d"></span>Shipped</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 1</span></div>
+            <div class="agenda-task"><strong>Security sprint:</strong> confirm <code>backfill-welcome-emails</code> auth, rotate any long-lived secrets, and verify the <code>profiles</code> RLS fix from Aug 20 actually holds (try to self-grant <code>fortress_since</code> via a direct REST call and confirm it's rejected).</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 2</span></div>
+            <div class="agenda-task"><strong>Dependency audit:</strong> plan the Expo SDK bump that clears the 14 high-severity <code>npm audit</code> findings; re-run clean.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 3</span></div>
+            <div class="agenda-task"><strong>Play Data Safety form</strong> + target-SDK/permissions review against Play's current requirement.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 4</span></div>
+            <div class="agenda-task"><strong>Decide Fortress v1 scope:</strong> ship as a clearly-labeled waitlist/"coming soon" tier at launch, or commit to real billing now — a working purchase flow plus at least one real gated feature is two-plus weeks on its own.</div>
+            <span class="priority critical">Decision</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 5</span></div>
+            <div class="agenda-task">Buffer.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 6</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 7</span></div>
+            <div class="agenda-task"><strong>If building real billing:</strong> integrate RevenueCat (unifies Play Billing + StoreKit) and configure the subscription product in Play Console.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 8</span></div>
+            <div class="agenda-task"><strong>Real entitlement table:</strong> replace the bare <code>fortress_since</code> timestamp with a <code>subscriptions</code> table (status, provider, period, product id) written only by a verified webhook.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 9</span></div>
+            <div class="agenda-task"><strong>Webhook edge function:</strong> verify the RevenueCat signature, update entitlement server-side; re-check RLS blocks any client write.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 10</span></div>
+            <div class="agenda-task"><strong>Build the first real Fortress feature(s)</strong> behind the new entitlement &mdash; e.g. advanced analytics or the PR vault &mdash; so paying is worth something on day one.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 11</span></div>
+            <div class="agenda-task"><strong>Purchase UI:</strong> subscribe flow, restore-purchases button, a simple manage-membership screen.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 12</span></div>
+            <div class="agenda-task">Buffer &mdash; regression on the billing flow.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 13</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 14</span></div>
+            <div class="agenda-task"><strong>Full regression:</strong> sandbox purchases, restore, cancellation, expiry, and the free-tier experience unaffected.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 15</span></div>
+            <div class="agenda-task"><strong>Re-run the security checklist above end to end</strong> with fresh eyes &mdash; this is the actual launch gate.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 16</span></div>
+            <div class="agenda-task">Buffer.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 17</span></div>
+            <div class="agenda-task"><strong>Final production builds:</strong> <code>eas build --profile production</code> for iOS and Android.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 18</span></div>
+            <div class="agenda-task"><strong>Store listing refresh:</strong> update screenshots/description if billing changed the UI; confirm the privacy policy discloses subscriptions.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 19</span></div>
+            <div class="agenda-task">Buffer.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 20</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 21</span></div>
+            <div class="agenda-task"><strong>Submit the Play Console production release</strong> &mdash; only once every row in the checklist above is checked.</div>
+            <span class="priority critical">Critical</span>
           </div>
         </div>
       </section>
