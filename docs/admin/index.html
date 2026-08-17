@@ -661,7 +661,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped. <code>migration_036</code> (the <code>profiles</code> privilege lockdown) is written but <strong>not applied &mdash; that hole is still open in production</strong>. Analytics, all three test days and the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
+          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped, plus the <code>profiles</code> privilege lockdown &mdash; applied to production and verified against the live database. Analytics, all three test days and the rest of the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
         </div>
 
         <div class="month-card">
@@ -767,7 +767,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Move to tracked migrations:</strong> port the 36 files in <code>supabase/</code> to <code>supabase/migrations/</code> + <code>db push</code>, so applied state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production, and how <code>migration_036</code> could sit written-but-unapplied while a dashboard row claimed otherwise. Confirm <code>036</code> is among the applied set.</div>
+            <div class="agenda-task"><strong>Finish the move to tracked migrations:</strong> <code>supabase/migrations/</code> now exists and holds one file (the Aug 17 privilege lockdown, recorded in remote history). Port the remaining 35 from <code>supabase/</code> and use <code>supabase migration repair --status applied</code> to mark the ones production already has, so state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
@@ -840,8 +840,8 @@
 
         <div class="card-body" style="margin-bottom:16px;">
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>profiles RLS gap — LIVE, NOT YET FIXED.</strong> The UPDATE policy has no <code>with check</code>, so any signed-in user can PATCH their own row and self-grant <code>fortress_since</code>, taking the paid tier for free. The fix is written and committed (<code>migration_036</code>) but <strong>has not been run against production</strong> — it is a file in the repo, nothing more. Apply it before launch.</div>
-            <span class="priority critical">Open</span>
+            <div class="agenda-task"><strong>profiles privilege lockdown</strong> — applied to production Aug 17 via <code>db push</code> and confirmed by querying the live database, not by report: <code>authenticated</code> holds UPDATE on <code>[avatar_url, name, preferences]</code> only, the guard trigger is present, and the UPDATE policy now carries both <code>using</code> and <code>with check</code>. <code>fortress_since</code> is no longer client-writable.</div>
+            <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly.</div>
@@ -893,7 +893,7 @@
         <div class="card-body">
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 1</span></div>
-            <div class="agenda-task"><strong>Security sprint:</strong> confirm <code>backfill-welcome-emails</code> auth, rotate any long-lived secrets, and — once <code>migration_036</code> is actually applied — test the <code>profiles</code> lockdown from a real signed-in session (PATCH <code>fortress_since</code> against your own row; expect <code>42501</code>).</div>
+            <div class="agenda-task"><strong>Security sprint:</strong> confirm <code>backfill-welcome-emails</code> auth and rotate any long-lived secrets. The <code>profiles</code> lockdown is already verified at the database level; the one thing still untested is the app path — a signed-in session PATCHing <code>fortress_since</code> should come back <code>42501</code>.</div>
             <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day">
