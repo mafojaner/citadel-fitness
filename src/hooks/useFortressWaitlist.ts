@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { fetchFortressWaitlistStatus, joinFortressWaitlist, leaveFortressWaitlist } from '../lib/fortress';
+import { trackEvent } from '../lib/telemetry';
 import { useAuthStore } from '../state/authStore';
 
 export function useFortressWaitlist() {
@@ -47,6 +48,9 @@ export function useFortressWaitlist() {
       setError(null);
       try {
         await joinFortressWaitlist(userId, submittedEmail);
+        // No properties: the submitted email is the one thing this flow
+        // has that telemetry must never see.
+        trackEvent({ name: 'fortress_waitlist_joined' });
         setJoined(true);
         setJoinedEmail(submittedEmail);
       } catch (err) {

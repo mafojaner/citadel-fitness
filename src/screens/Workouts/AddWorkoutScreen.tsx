@@ -20,6 +20,7 @@ import {
 import { useExercises } from '../../hooks/useExercises';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
+import { trackEvent } from '../../lib/telemetry';
 import { partsToSeconds, secondsToParts } from '../../lib/units';
 import { fetchWorkoutDatesInRange, monthRange, saveWorkout } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
@@ -168,6 +169,14 @@ export function AddWorkoutScreen() {
     setError(null);
     try {
       await saveWorkout(date, draftExercises, units, distanceUnit);
+      // Count and backdated-ness only — never the exercises themselves, the
+      // weights, or the date. Backdated matters because it's the difference
+      // between logging as you train and catching up later, which is the
+      // habit the reward cycle is trying to shape.
+      trackEvent({
+        name: 'workout_logged',
+        properties: { exerciseCount: draftExercises.length, isBackdated: date !== todayISO() },
+      });
       finishedRef.current = false;
       setShowSuccess(true);
     } catch (err) {

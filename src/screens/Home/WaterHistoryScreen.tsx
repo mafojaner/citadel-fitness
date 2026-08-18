@@ -68,7 +68,7 @@ export function WaterHistoryScreen() {
   const submitCustom = () => {
     const parsed = Number(customValue);
     if (!Number.isFinite(parsed) || parsed <= 0) return;
-    addWater(Math.round(unit === 'ml' ? parsed : ozToMl(parsed)));
+    addWater(Math.round(unit === 'ml' ? parsed : ozToMl(parsed)), 'custom');
     setCustomValue('');
   };
 

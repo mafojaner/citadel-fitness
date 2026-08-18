@@ -1,4 +1,10 @@
-import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+  useNavigationContainerRef,
+  type ParamListBase,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, View } from 'react-native';
@@ -8,6 +14,7 @@ import { OnboardingScreen } from '../screens/Onboarding/OnboardingScreen';
 import { useArticleNotifications } from '../hooks/useArticleNotifications';
 import { resetArticleNotificationMarker } from '../lib/notifications';
 import { parseRecoveryTokensFromUrl, supabase } from '../lib/supabase';
+import { identifyUser, resetTelemetryIdentity, trackScreen } from '../lib/telemetry';
 import { useAuthStore } from '../state/authStore';
 import { useFavoriteArticlesStore } from '../state/favoriteArticlesStore';
 import { useProfileStore } from '../state/profileStore';
@@ -27,6 +34,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { colors, scheme } = useTheme();
+  // ParamListBase rather than RootStackParamList: getCurrentRoute() resolves
+  // to the innermost active route, which lives in the tab and stack param
+  // lists nested below this one, so the only honest type for its name is
+  // string.
+  const navigationRef = useNavigationContainerRef<ParamListBase>();
   // Bridges this app's own theme into React Navigation's theming system,
   // which otherwise defaults to its own internal light theme regardless of
   // scheme — the container's own chrome (visible briefly during native
@@ -60,7 +72,13 @@ export function RootNavigator() {
   useEffect(() => {
     if (session?.user.id) {
       loadProfile(session.user.id);
+      // The Supabase user id and nothing else — see telemetry.ts.
+      identifyUser(session.user.id);
     } else {
+      // Signing out has to clear the telemetry identity for the same reason
+      // it clears the stores below: the next account on this device must not
+      // inherit anything from the previous one.
+      resetTelemetryIdentity();
       // Also clears favoriteArticlesStore and workoutDraftStore, not just the
       // profile — without this, signing out never reset them, so the next
       // account to sign in on this device would inherit the previous
@@ -141,8 +159,19 @@ export function RootNavigator() {
 
   const mode = !session ? 'auth' : profileLoaded && !hasSeenOnboarding ? 'onboarding' : 'main';
 
+  const onNavigationStateChange = () => {
+    const routeName = navigationRef.getCurrentRoute()?.name;
+    // Route name only, never params — trackScreen dedupes repeats.
+    if (routeName) trackScreen(routeName);
+  };
+
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navTheme}
+      onReady={onNavigationStateChange}
+      onStateChange={onNavigationStateChange}
+    >
       {/* `key={mode}` forces a fresh mount (and so a fresh fade-in) at each of
           the app's three big-picture transitions — signing in, finishing
           onboarding, signing out — instead of an abrupt instant cut. */}

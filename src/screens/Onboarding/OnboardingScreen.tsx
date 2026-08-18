@@ -6,6 +6,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FadeInView } from '../../components/FadeInView';
 import { GradientButton } from '../../components/GradientButton';
+import { trackEvent } from '../../lib/telemetry';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { motion } from '../../theme/motion';
@@ -67,6 +68,10 @@ export function OnboardingScreen() {
     setError(null);
     try {
       await savePreferences(userId, { hasSeenOnboarding: true });
+      // After the save, not before: a failure here leaves onboarding
+      // unfinished, and reporting it as completed would overstate the
+      // funnel exactly where it matters most.
+      trackEvent({ name: 'onboarding_completed' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save. Please try again.');
       setFinishing(false);

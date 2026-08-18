@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
 import { deleteWaterEntry, fetchTodayWaterEntries, logWater, type WaterEntry } from '../lib/water';
+import { trackEvent } from '../lib/telemetry';
 import { todayISO } from '../lib/analytics';
 import { useAuthStore } from '../state/authStore';
 
@@ -43,8 +44,11 @@ export function useWaterIntake() {
   const totalMl = useMemo(() => entries.reduce((sum, e) => sum + e.amountMl, 0), [entries]);
 
   const addWater = useCallback(
-    async (amountMl: number) => {
+    async (amountMl: number, source: 'preset' | 'custom' = 'preset') => {
       if (!userId) return;
+      // The amount itself is deliberately not sent — only which control was
+      // used, which is what says whether custom amounts earned their place.
+      trackEvent({ name: 'water_logged', properties: { source } });
       setMutating(true);
       setError(null);
       // Optimistic: logging water is a tap someone repeats several times in
