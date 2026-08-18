@@ -483,6 +483,7 @@
   .priority.rest { background: transparent; color: var(--mist); }
   .priority.done { background: var(--good-soft); color: var(--good); }
   .priority.slipped { background: var(--bad-soft); color: var(--bad); }
+  .priority.check { background: var(--flag-soft); color: var(--flag); border: 1px dashed var(--flag-border); }
   .agenda-day.slipped .agenda-task { color: var(--mist); }
   .agenda-day.slipped .agenda-task strong { color: var(--slate); }
 </style>
@@ -661,7 +662,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 17:</strong> Aug 4&ndash;7 shipped, plus the <code>profiles</code> privilege lockdown &mdash; applied to production and verified against the live database. Analytics, all three test days and the rest of the migrations port slipped and are re-flowed into Aug 18&ndash;25 below. Store-account enrollment moved up to today &mdash; approval lag is what gates the first production builds, and nothing else on the list can absorb that wait.</span>
+          <span><strong>Status as of Aug 18:</strong> Aug 4&ndash;7 shipped; the <code>profiles</code> privilege lockdown applied to production and verified against the live database (Aug 17); all three slipped test days delivered today as one 89-test suite, putting testing a day ahead. Analytics moves up to Aug 19. Still outstanding: the migrations port (Aug 20) and the Fortress scope decision. <strong>Store-account enrollment is the critical path</strong> &mdash; approval lag gates the Aug 21 builds and nothing else on the list can absorb that wait.</span>
         </div>
 
         <div class="month-card">
@@ -670,8 +671,8 @@
             <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
             <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
             <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
-            <div class="day active weekend">9</div><div class="day active">10</div><div class="day active">11</div><div class="day active">12</div><div class="day active">13</div><div class="day active">14</div><div class="day active weekend">15</div>
-            <div class="day active weekend">16</div><div class="day active today">17</div><div class="day active">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">9</div><div class="day active">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active weekend">15</div>
+            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done today">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
             <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
             <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
           </div>
@@ -721,22 +722,22 @@
           </div>
           <div class="agenda-day slipped">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. &rarr; <strong>Aug 18</strong></div>
-            <span class="priority slipped">Slipped</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. Slipped a week, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day slipped">
+          <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. &rarr; <strong>Aug 19</strong></div>
-            <span class="priority slipped">Slipped</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. Slipped, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day slipped">
+          <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. &rarr; <strong>Aug 19</strong></div>
-            <span class="priority slipped">Slipped</span>
+            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. Slipped, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
-            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows. No way to confirm from the repo either way &mdash; recheck when the test suite lands.</div>
+            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows. Still unverified &mdash; the Aug 18 suite covers correctness, not render behaviour, so it doesn't settle this either way. Only a profiling session will.</div>
             <span class="priority medium">Unverified</span>
           </div>
           <div class="agenda-day weekend slipped">
@@ -752,17 +753,17 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
-            <div class="agenda-task"><strong>Start both store enrollments today</strong> — Apple Developer Program and Google Play Developer account. Moved up from Aug 18/19: approval isn't instant (Google can take several days) and it blocks the Aug 21 builds, so the wait runs in the background while the rest of the week proceeds. Then: responsive/accessibility pass.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Store enrollments — status unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. Accessibility pass still outstanding.</div>
+            <span class="priority critical">Check</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
-            <div class="agenda-task"><strong>Stand up the test runner</strong> (Jest or Vitest + a <code>test</code> script, then add it to the CI gate alongside lint/typecheck), and write the first suite: unit conversion, password/email validation.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Test framework + all three planned suites</strong> — <code>jest-expo</code> per the SDK 57 docs, wired into CI so it gates pushes alongside lint and typecheck. 89 tests over <code>units.ts</code>, <code>email.ts</code>, <code>password.ts</code>, <code>analytics.ts</code> and <code>rewards.ts</code>. Aug 19's work landed here too, so testing is a day ahead. Each suite was confirmed to fail against a deliberately broken copy of the code before being committed — a passing suite isn't the same as a working one.</div>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>; weekly reward calculation in <code>rewards.ts</code>.</div>
+            <div class="agenda-task"><strong>Analytics</strong>, pulled forward from Aug 25 now that testing is done early: PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged). Earlier is better; it needs to be live before testers arrive or their sessions produce nothing.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
@@ -793,8 +794,8 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
-            <div class="agenda-task"><strong>Analytics</strong> (slipped from Aug 10): PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged). Worth having live before testers arrive, so their sessions actually produce data.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task">Buffer — reserved when analytics moved up to Aug 19. Absorbs submission-review or tester-onboarding friction, which is where this week actually tends to slip.</div>
+            <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
