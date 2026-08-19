@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityScreen } from '../../screens/Activity/ActivityScreen';
+import { AdvancedAnalyticsScreen } from '../../screens/Activity/AdvancedAnalyticsScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
 import { PersonalRecordsScreen } from '../../screens/Activity/PersonalRecordsScreen';
 import { RewardsScreen } from '../../screens/Activity/RewardsScreen';
@@ -11,6 +12,7 @@ export type ActivityStackParamList = {
   Leaderboard: undefined;
   Rewards: undefined;
   PersonalRecords: undefined;
+  AdvancedAnalytics: undefined;
 };
 
 const Stack = createNativeStackNavigator<ActivityStackParamList>();
@@ -27,6 +29,11 @@ export function ActivityStack() {
         name="PersonalRecords"
         component={PersonalRecordsScreen}
         options={{ title: 'Personal Records' }}
+      />
+      <Stack.Screen
+        name="AdvancedAnalytics"
+        component={AdvancedAnalyticsScreen}
+        options={{ title: 'Advanced Analytics' }}
       />
     </Stack.Navigator>
   );

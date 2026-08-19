@@ -1,6 +1,8 @@
-import { supabase } from './supabase';
-import { convertDistance, convertWeight, roundForDisplay } from './units';
+import { roundForDisplay } from './units';
+import { fetchExerciseHistories, type ExerciseHistory } from './workoutHistory';
 import type { Category, DistanceUnit, ExerciseType, WeightUnit } from '../types/models';
+
+export type { ExerciseHistory, RecordSet } from './workoutHistory';
 
 /**
  * Above about 12 reps the Epley estimate drifts badly — it implies a 20-rep
@@ -14,16 +16,6 @@ const MAX_REPS_FOR_ONE_REP_MAX = 12;
 export function estimateOneRepMax(weight: number, reps: number): number {
   if (weight <= 0 || reps <= 0 || reps > MAX_REPS_FOR_ONE_REP_MAX) return 0;
   return weight * (1 + reps / 30);
-}
-
-export interface RecordSet {
-  date: string;
-  reps: number;
-  /** Already converted into the caller's display unit. */
-  weight: number;
-  durationSeconds: number;
-  /** Already converted into the caller's display unit. */
-  distance: number;
 }
 
 export interface PersonalRecord {
@@ -46,14 +38,6 @@ export interface PersonalRecord {
   bestSessionDate: string | null;
   totalSets: number;
   lastPerformed: string;
-}
-
-export interface ExerciseHistory {
-  exerciseId: string;
-  exerciseName: string;
-  category: Category;
-  type: ExerciseType;
-  sets: RecordSet[];
 }
 
 /**
@@ -149,73 +133,12 @@ export function computePersonalRecords(histories: ExerciseHistory[]): PersonalRe
   return records.sort((a, b) => (a.lastPerformed < b.lastPerformed ? 1 : -1));
 }
 
-interface DbSet {
-  reps: number;
-  weight: number;
-  weight_unit: WeightUnit;
-  duration_seconds: number | null;
-  distance: number | null;
-  distance_unit: DistanceUnit;
-}
-
-interface DbLogged {
-  exercise_id: string;
-  exercises: { name: string; category: Category; type: ExerciseType } | null;
-  set_entries: DbSet[];
-}
-
-interface DbWorkout {
-  date: string;
-  logged_exercises: DbLogged[];
-}
-
-/**
- * Every set the user has ever logged, grouped per exercise and converted
- * into their current display units. Units are converted per set rather than
- * per exercise because a set carries whichever unit was active when it was
- * logged — see 20260101000009_set_entry_units.sql — so comparing raw stored
- * numbers would rank a 100 lb set above a 60 kg one.
- */
 export async function fetchPersonalRecords(
   userId: string,
   displayWeightUnit: WeightUnit,
   displayDistanceUnit: DistanceUnit
 ): Promise<PersonalRecord[]> {
-  const { data, error } = await supabase
-    .from('workouts')
-    .select(
-      'date, logged_exercises ( exercise_id, exercises ( name, category, type ), set_entries ( reps, weight, weight_unit, duration_seconds, distance, distance_unit ) )'
-    )
-    .eq('user_id', userId)
-    .returns<DbWorkout[]>();
-
-  if (error) throw error;
-
-  const byExercise = new Map<string, ExerciseHistory>();
-
-  for (const workout of data ?? []) {
-    for (const logged of workout.logged_exercises) {
-      const existing = byExercise.get(logged.exercise_id) ?? {
-        exerciseId: logged.exercise_id,
-        exerciseName: logged.exercises?.name ?? 'Unknown exercise',
-        category: logged.exercises?.category ?? 'chest',
-        type: logged.exercises?.type ?? 'strength',
-        sets: [],
-      };
-
-      for (const set of logged.set_entries) {
-        existing.sets.push({
-          date: workout.date,
-          reps: set.reps,
-          weight: convertWeight(set.weight, set.weight_unit, displayWeightUnit),
-          durationSeconds: set.duration_seconds ?? 0,
-          distance: convertDistance(set.distance ?? 0, set.distance_unit, displayDistanceUnit),
-        });
-      }
-
-      byExercise.set(logged.exercise_id, existing);
-    }
-  }
-
-  return computePersonalRecords(Array.from(byExercise.values()));
+  return computePersonalRecords(
+    await fetchExerciseHistories(userId, displayWeightUnit, displayDistanceUnit)
+  );
 }

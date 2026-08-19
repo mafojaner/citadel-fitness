@@ -501,8 +501,11 @@ export function ActivityScreen() {
           extend: deeper cuts of the same workout history the tiles above
           summarise. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
-      <FortressFeatureCard featureId="advanced-analytics" />
-      {/* Built — members get the vault itself rather than a teaser. */}
+      {/* Built — members get the feature itself rather than a teaser. */}
+      <FortressFeatureCard
+        featureId="advanced-analytics"
+        onOpen={() => navigation.navigate('AdvancedAnalytics')}
+      />
       <FortressFeatureCard
         featureId="pr-vault"
         onOpen={() => navigation.navigate('PersonalRecords')}
