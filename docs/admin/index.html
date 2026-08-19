@@ -662,7 +662,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 19:</strong> every engineering item on this month's plan is now shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests wired into CI (Aug 18), and telemetry plus the migrations port (Aug 19), the last two both a day early. What's left is not code: <strong>the store enrollments, a PostHog project, and the Fortress scope decision</strong>, none of which anyone else can do for you. Enrollment approval is the critical path &mdash; it gates the Aug 21 builds and every submission step behind them.</span>
+          <span><strong>Status as of Aug 20:</strong> every engineering item on this month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests in CI (Aug 18), telemetry and the migrations port (Aug 19), and the accessibility pass (Aug 20). Nothing left on the board is code. <strong>Three things now gate the launch, and all three are yours:</strong> the store enrollments, a PostHog project, and the Fortress scope decision. Enrollment approval is the critical path &mdash; tomorrow's builds and every submission step behind them wait on it, and it's the one item that can't be hurried by working harder.</span>
         </div>
 
         <div class="month-card">
@@ -672,7 +672,7 @@
             <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
             <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
             <div class="day active weekend">9</div><div class="day active done">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active done weekend">15</div>
-            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done">18</div><div class="day active done today">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done">18</div><div class="day active done">19</div><div class="day active done today">20</div><div class="day active">21</div><div class="day active weekend">22</div>
             <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
             <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
           </div>
@@ -753,7 +753,7 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
-            <div class="agenda-task"><strong>Store enrollments — status unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. Accessibility pass still outstanding.</div>
+            <div class="agenda-task"><strong>Store enrollments — status unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. The accessibility pass carried to Aug 20 and shipped there.</div>
             <span class="priority critical">Check</span>
           </div>
           <div class="agenda-day">
@@ -768,8 +768,8 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Two things only you can do</strong>, and the whole week behind them waits: confirm the store enrollments are actually filed, and create the PostHog project so telemetry starts recording before testers arrive. Then the accessibility pass carried over from Aug 17.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
+            <span class="priority check">Check</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
@@ -862,6 +862,10 @@
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Target SDK / permissions review:</strong> confirm Expo's managed defaults still satisfy Play's current target API requirement; the app requests no extra dangerous Android permissions today — keep it that way.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Screen-reader pass on a real device:</strong> the Aug 20 work was verified in the web accessibility tree, which proves names and states exist but says nothing about how a TalkBack or VoiceOver user actually moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Roughly 18 pressables also still lack an explicit role — they have names, so they're usable, just announced as content rather than controls.</div>
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
