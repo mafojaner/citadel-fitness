@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AddWorkoutScreen } from '../../screens/Workouts/AddWorkoutScreen';
+import { ProgramsScreen } from '../../screens/Workouts/ProgramsScreen';
 import { DayDetailScreen } from '../../screens/Workouts/DayDetailScreen';
 import { ExerciseCatalogueScreen } from '../../screens/Workouts/ExerciseCatalogueScreen';
 import { WorkoutsScreen } from '../../screens/Workouts/WorkoutsScreen';
@@ -12,6 +13,7 @@ export type WorkoutsStackParamList = {
   AddWorkout: undefined;
   ExerciseCatalogue: { initialCategory?: Category; standalone?: boolean } | undefined;
   DayDetail: { date: string };
+  Programs: undefined;
 };
 
 const Stack = createNativeStackNavigator<WorkoutsStackParamList>();
@@ -37,6 +39,7 @@ export function WorkoutsStack() {
         component={DayDetailScreen}
         options={{ title: 'Day Detail' }}
       />
+      <Stack.Screen name="Programs" component={ProgramsScreen} options={{ title: 'Programs' }} />
     </Stack.Navigator>
   );
 }

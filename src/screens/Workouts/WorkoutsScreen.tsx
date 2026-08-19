@@ -187,7 +187,10 @@ export function WorkoutsScreen() {
       {/* Below the calendar rather than above it: this is an alternative to
           building a day one workout at a time, so it reads better after
           you've seen how that manual flow works than before it. */}
-      <FortressFeatureCard featureId="structured-programs" />
+      <FortressFeatureCard
+        featureId="structured-programs"
+        onOpen={() => navigation.navigate('Programs')}
+      />
       </ScreenContainer>
     </View>
   );

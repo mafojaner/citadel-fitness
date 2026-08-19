@@ -22,6 +22,11 @@ interface WorkoutDraftState {
     currentWeightUnit: WeightUnit,
     currentDistanceUnit: DistanceUnit
   ) => void;
+  /** Replaces the draft with a program day's prescribed exercises and set counts. */
+  loadFromProgram: (
+    date: string,
+    exercises: { exerciseId: string; targetSets: number; targetReps: number }[]
+  ) => void;
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10);
@@ -123,6 +128,31 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
        * the actual physical weight/distance; only sets left untouched stay
        * in their original unit in the database.
        */
+      /**
+       * Pre-fills reps from the program's target so the numbers already
+       * read as the prescription; weight is left at zero because only the
+       * lifter knows what they're loading today. Replaces rather than
+       * appends — the program is describing the whole session, and merging
+       * it into an existing draft would silently duplicate exercises.
+       */
+      loadFromProgram: (date, exercises) =>
+        set({
+          date,
+          exercises: exercises.map((entry) => ({
+            id: makeId(),
+            exerciseId: entry.exerciseId,
+            sets: Array.from({ length: entry.targetSets }, (_, index) => ({
+              id: makeId(),
+              setNumber: index + 1,
+              reps: entry.targetReps,
+              weight: 0,
+              durationSeconds: 0,
+              distance: 0,
+              rpe: null,
+            })),
+          })),
+        }),
+
       loadFromExisting: (date, exercises, currentWeightUnit, currentDistanceUnit) =>
         set({
           date,
