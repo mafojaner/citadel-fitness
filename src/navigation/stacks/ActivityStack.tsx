@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityScreen } from '../../screens/Activity/ActivityScreen';
 import { AdvancedAnalyticsScreen } from '../../screens/Activity/AdvancedAnalyticsScreen';
+import { GoalForecastScreen } from '../../screens/Activity/GoalForecastScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
 import { PersonalRecordsScreen } from '../../screens/Activity/PersonalRecordsScreen';
 import { RewardsScreen } from '../../screens/Activity/RewardsScreen';
@@ -13,6 +14,7 @@ export type ActivityStackParamList = {
   Rewards: undefined;
   PersonalRecords: undefined;
   AdvancedAnalytics: undefined;
+  GoalForecast: undefined;
 };
 
 const Stack = createNativeStackNavigator<ActivityStackParamList>();
@@ -34,6 +36,11 @@ export function ActivityStack() {
         name="AdvancedAnalytics"
         component={AdvancedAnalyticsScreen}
         options={{ title: 'Advanced Analytics' }}
+      />
+      <Stack.Screen
+        name="GoalForecast"
+        component={GoalForecastScreen}
+        options={{ title: 'Goal Forecast' }}
       />
     </Stack.Navigator>
   );

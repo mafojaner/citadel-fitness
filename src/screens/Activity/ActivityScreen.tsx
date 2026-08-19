@@ -510,7 +510,10 @@ export function ActivityScreen() {
         featureId="pr-vault"
         onOpen={() => navigation.navigate('PersonalRecords')}
       />
-      <FortressFeatureCard featureId="goal-forecasting" />
+      <FortressFeatureCard
+        featureId="goal-forecasting"
+        onOpen={() => navigation.navigate('GoalForecast')}
+      />
       </ScreenContainer>
     </View>
   );
