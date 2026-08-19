@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ReferralScreen } from '../../screens/Account/ReferralScreen';
 import { AccountManagementScreen } from '../../screens/Account/AccountManagementScreen';
 import { AccountScreen } from '../../screens/Account/AccountScreen';
 import { AppearanceScreen } from '../../screens/Account/AppearanceScreen';
@@ -19,6 +20,7 @@ export type AccountStackParamList = {
   AccountManagement: undefined;
   ChangePassword: undefined;
   Help: undefined;
+  Referral: undefined;
 };
 
 const Stack = createNativeStackNavigator<AccountStackParamList>();
@@ -48,6 +50,7 @@ export function AccountStack() {
         options={{ title: 'Change Password' }}
       />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: 'Help & Feedback' }} />
+      <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: 'Refer & Earn' }} />
     </Stack.Navigator>
   );
 }

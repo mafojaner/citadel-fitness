@@ -181,7 +181,11 @@ export function AccountScreen() {
           onOpen={() => navigation.navigate('Notifications')}
         />
         <FortressFeatureCard featureId="wearable-sync" variant="row" />
-        <FortressFeatureCard featureId="referral" variant="row" />
+        <FortressFeatureCard
+          featureId="referral"
+          variant="row"
+          onOpen={() => navigation.navigate('Referral')}
+        />
       </SettingsSection>
 
       <SettingsSection title="Support">

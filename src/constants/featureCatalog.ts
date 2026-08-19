@@ -219,7 +219,9 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'gift',
     colors: gradients.favorite,
     title: 'Refer & earn',
-    description: 'Invite a friend to Fortress — you both get a free month once they join.',
+    // Attribution is live; the reward waits on billing existing. Said here
+    // rather than only on the screen, so the pitch can't outrun the product.
+    description: 'Invite a friend with your code. Referrals are tracked now and rewarded once memberships go on sale.',
     tier: 'fortress',
     showInComparison: false,
   },
