@@ -467,7 +467,10 @@ export function ActivityScreen() {
 
       {/* Directly below the public leaderboard it extends: a private,
           invite-only version of the same ranking concept. */}
-      <FortressFeatureCard featureId="private-groups" />
+      <FortressFeatureCard
+        featureId="private-groups"
+        onOpen={() => navigation.navigate('Groups')}
+      />
 
       <RewardsCard />
 

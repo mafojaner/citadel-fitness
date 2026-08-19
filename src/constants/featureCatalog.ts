@@ -181,7 +181,9 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'people-circle',
     colors: gradients.rankGold,
     title: 'Private groups & challenges',
-    description: 'Start an invite-only leaderboard for your own gym crew, and run timed challenges against each other.',
+    // Challenges as named, stored objects aren't built; the comparison
+    // window does that job. Described as what ships, same as RPE's tempo.
+    description: 'Start an invite-only leaderboard for your own gym crew, and compare over any period.',
     tier: 'fortress',
     showInComparison: true,
   },
