@@ -662,7 +662,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 20:</strong> every engineering item on this month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests in CI (Aug 18), telemetry and the migrations port (Aug 19), and the accessibility pass (Aug 20). Nothing left on the board is code. <strong>Three things now gate the launch, and all three are yours:</strong> the store enrollments, a PostHog project, and the Fortress scope decision. Enrollment approval is the critical path &mdash; tomorrow's builds and every submission step behind them wait on it, and it's the one item that can't be hurried by working harder.</span>
+          <span><strong>Status as of Aug 20:</strong> every engineering item on this month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests in CI (Aug 18), telemetry and the migrations port (Aug 19), and the accessibility pass (Aug 20). Nothing left on the board is code. <strong>Fortress v1 scope is decided: ship free, no billing before launch</strong> &mdash; which takes a five-day block off the September critical path, since that was the only reason the production release sat as late as Sep 21. Two things still gate it, both yours: the store enrollments and a PostHog project. Enrollment approval is the critical path &mdash; tomorrow's builds and every submission step behind them wait on it, and it's the one item that can't be hurried by working harder.</span>
         </div>
 
         <div class="month-card">
@@ -832,11 +832,11 @@
       </section>
 
       <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>Premium (Fortress) &amp; security hardening — September 2026</h3></div>
+        <div class="block-head"><span class="dot"></span><h3>Security hardening &amp; production release — September 2026</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span>Launch gate: the production release goes to Play Console only once every row below is checked — not on a fixed date. Grounded in a code audit run 2026-08-14.</span>
+          <span>Launch gate: the production release goes to Play Console only once every row below is checked — not on a fixed date. Grounded in a code audit run 2026-08-14. <strong>Fortress ships free at v1</strong> (decided Aug 20), so nothing here is blocked on billing; the two rows below that mention it are the standing rules for whenever it does arrive.</span>
         </div>
 
         <div class="card-body" style="margin-bottom:16px;">
@@ -845,8 +845,8 @@
             <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly.</div>
-            <span class="priority critical">Open</span>
+            <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly. Already true today via <code>migration_036</code>; this is the rule to hold when billing lands.</div>
+            <span class="priority medium">Standing</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>backfill-welcome-emails:</strong> confirm it's deployed with the platform's default <code>verify_jwt</code> on (not <code>--no-verify-jwt</code>) — nothing in the function body itself blocks an unauthenticated call otherwise.</div>
@@ -869,8 +869,8 @@
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Restore purchases + cancellation:</strong> tested end to end in sandbox before anyone can pay for real.</div>
-            <span class="priority high">Open</span>
+            <div class="agenda-task"><strong>Restore purchases + cancellation:</strong> tested end to end in sandbox before anyone can pay for real. Not a v1 gate — carried forward to whenever billing is built.</div>
+            <span class="priority medium">Deferred</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Privacy policy:</strong> discloses neither the analytics added Aug 19 nor subscription billing. Telemetry is the nearer one — for EU users, non-essential analytics arguably needs consent rather than disclosure alone, and this stack is EU-oriented throughout (Supabase eu-west-1, Sentry .de, PostHog EU). The wrapper exposes opt-in/opt-out; whether to add a settings toggle is a product call, not plumbing.</div>
@@ -913,8 +913,8 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 4</span></div>
-            <div class="agenda-task"><strong>Decide Fortress v1 scope:</strong> ship as a clearly-labeled waitlist/"coming soon" tier at launch, or commit to real billing now — a working purchase flow plus at least one real gated feature is two-plus weeks on its own.</div>
-            <span class="priority critical">Decision</span>
+            <div class="agenda-task"><strong>Fortress v1 scope — decided Aug 20: ship free, no billing before launch.</strong> All 17 Fortress features are unbuilt, so a day-one subscriber would receive a badge and a &ldquo;Coming soon&rdquo; label &mdash; the card already renders exactly that for anyone holding the flag. Billing is also the largest attack surface available to add, three days after closing a <code>fortress_since</code> self-grant hole, against a launch gated on being confident the app is secure. And with telemetry live for a day, there's no usage data yet to say which features are even worth gating. The waitlist keeps converting interest in the meantime, which beats taking money for something that doesn't exist.</div>
+            <span class="priority done">Decided</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 5</span></div>
@@ -929,28 +929,28 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 7</span></div>
-            <div class="agenda-task"><strong>If building real billing:</strong> integrate RevenueCat (unifies Play Billing + StoreKit) and configure the subscription product in Play Console.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Screen-reader pass on a real device</strong> — TalkBack and VoiceOver. The Aug 20 work proved names and states exist; only listening shows whether reading order, focus after navigation and escaping the tab bar actually work.</div>
+            <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 8</span></div>
-            <div class="agenda-task"><strong>Real entitlement table:</strong> replace the bare <code>fortress_since</code> timestamp with a <code>subscriptions</code> table (status, provider, period, product id) written only by a verified webhook.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Expo SDK bump</strong> to clear the 14 high-severity <code>npm audit</code> findings in the build-tooling chain. Breaking, so it wants a full regression and the test suite behind it — which is why it waits until after the beta rather than before.</div>
+            <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 9</span></div>
-            <div class="agenda-task"><strong>Webhook edge function:</strong> verify the RevenueCat signature, update entitlement server-side; re-check RLS blocks any client write.</div>
-            <span class="priority critical">Critical</span>
+            <div class="agenda-task"><strong>Thin the Fortress teasers</strong> — 17 placements advertise features that don't exist yet, across nearly every screen. Fine as intent, heavy as launch surface, and a reviewer seeing that much locked nothing may read it as an incomplete app. Keep the contextual ones, drop the rest until there's something behind them.</div>
+            <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 10</span></div>
-            <div class="agenda-task"><strong>Build the first real Fortress feature(s)</strong> behind the new entitlement &mdash; e.g. advanced analytics or the PR vault &mdash; so paying is worth something on day one.</div>
+            <div class="agenda-task"><strong>Act on the first real usage data.</strong> By now telemetry has two weeks of beta sessions: which screens people actually reach, whether onboarding completes, whether anyone logs a second workout. That's what should decide the Fortress paywall line later — not a guess made before launch.</div>
             <span class="priority high">High</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 11</span></div>
-            <div class="agenda-task"><strong>Purchase UI:</strong> subscribe flow, restore-purchases button, a simple manage-membership screen.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task">Buffer &mdash; freed by deferring billing. The five days this block used to hold were the whole reason the release sat on Sep 21.</div>
+            <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 12</span></div>
