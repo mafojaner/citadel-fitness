@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import appJson from '../../../app.json';
 import { FortressFeatureCard } from '../../components/FortressFeatureCard';
@@ -9,6 +10,8 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
 import { PRIVACY_POLICY_URL } from '../../constants/legal';
+import { exportWorkoutHistory } from '../../lib/dataExport';
+import { saveTextFile } from '../../lib/saveTextFile';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore } from '../../state/themeStore';
@@ -28,6 +31,36 @@ export function AccountScreen() {
   const themeMode = useThemeStore((s) => s.mode);
   const displayName = name || session?.user.email || 'Signed in user';
   const initial = displayName[0]?.toUpperCase();
+  const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState<string | null>(null);
+
+  const onExport = async () => {
+    if (!session?.user.id || exporting) return;
+    setExporting(true);
+    setExportResult(null);
+    try {
+      const { csv, filename, rowCount } = await exportWorkoutHistory(session.user.id);
+      if (rowCount === 0) {
+        setExportResult('Nothing logged yet, so there is no history to export.');
+        return;
+      }
+      const outcome = await saveTextFile(filename, csv);
+      // Worded from what actually happened rather than a generic success:
+      // a share sheet and a download are different enough that saying the
+      // wrong one sends people looking in the wrong place for the file.
+      setExportResult(
+        outcome === 'downloaded'
+          ? `Downloaded ${filename} — ${rowCount} sets.`
+          : outcome === 'shared'
+            ? `Shared ${filename} — ${rowCount} sets.`
+            : 'This device has no way to share the file.'
+      );
+    } catch (err) {
+      setExportResult(err instanceof Error ? err.message : 'Could not export your history.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <ScreenContainer>
@@ -120,8 +153,17 @@ export function AccountScreen() {
           deletion. Row variant so it reads as one of this screen's settings
           rows — the section already draws the surface a card would double. */}
       <SettingsSection title="Your data">
-        <FortressFeatureCard featureId="data-export" variant="row" />
+        <FortressFeatureCard
+          featureId="data-export"
+          variant="row"
+          onOpen={exporting ? () => {} : onExport}
+        />
       </SettingsSection>
+      {exporting ? (
+        <Text style={[typography.caption, { color: colors.textMuted }]}>Preparing your export…</Text>
+      ) : exportResult ? (
+        <Text style={[typography.caption, { color: colors.textSecondary }]}>{exportResult}</Text>
+      ) : null}
 
       {/* early-access and priority-support are account-wide policies with no
           content of their own to attach to — nowhere on Home, Activity or
