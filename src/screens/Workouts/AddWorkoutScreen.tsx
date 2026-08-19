@@ -9,6 +9,7 @@ import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { InfoNote } from '../../components/InfoNote';
 import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { RestTimer } from '../../components/RestTimer';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { WorkoutSavedAnimation } from '../../components/WorkoutSavedAnimation';
 import {
@@ -18,6 +19,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
+import { useIsFortress } from '../../hooks/useIsFortress';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
 import { trackEvent } from '../../lib/telemetry';
@@ -97,6 +99,9 @@ export function AddWorkoutScreen() {
   const removeExercise = useWorkoutDraftStore((s) => s.removeExercise);
   const reset = useWorkoutDraftStore((s) => s.reset);
   const openWorkoutDraft = useOpenWorkoutDraft();
+  const isFortress = useIsFortress();
+  const savePreferences = useProfileStore((s) => s.savePreferences);
+  const restTimerSeconds = useProfileStore((s) => s.preferences.restTimerSeconds);
   const userId = useAuthStore((s) => s.session?.user.id);
   const units = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
@@ -272,6 +277,11 @@ export function AddWorkoutScreen() {
                       Weight ({units})
                     </Text>
                     <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
+                    {isFortress ? (
+                      <Text style={[typography.caption, { color: colors.textMuted, width: 46, textAlign: 'center' }]}>
+                        RPE
+                      </Text>
+                    ) : null}
                   </>
                 )}
                 <View style={{ width: 24 }} />
@@ -356,6 +366,36 @@ export function AddWorkoutScreen() {
                           color: colors.textPrimary,
                         }}
                       />
+                      {isFortress ? (
+                        <TextInput
+                          keyboardType="numeric"
+                          // Empty rather than 0 when unset: an unreported
+                          // effort must stay null all the way to the column,
+                          // not become a real-looking value.
+                          value={set.rpe === null ? '' : String(set.rpe)}
+                          onChangeText={(t) => {
+                            const parsed = Number(t);
+                            updateSet(exercise.id, set.id, {
+                              rpe:
+                                t.trim() === '' || !Number.isFinite(parsed)
+                                  ? null
+                                  : Math.min(10, Math.max(1, parsed)),
+                            });
+                          }}
+                          placeholder="–"
+                          placeholderTextColor={colors.textMuted}
+                          accessibilityLabel={`Effort out of 10 for ${entryNoun} ${set.setNumber}`}
+                          style={{
+                            width: 46,
+                            textAlign: 'center',
+                            borderColor: colors.border,
+                            borderWidth: 1,
+                            borderRadius: radius.sm,
+                            padding: spacing.sm,
+                            color: colors.textPrimary,
+                          }}
+                        />
+                      ) : null}
                     </>
                   )}
                   <Pressable
@@ -369,11 +409,28 @@ export function AddWorkoutScreen() {
                 </View>
               ))}
 
-              <Pressable onPress={() => addSet(exercise.id)}>
+              <Pressable
+                onPress={() => addSet(exercise.id)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={`Add ${entryNoun} to ${nameFor(exercise.exerciseId)}`}
+              >
                 <Text style={{ color: colors.primary, fontWeight: '600' }}>
                   + Add {entryNoun}
                 </Text>
               </Pressable>
+
+              {/* Per exercise rather than one for the screen: rest is a
+                  property of the lift you just did, and two exercises in the
+                  same session rarely want the same gap. */}
+              {isFortress && !cardio ? (
+                <RestTimer
+                  seconds={restTimerSeconds}
+                  onChangeSeconds={(next) => {
+                    if (userId) savePreferences(userId, { restTimerSeconds: next });
+                  }}
+                />
+              ) : null}
             </Card>
           );
         })
@@ -408,7 +465,6 @@ export function AddWorkoutScreen() {
         <>
           <FortressFeatureCard featureId="ai-progressive-overload" />
           <FortressFeatureCard featureId="form-check" />
-          <FortressFeatureCard featureId="advanced-logging" />
         </>
       ) : null}
     </ScreenContainer>

@@ -27,6 +27,12 @@ export interface SetEntry {
   weight: number;
   durationSeconds: number;
   distance: number;
+  /**
+   * Rate of perceived exertion, 1–10, or null when not recorded. Null rather
+   * than 0 because "no effort reported" and "an effort of zero" are
+   * different claims, and only one of them is ever true.
+   */
+  rpe: number | null;
 }
 
 export interface LoggedExercise {

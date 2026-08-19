@@ -19,6 +19,8 @@ export interface ProfilePreferences {
   /** Independent of `units` — matches how distanceUnit is its own toggle rather than following weight. */
   waterUnit: 'oz' | 'ml';
   dailyWaterGoalMl: number;
+  /** Seconds the rest timer counts down between sets. Fortress feature; ignored otherwise. */
+  restTimerSeconds: number;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -37,6 +39,9 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
   waterUnit: 'oz',
   // 2000ml (~68 fl oz) — close to the common "8 glasses a day" guideline and a round number to start from; fully editable in Account → Units.
   dailyWaterGoalMl: 2000,
+  // 90s suits most compound work — long enough to recover, short enough
+  // that the timer stays a nudge rather than a break. Editable per session.
+  restTimerSeconds: 90,
 };
 
 export interface RawProfile {

@@ -169,7 +169,10 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'timer',
     colors: gradients.action,
     title: 'RPE & rest timer',
-    description: 'Log effort (RPE/RIR) and tempo per set, with an automatic rest timer between them.',
+    // Tempo was in the original pitch and isn't built; the description says
+    // what ships rather than what was once imagined, which is the whole
+    // reason this catalogue is the single source of truth.
+    description: 'Log effort (RPE) on every set, with a rest timer between them.',
     tier: 'fortress',
     showInComparison: false,
   },
