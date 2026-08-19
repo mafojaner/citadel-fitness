@@ -662,7 +662,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 18:</strong> Aug 4&ndash;7 shipped; the <code>profiles</code> privilege lockdown applied to production and verified against the live database (Aug 17); all three slipped test days delivered today as one 89-test suite, putting testing a day ahead. Analytics moves up to Aug 19. Still outstanding: the migrations port (Aug 20) and the Fortress scope decision. <strong>Store-account enrollment is the critical path</strong> &mdash; approval lag gates the Aug 21 builds and nothing else on the list can absorb that wait.</span>
+          <span><strong>Status as of Aug 19:</strong> every engineering item on this month's plan is now shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests wired into CI (Aug 18), and telemetry plus the migrations port (Aug 19), the last two both a day early. What's left is not code: <strong>the store enrollments, a PostHog project, and the Fortress scope decision</strong>, none of which anyone else can do for you. Enrollment approval is the critical path &mdash; it gates the Aug 21 builds and every submission step behind them.</span>
         </div>
 
         <div class="month-card">
@@ -671,8 +671,8 @@
             <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
             <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
             <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
-            <div class="day active weekend">9</div><div class="day active">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active weekend">15</div>
-            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done today">18</div><div class="day active">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">9</div><div class="day active done">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active done weekend">15</div>
+            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done">18</div><div class="day active done today">19</div><div class="day active">20</div><div class="day active">21</div><div class="day active weekend">22</div>
             <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
             <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
           </div>
@@ -715,12 +715,12 @@
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day slipped">
+          <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
-            <div class="agenda-task"><strong>Analytics:</strong> PostHog or Amplitude — screen views + key events. Neither package is installed. &rarr; <strong>Aug 25</strong></div>
-            <span class="priority slipped">Slipped</span>
+            <div class="agenda-task"><strong>Analytics:</strong> screen views + key events. Slipped nine days, delivered Aug 19. Still needs a PostHog project and key before it records anything.</div>
+            <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day slipped">
+          <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
             <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. Slipped a week, delivered Aug 18.</div>
             <span class="priority done">Shipped</span>
@@ -740,10 +740,10 @@
             <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows. Still unverified &mdash; the Aug 18 suite covers correctness, not render behaviour, so it doesn't settle this either way. Only a profiling session will.</div>
             <span class="priority medium">Unverified</span>
           </div>
-          <div class="agenda-day weekend slipped">
+          <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
-            <div class="agenda-task"><strong>Move to tracked migrations:</strong> <code>supabase/migrations/</code> still doesn't exist; all 35 files sit flat in <code>supabase/</code>. &rarr; <strong>Aug 20</strong></div>
-            <span class="priority slipped">Slipped</span>
+            <div class="agenda-task"><strong>Move to tracked migrations:</strong> slipped four days, delivered Aug 19.</div>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day weekend">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
@@ -763,13 +763,13 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
-            <div class="agenda-task"><strong>Analytics</strong>, pulled forward from Aug 25 now that testing is done early: PostHog or Amplitude — screen views + key events (onboarding, Fortress waitlist, workout logged). Earlier is better; it needs to be live before testers arrive or their sessions produce nothing.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Telemetry + the migrations port</strong>, both landed. PostHog wired for screen views and four events, inert until <code>EXPO_PUBLIC_POSTHOG_KEY</code> is set — no PII, no session replay, EU host to match Supabase and Sentry. And all 35 historical migrations moved under <code>supabase/migrations/</code>, each verified present in production by probing for the artifact it creates before being marked applied. <code>db push</code> now reports the remote up to date; applied state is recorded instead of assumed.</div>
+            <span class="priority done">Shipped</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Finish the move to tracked migrations:</strong> <code>supabase/migrations/</code> now exists and holds one file (the Aug 17 privilege lockdown, recorded in remote history). Port the remaining 35 from <code>supabase/</code> and use <code>supabase migration repair --status applied</code> to mark the ones production already has, so state is recorded instead of assumed — that gap is how 015, 016 and 017 sat unapplied against production.</div>
-            <span class="priority high">High</span>
+            <div class="agenda-task"><strong>Two things only you can do</strong>, and the whole week behind them waits: confirm the store enrollments are actually filed, and create the PostHog project so telemetry starts recording before testers arrive. Then the accessibility pass carried over from Aug 17.</div>
+            <span class="priority critical">Critical</span>
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
@@ -857,7 +857,7 @@
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Play Data Safety form:</strong> fill it out against what the app actually collects and shares — should match the RLS-scoped tables exactly, nothing more.</div>
+            <div class="agenda-task"><strong>Play Data Safety form:</strong> fill it out against what the app actually collects and shares. Now covers two things, not one: the RLS-scoped tables, and the PostHog telemetry added Aug 19 — its <code>TrackedEvent</code> union is deliberately the complete, reviewable list of what leaves the device.</div>
             <span class="priority high">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
@@ -869,8 +869,8 @@
             <span class="priority high">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Privacy policy:</strong> update to disclose subscription billing once Fortress purchases ship.</div>
-            <span class="priority medium">Open</span>
+            <div class="agenda-task"><strong>Privacy policy:</strong> discloses neither the analytics added Aug 19 nor subscription billing. Telemetry is the nearer one — for EU users, non-essential analytics arguably needs consent rather than disclosure alone, and this stack is EU-oriented throughout (Supabase eu-west-1, Sentry .de, PostHog EU). The wrapper exposes opt-in/opt-out; whether to add a settings toggle is a product call, not plumbing.</div>
+            <span class="priority high">Open</span>
           </div>
         </div>
 
