@@ -662,7 +662,7 @@
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 20:</strong> every engineering item on this month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown (Aug 17), 102 tests in CI (Aug 18), telemetry and the migrations port (Aug 19), and the accessibility pass (Aug 20). Nothing left on the board is code. <strong>Fortress v1 scope is decided: ship free, no billing before launch</strong> &mdash; which takes a five-day block off the September critical path, since that was the only reason the production release sat as late as Sep 21. Two things still gate it, both yours: the store enrollments and a PostHog project. Enrollment approval is the critical path &mdash; tomorrow's builds and every submission step behind them wait on it, and it's the one item that can't be hurried by working harder.</span>
+          <span><strong>Status as of Aug 20:</strong> the whole month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown, 102 tests in CI, telemetry, the migrations port, the accessibility pass &mdash; <strong>and nine Fortress features on top of it</strong>, taking the premium tier from scaffolding to something real. 182 tests, seven migrations applied, one Edge Function deployed. Fortress still ships free at v1: what's missing is billing plumbing, not product. <strong>Three things gate the launch, and none of them is more code.</strong> The store enrollments and a PostHog project are yours alone. The third is verification &mdash; nine features are live in production and not one of their screens has been opened by anyone, because every check so far was made without a signed-in session.</span>
         </div>
 
         <div class="month-card">
@@ -768,7 +768,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
+            <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Then: nine Fortress features built</strong>, taking the tier from scaffolding to a real product &mdash; PR vault, advanced analytics, data export, goal forecasting, RPE &amp; rest timer, weekly digest, structured programs, private groups, referrals. Seven migrations applied to production, one Edge Function deployed, 182 tests. <code>FortressFeatureCard</code> gained an <code>onOpen</code> prop, so a feature graduates from teaser to entry point by passing one callback.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
             <span class="priority check">Check</span>
           </div>
           <div class="agenda-day">
@@ -865,6 +865,10 @@
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Walk the nine new Fortress screens against real data.</strong> Their maths carries 182 tests and their policies were probed against production &mdash; a non-member genuinely gets zero rows from a group, self-referral is genuinely refused &mdash; but <strong>not one of these screens has been opened by anyone.</strong> Every check so far was made without a signed-in session, so rendering, navigation and the numbers landing where they should are all unconfirmed. This is the largest untested surface on the board and the cheapest to clear: sign in, open the eight screens, sanity-check the figures against lifts you remember.</div>
+            <span class="priority critical">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Screen-reader pass on a real device:</strong> the Aug 20 work was verified in the web accessibility tree, which proves names and states exist but says nothing about how a TalkBack or VoiceOver user actually moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Roughly 18 pressables also still lack an explicit role — they have names, so they're usable, just announced as content rather than controls.</div>
             <span class="priority medium">Open</span>
           </div>
@@ -913,7 +917,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 4</span></div>
-            <div class="agenda-task"><strong>Fortress v1 scope — decided Aug 20: ship free, no billing before launch.</strong> All 17 Fortress features are unbuilt, so a day-one subscriber would receive a badge and a &ldquo;Coming soon&rdquo; label &mdash; the card already renders exactly that for anyone holding the flag. Billing is also the largest attack surface available to add, three days after closing a <code>fortress_since</code> self-grant hole, against a launch gated on being confident the app is secure. And with telemetry live for a day, there's no usage data yet to say which features are even worth gating. The waitlist keeps converting interest in the meantime, which beats taking money for something that doesn't exist.</div>
+            <div class="agenda-task"><strong>Fortress v1 scope — decided Aug 20: ship free, no billing before launch.</strong> The original reasoning was that there was nothing to sell. <strong>That half has since been overtaken</strong> &mdash; nine features were built on Aug 20 and there is now a real tier behind the flag. The decision stands on what's left: billing plumbing (provider SDK, entitlement table, verified webhook, purchase and restore flows) is still two-plus weeks and entirely unbuilt, and it is the largest attack surface available to add against a launch gated on being confident the app is secure. Telemetry also still has no usage data, so any paywall line drawn now remains a guess. Selling gets easier having built the thing first; that was the point of building it.</div>
             <span class="priority done">Decided</span>
           </div>
           <div class="agenda-day weekend">
@@ -939,7 +943,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 9</span></div>
-            <div class="agenda-task"><strong>Thin the Fortress teasers</strong> — 17 placements advertise features that don't exist yet, across nearly every screen. Fine as intent, heavy as launch surface, and a reviewer seeing that much locked nothing may read it as an incomplete app. Keep the contextual ones, drop the rest until there's something behind them.</div>
+            <div class="agenda-task"><strong>Thin the remaining Fortress teasers</strong> — down from 17 to 8 now that nine features are real and their cards open the feature instead of a waitlist. The eight still advertising nothing are the hard ones: offline sync, wearables, nutrition, AI overload, plus the four that are content or policy rather than code. A reviewer seeing eight locked placeholders may still read the app as incomplete.</div>
             <span class="priority medium">Medium</span>
           </div>
           <div class="agenda-day">
