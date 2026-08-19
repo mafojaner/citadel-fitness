@@ -8,7 +8,7 @@ import { useWorkoutDraftStore } from '../state/workoutDraftStore';
  * The one correct way to open the workout draft for a date: always checks
  * the database first, so a day that already has saved exercises is loaded
  * rather than treated as empty. save_workout replaces a day's exercises
- * wholesale (see supabase/migration_005_transactional_save_workout.sql), so
+ * wholesale (see supabase/migrations/20260101000005_transactional_save_workout.sql), so
  * opening a draft that's blind to what's already saved and then confirming
  * it wipes out whatever was entered earlier that day through another entry
  * point. Every screen that opens the Add Workout draft — Home's "Log

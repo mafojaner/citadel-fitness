@@ -67,7 +67,7 @@ function mondayOfWeek(dateString: string): string {
  * Only same-day-logged entries count — fetchRewardEligibleWorkoutDates
  * excludes anything backdated through the Workouts calendar, so a day can't
  * be fabricated after the fact. See
- * supabase/migration_024_reward_eligibility.sql.
+ * supabase/migrations/20260101000024_reward_eligibility.sql.
  */
 export async function fetchRewardProgress(userId: string): Promise<RewardProgress> {
   const today = todayISO();

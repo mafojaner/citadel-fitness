@@ -15,7 +15,7 @@ interface DbLeaderboardRow {
 }
 
 /**
- * Backed by get_activity_leaderboard() — see supabase/migration_029_activity_leaderboard.sql.
+ * Backed by get_activity_leaderboard() — see supabase/migrations/20260101000029_activity_leaderboard.sql.
  * Ranks by distinct same-day-logged workout days in the trailing 7, top 50.
  */
 export async function fetchActivityLeaderboard(): Promise<LeaderboardEntry[]> {

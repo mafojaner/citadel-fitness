@@ -68,7 +68,7 @@ export async function fetchWorkoutDatesInRange(
  * weekly reward cycle — a separate function rather than a shared filter
  * flag, since the Workouts calendar's logged-day dots must still show
  * every real entry, backdated or not; only the rewards feature should
- * exclude backdated days. See supabase/migration_024_reward_eligibility.sql.
+ * exclude backdated days. See supabase/migrations/20260101000024_reward_eligibility.sql.
  */
 export async function fetchRewardEligibleWorkoutDates(
   userId: string,
@@ -175,14 +175,14 @@ export async function fetchWorkoutForDate(
  * happens inside a single transaction. Doing it as separate client requests
  * meant a failure partway through could destroy the existing day's data
  * without writing the replacement. See
- * supabase/migration_005_transactional_save_workout.sql.
+ * supabase/migrations/20260101000005_transactional_save_workout.sql.
  *
  * The user id is resolved from auth.uid() server-side, so it isn't passed in.
  *
  * weightUnit/distanceUnit are the units active *right now* — every set in
  * this save is tagged with them, so a later unit-preference switch can
  * never change what a past entry means. See
- * supabase/migration_009_set_entry_units.sql.
+ * supabase/migrations/20260101000009_set_entry_units.sql.
  *
  * `date === todayISO()` at the moment of saving determines whether this
  * day counts toward the weekly reward — computed here rather than passed
@@ -192,7 +192,7 @@ export async function fetchWorkoutForDate(
  * if that's the selected day) — only whether the date being saved really
  * is today right now. Only takes effect on first creation of a day; see
  * save_workout, which never rewrites it on an edit. See
- * supabase/migration_024_reward_eligibility.sql.
+ * supabase/migrations/20260101000024_reward_eligibility.sql.
  */
 export async function saveWorkout(
   date: string,
