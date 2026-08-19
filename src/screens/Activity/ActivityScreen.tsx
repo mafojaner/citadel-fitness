@@ -502,7 +502,11 @@ export function ActivityScreen() {
           summarise. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
       <FortressFeatureCard featureId="advanced-analytics" />
-      <FortressFeatureCard featureId="pr-vault" />
+      {/* Built — members get the vault itself rather than a teaser. */}
+      <FortressFeatureCard
+        featureId="pr-vault"
+        onOpen={() => navigation.navigate('PersonalRecords')}
+      />
       <FortressFeatureCard featureId="goal-forecasting" />
       </ScreenContainer>
     </View>

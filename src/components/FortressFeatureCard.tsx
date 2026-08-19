@@ -16,6 +16,14 @@ interface FortressFeatureCardProps {
   /** id from APP_FEATURES — title, description, icon and colours all come from there. */
   featureId: string;
   /**
+   * What to do when a member taps, for features that are actually built.
+   * Its presence is what distinguishes "yours, go and use it" from "paid
+   * for, still coming" — so a feature graduates from teaser to real entry
+   * point by passing this, with nothing else to remember to change.
+   * Free accounts are unaffected: they still route to the Fortress page.
+   */
+  onOpen?: () => void;
+  /**
    * 'card' stands on its own among other cards. 'row' belongs inside a
    * SettingsSection, which already draws the surface and border — a Card in
    * there nests one bordered box inside another and gets its shadow clipped
@@ -30,16 +38,16 @@ type Nav = CompositeNavigationProp<
 >;
 
 /**
- * A premium feature shown where it will actually live, before it does
- * anything. Free accounts get a lock and a route to the Fortress page;
- * members get "Coming soon" instead, because telling someone who paid that
- * a feature is locked would be wrong.
+ * A premium feature shown where it will actually live. Free accounts get a
+ * lock and a route to the Fortress page; members get "Coming soon" instead,
+ * because telling someone who paid that a feature is locked would be wrong
+ * — or, once `onOpen` is supplied, the feature itself.
  *
  * Copy is pulled from featureCatalog by id rather than passed in, so these
  * placements can't drift from the Fortress page's own list the way the
  * landing page's chips once did.
  */
-export function FortressFeatureCard({ featureId, variant = 'card' }: FortressFeatureCardProps) {
+export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: FortressFeatureCardProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<Nav>();
   const isFortress = useIsFortress();
@@ -47,9 +55,13 @@ export function FortressFeatureCard({ featureId, variant = 'card' }: FortressFea
   const feature = APP_FEATURES.find((f) => f.id === featureId);
   if (!feature) return null;
 
-  const badgeLabel = isFortress ? 'Coming soon' : 'Fortress';
-  const openFortress = () =>
-    navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'fortress' } });
+  const unlocked = isFortress && Boolean(onOpen);
+  const badgeLabel = unlocked ? 'Open' : isFortress ? 'Coming soon' : 'Fortress';
+  const badgeIcon = unlocked ? 'sparkles' : isFortress ? 'time-outline' : 'lock-closed';
+  const onPress =
+    unlocked && onOpen
+      ? onOpen
+      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'fortress' } });
 
   const badge = (
     <View
@@ -63,7 +75,7 @@ export function FortressFeatureCard({ featureId, variant = 'card' }: FortressFea
         paddingVertical: 2,
       }}
     >
-      <Ionicons name={isFortress ? 'time-outline' : 'lock-closed'} size={10} color={colors.primary} />
+      <Ionicons name={badgeIcon} size={10} color={colors.primary} />
       <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary }}>{badgeLabel}</Text>
     </View>
   );
@@ -75,7 +87,7 @@ export function FortressFeatureCard({ featureId, variant = 'card' }: FortressFea
         iconColors={feature.colors}
         title={feature.title}
         subtitle={feature.description}
-        onPress={openFortress}
+        onPress={onPress}
         // Both, because rightElement replaces the row's own chevron and this
         // still navigates somewhere.
         rightElement={
@@ -90,10 +102,14 @@ export function FortressFeatureCard({ featureId, variant = 'card' }: FortressFea
 
   return (
     <AnimatedPressable
-      onPress={openFortress}
+      onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${feature.title}. ${
-        isFortress ? 'Coming soon to Fortress.' : 'Fortress feature. Select to learn more.'
+        unlocked
+          ? 'Select to open.'
+          : isFortress
+            ? 'Coming soon to Fortress.'
+            : 'Fortress feature. Select to learn more.'
       }`}
       scaleTo={0.98}
     >
