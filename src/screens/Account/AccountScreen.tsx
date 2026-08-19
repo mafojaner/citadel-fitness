@@ -31,7 +31,11 @@ export function AccountScreen() {
 
   return (
     <ScreenContainer>
-      <Pressable onPress={() => navigation.navigate('ProfileSettings')}>
+      <Pressable
+        onPress={() => navigation.navigate('ProfileSettings')}
+        accessibilityRole="button"
+        accessibilityLabel="Edit your profile"
+      >
         {({ pressed }) => (
           <View
             style={{

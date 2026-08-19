@@ -243,7 +243,12 @@ export function AddWorkoutScreen() {
                     {nameFor(exercise.exerciseId)}
                   </Text>
                 </View>
-                <Pressable onPress={() => removeExercise(exercise.id)} hitSlop={8}>
+                <Pressable
+                  onPress={() => removeExercise(exercise.id)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${nameFor(exercise.exerciseId)}`}
+                >
                   <Ionicons name="trash-outline" size={20} color={colors.danger} />
                 </Pressable>
               </View>
@@ -353,7 +358,12 @@ export function AddWorkoutScreen() {
                       />
                     </>
                   )}
-                  <Pressable onPress={() => removeSet(exercise.id, set.id)} hitSlop={8}>
+                  <Pressable
+                    onPress={() => removeSet(exercise.id, set.id)}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${entryNoun} ${set.setNumber} of ${nameFor(exercise.exerciseId)}`}
+                  >
                     <Ionicons name="close-circle" size={22} color={colors.textMuted} />
                   </Pressable>
                 </View>

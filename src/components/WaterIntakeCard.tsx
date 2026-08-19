@@ -113,6 +113,11 @@ export function WaterIntakeCard() {
             onPress={() => addWater(amountMl)}
             disabled={mutating || loading}
             scaleTo={0.95}
+            accessibilityRole="button"
+            // The "+" is an icon, so the name would otherwise be bare
+            // "250 ml" — a quantity, with no hint that pressing logs it.
+            accessibilityLabel={`Add ${formatWaterAmount(amountMl, unit)}`}
+            accessibilityState={{ disabled: mutating || loading }}
             style={{
               flex: 1,
               flexDirection: 'row',
@@ -185,7 +190,12 @@ export function WaterIntakeCard() {
           </Pressable>
         </View>
       ) : (
-        <Pressable onPress={() => setCustomOpen(true)} hitSlop={8}>
+        <Pressable
+          onPress={() => setCustomOpen(true)}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Log a custom amount"
+        >
           <Text style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 13 }}>
             + Custom amount
           </Text>

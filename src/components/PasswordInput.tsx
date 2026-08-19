@@ -48,7 +48,14 @@ export function PasswordInput({
         editable={editable}
         style={{ flex: 1, paddingVertical: spacing.md, color: colors.textPrimary }}
       />
-      <Pressable onPress={() => setVisible((v) => !v)} hitSlop={8}>
+      {/* hitSlop 12 around a 20px icon gives a 44px target, the smallest
+          iOS and Android both consider reliably tappable. */}
+      <Pressable
+        onPress={() => setVisible((v) => !v)}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+      >
         <Ionicons name={visible ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
       </Pressable>
     </View>

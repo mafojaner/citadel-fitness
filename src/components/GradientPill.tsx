@@ -32,6 +32,10 @@ export function GradientPill({
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label}
+        // Which pill is active is otherwise conveyed only by the gradient,
+        // so without this a screen reader gives no way to tell the selected
+        // filter or unit from the rest.
+        accessibilityState={{ selected: false }}
         scaleTo={0.95}
         style={{
           flex: flex ? 1 : undefined,
@@ -58,6 +62,7 @@ export function GradientPill({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ selected: true }}
       scaleTo={0.95}
       style={{ flex: flex ? 1 : undefined }}
     >

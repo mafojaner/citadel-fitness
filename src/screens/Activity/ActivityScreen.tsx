@@ -71,7 +71,12 @@ function RankingCard() {
   const top = entries.slice(0, 3);
 
   return (
-    <AnimatedPressable onPress={() => navigation.navigate('Leaderboard')} scaleTo={0.98}>
+    <AnimatedPressable
+      onPress={() => navigation.navigate('Leaderboard')}
+      scaleTo={0.98}
+      accessibilityRole="button"
+      accessibilityLabel="Open leaderboard"
+    >
       <View
         style={{
           borderRadius: radius.lg,

@@ -91,7 +91,17 @@ export function SettingsRow({
   if (!onPress) return row;
 
   return (
-    <AnimatedPressable onPress={onPress} disabled={disabled || loading} scaleTo={0.98}>
+    // Composed into one label rather than left to the child Text nodes, so
+    // the current value ("Appearance, System") is announced with the row
+    // instead of as a separate stop after it.
+    <AnimatedPressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      scaleTo={0.98}
+      accessibilityRole="button"
+      accessibilityLabel={[title, value, subtitle].filter(Boolean).join(', ')}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
+    >
       {row}
     </AnimatedPressable>
   );

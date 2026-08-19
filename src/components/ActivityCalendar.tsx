@@ -73,8 +73,30 @@ export function ActivityCalendar({
       const isOtherMonth = state === 'disabled' || state === 'inactive';
       const isUncountedComplete = showEligibility && isMarked && !isRinged;
 
+      // A bare number is meaningless read aloud, and the dot and ring carry
+      // real information — logged, and reward-eligible — that exists only as
+      // colour otherwise. The full date is spelled out because "17" alone
+      // gives no way to know which month is on screen.
+      const spokenDate = new Date(`${date.dateString}T00:00:00`).toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      });
+      const marks = [
+        isMarked ? 'workout logged' : null,
+        isRinged ? 'counts toward reward' : null,
+        isUncountedComplete ? "logged, but doesn't count toward the reward" : null,
+        isToday ? 'today' : null,
+      ].filter(Boolean);
+
       return (
-        <Pressable onPress={() => onPress?.(date)} style={{ alignItems: 'center', paddingVertical: 4 }}>
+        <Pressable
+          onPress={() => onPress?.(date)}
+          accessibilityRole="button"
+          accessibilityLabel={[spokenDate, ...marks].join(', ')}
+          accessibilityState={{ selected: isSelected }}
+          style={{ alignItems: 'center', paddingVertical: 4 }}
+        >
           {isSelected ? (
             <GradientNumberBadge value={date.day} colors={gradients.calendar} size={32} fontSize={14} />
           ) : (

@@ -31,6 +31,9 @@ export function GradientButton({
         onPress={onPress}
         disabled={isDisabled}
         scaleTo={0.97}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
         style={{
           borderColor: gradientColors[gradientColors.length - 1],
           borderWidth: 1.5,
@@ -45,7 +48,18 @@ export function GradientButton({
   }
 
   return (
-    <AnimatedPressable onPress={onPress} disabled={isDisabled} scaleTo={0.97}>
+    // Labelled explicitly rather than relying on the child Text: while
+    // `loading` the label is swapped for a spinner, which would otherwise
+    // leave the button with no accessible name at exactly the moment
+    // someone is waiting to hear what it's doing. `busy` conveys the wait.
+    <AnimatedPressable
+      onPress={onPress}
+      disabled={isDisabled}
+      scaleTo={0.97}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+    >
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}

@@ -135,6 +135,8 @@ export function WorkoutsScreen() {
       <AnimatedPressable
         onPress={() => navigation.navigate('DayDetail', { date: selectedDate })}
         scaleTo={0.98}
+        accessibilityRole="button"
+        accessibilityLabel={`${formatDayLabel(selectedDate, today)}, view details`}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -37,6 +37,8 @@ export function CategoryGridCard({
     <AnimatedPressable
       onPress={onPress}
       scaleTo={0.96}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${count} ${count === 1 ? 'exercise' : 'exercises'}`}
       style={{ flexBasis: basis, flexGrow: 1, minWidth: 0 }}
     >
       <Card>

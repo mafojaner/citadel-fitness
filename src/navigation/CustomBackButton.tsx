@@ -12,7 +12,14 @@ export function CustomBackButton({ tintColor }: { tintColor?: string }) {
   const navigation = useNavigation();
 
   return (
-    <AnimatedPressable onPress={() => navigation.goBack()} hitSlop={12} scaleTo={0.85} style={{ padding: 4 }}>
+    <AnimatedPressable
+      onPress={() => navigation.goBack()}
+      hitSlop={12}
+      scaleTo={0.85}
+      style={{ padding: 4 }}
+      accessibilityRole="button"
+      accessibilityLabel="Go back"
+    >
       <Ionicons name="chevron-back" size={26} color={tintColor} />
     </AnimatedPressable>
   );

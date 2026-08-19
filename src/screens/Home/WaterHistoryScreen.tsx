@@ -113,6 +113,9 @@ export function WaterHistoryScreen() {
               onPress={() => addWater(amountMl)}
               disabled={mutating || loading}
               scaleTo={0.95}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${formatWaterAmount(amountMl, unit)}`}
+              accessibilityState={{ disabled: mutating || loading }}
               style={{
                 flex: 1,
                 flexDirection: 'row',

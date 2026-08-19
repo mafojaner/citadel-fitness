@@ -12,6 +12,9 @@ interface AnimatedPressableProps {
   children: ReactNode;
   accessibilityRole?: PressableProps['accessibilityRole'];
   accessibilityLabel?: string;
+  /** Disabled/busy/selected, so assistive tech can announce state rather than just a name. */
+  accessibilityState?: PressableProps['accessibilityState'];
+  accessibilityHint?: string;
   hitSlop?: PressableProps['hitSlop'];
   /** How far it shrinks on press, as a scale factor. Defaults to a subtle tap. */
   scaleTo?: number;
