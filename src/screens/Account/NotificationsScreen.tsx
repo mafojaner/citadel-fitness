@@ -13,6 +13,7 @@ import {
   requestNotificationPermission,
   scheduleDailyReminder,
 } from '../../lib/notifications';
+import { useIsFortress } from '../../hooks/useIsFortress';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import type { ArticleCategory } from '../../types/models';
@@ -22,6 +23,7 @@ import { useTheme } from '../../theme/useTheme';
 export function NotificationsScreen() {
   const { colors, spacing, typography } = useTheme();
   const userId = useAuthStore((s) => s.session?.user.id);
+  const isFortress = useIsFortress();
   const preferences = useProfileStore((s) => s.preferences);
   const savePreferences = useProfileStore((s) => s.savePreferences);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +55,16 @@ export function NotificationsScreen() {
       await savePreferences(userId, {
         articleNotifications: { ...preferences.articleNotifications, [category]: value },
       });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save preference');
+    }
+  };
+
+  const onToggleWeeklyDigest = async (weeklyDigest: boolean) => {
+    if (!userId) return;
+    setError(null);
+    try {
+      await savePreferences(userId, { weeklyDigest });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save preference');
     }
@@ -130,6 +142,40 @@ export function NotificationsScreen() {
             thumbColor={colors.surface}
           />
         </View>
+
+        {/* Only for members: the digest is a Fortress feature, and offering
+            a switch that silently does nothing is worse than not offering
+            it. Free accounts see the feature card on the Account screen
+            instead, which explains what it is. */}
+        {isFortress ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.md,
+              paddingTop: spacing.sm,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+            }}
+          >
+            <GradientIconBadge icon="mail-unread" colors={gradients.identity} size={32} />
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Text style={[typography.body, { color: colors.textPrimary }]}>
+                Weekly digest
+              </Text>
+              <Text style={[typography.caption, { color: colors.textMuted }]}>
+                A Sunday recap of your week and what to aim at next. Skipped entirely on a
+                week you didn&apos;t train.
+              </Text>
+            </View>
+            <Switch
+              value={preferences.weeklyDigest}
+              onValueChange={onToggleWeeklyDigest}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.surface}
+            />
+          </View>
+        ) : null}
       </Card>
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}

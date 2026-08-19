@@ -21,6 +21,12 @@ export interface ProfilePreferences {
   dailyWaterGoalMl: number;
   /** Seconds the rest timer counts down between sets. Fortress feature; ignored otherwise. */
   restTimerSeconds: number;
+  /**
+   * Sunday recap email. Fortress-only and opt-in for the same reason
+   * emailNewsletter is: a real inbox email should be asked for, not
+   * assumed, even from someone who is paying.
+   */
+  weeklyDigest: boolean;
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
@@ -42,6 +48,7 @@ export const DEFAULT_PREFERENCES: ProfilePreferences = {
   // 90s suits most compound work — long enough to recover, short enough
   // that the timer stays a nudge rather than a break. Editable per session.
   restTimerSeconds: 90,
+  weeklyDigest: false,
 };
 
 export interface RawProfile {

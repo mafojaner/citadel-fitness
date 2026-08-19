@@ -1,0 +1,38 @@
+name: Weekly digest
+
+# Sunday 17:00 UTC — early evening in Europe, still Sunday everywhere the
+# app is likely used, and after most people's weekend training rather than
+# in the middle of it.
+#
+# Scheduled here rather than with pg_cron deliberately: a database cron job
+# calling an Edge Function needs the service role key written into the
+# scheduled statement, which would mean committing a secret into a
+# migration. GitHub Actions references secrets without storing them.
+on:
+  schedule:
+    - cron: '0 17 * * 0'
+  # So a first run can be proved end to end without waiting for Sunday.
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger digest
+        env:
+          FUNCTION_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          if [ -z "$FUNCTION_URL" ] || [ -z "$WEBHOOK_SECRET" ]; then
+            echo "SUPABASE_FUNCTIONS_URL or WEBHOOK_SECRET is not set — skipping."
+            echo "Add both under Settings → Secrets and variables → Actions."
+            exit 0
+          fi
+
+          # --fail-with-body so a non-2xx fails the run *and* still prints
+          # the function's own error, rather than a bare exit code.
+          curl --fail-with-body -sS -X POST \
+            "$FUNCTION_URL/send-weekly-digest" \
+            -H "x-webhook-secret: $WEBHOOK_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{}'

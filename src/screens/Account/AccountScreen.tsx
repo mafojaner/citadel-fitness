@@ -173,7 +173,13 @@ export function AccountScreen() {
         <FortressFeatureCard featureId="priority-support" variant="row" />
         <FortressFeatureCard featureId="early-access" variant="row" />
         <FortressFeatureCard featureId="offline-sync" variant="row" />
-        <FortressFeatureCard featureId="weekly-digest" variant="row" />
+        {/* Built — the switch itself lives with the other email settings,
+            so members land where they'd expect to turn it off again. */}
+        <FortressFeatureCard
+          featureId="weekly-digest"
+          variant="row"
+          onOpen={() => navigation.navigate('Notifications')}
+        />
         <FortressFeatureCard featureId="wearable-sync" variant="row" />
         <FortressFeatureCard featureId="referral" variant="row" />
       </SettingsSection>
