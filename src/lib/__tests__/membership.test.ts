@@ -68,18 +68,32 @@ describe('the catalogue', () => {
     }
   });
 
-  it('puts the human-delivered features in Valhalla', () => {
-    // The split is marginal cost per member: form check, nutrition
-    // coaching and priority support all have a person on the other end,
-    // and early access costs nothing to give the top tier. Pinned so they
-    // can't drift back down to a tier that couldn't afford to serve them.
+  it('puts everything prescriptive in Valhalla', () => {
+    // Fortress tells you what you did; Valhalla tells you what to do next,
+    // whether a coach or an algorithm does the prescribing. Pinned because
+    // the line is easy to blur one feature at a time.
     const valhallaIds = APP_FEATURES.filter((f) => f.tier === 'valhalla').map((f) => f.id).sort();
     expect(valhallaIds).toEqual([
+      'ai-progressive-overload',
       'early-access',
+      'expert-guides',
       'form-check',
       'nutrition-coaching',
       'priority-support',
+      'wearable-sync',
     ]);
+  });
+
+  it('leaves every shipped feature in Fortress', () => {
+    // Promoting a built feature would take something Fortress can
+    // demonstrate today and put it behind a tier that ships nothing yet.
+    for (const id of [
+      'pr-vault', 'advanced-analytics', 'data-export', 'goal-forecasting',
+      'advanced-logging', 'private-groups', 'weekly-digest',
+      'structured-programs', 'referral',
+    ]) {
+      expect(APP_FEATURES.find((f) => f.id === id)?.tier).toBe('fortress');
+    }
   });
 
   it('does not promise automation for a coached service', () => {
@@ -91,12 +105,11 @@ describe('the catalogue', () => {
     expect(nutrition?.description).not.toMatch(/automatic/i);
   });
 
-  it('keeps content features in Fortress, where serving them costs nothing extra', () => {
-    // Video and written guides are expensive to produce once and free to
-    // serve, so promoting them would shrink the audience without saving
-    // anything.
-    for (const id of ['video-guides', 'expert-guides']) {
-      expect(APP_FEATURES.find((f) => f.id === id)?.tier).toBe('fortress');
-    }
+  it('keeps video in Fortress but not the monthly guides', () => {
+    // Video is filmed once and served for nothing thereafter, so holding it
+    // higher would shrink its audience and save nothing. The guide library
+    // is new writing every month, so it costs something every month.
+    expect(APP_FEATURES.find((f) => f.id === 'video-guides')?.tier).toBe('fortress');
+    expect(APP_FEATURES.find((f) => f.id === 'expert-guides')?.tier).toBe('valhalla');
   });
 });

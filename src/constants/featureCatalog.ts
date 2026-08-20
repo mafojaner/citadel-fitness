@@ -11,7 +11,7 @@ export interface AppFeature {
   title: string;
   description: string;
   tier: FeatureTier;
-  /** Whether this row shows up in the Free vs Fortress comparison table on FortressScreen. */
+  /** Whether this row shows up in the tier comparison table on FortressScreen. */
   showInComparison: boolean;
 }
 
@@ -24,12 +24,17 @@ export interface AppFeature {
  * places until caught. Reclassify a feature by moving its `tier` here
  * instead of editing FortressScreen directly.
  *
- * Three tiers, split by marginal cost per member rather than by how hard
- * something was to build. Fortress is what software serves for effectively
- * nothing extra per person — including video and written guides, which are
- * expensive to produce once and then free to serve, so putting them higher
- * would shrink their audience without saving anything. Valhalla is where a
- * human is on the other end and every member costs real hours.
+ * Three tiers, on a line someone can state in a sentence: Fortress tells
+ * you what you did, Valhalla tells you what to do next. Records, analysis
+ * and export sit in the middle; anything prescriptive sits at the top,
+ * whether a coach or an algorithm does the prescribing.
+ *
+ * That mostly follows marginal cost per member, which is the underlying
+ * reason. Video demonstrations stay in Fortress because they are filmed
+ * once and then served for nothing, while the expert guide library is new
+ * writing every month and so costs something every month. Wearable sync
+ * sits above not because syncing is expensive but because recovery data
+ * exists to change what you are told to do.
  */
 export const APP_FEATURES: AppFeature[] = [
   // ---- Free, live today ----
@@ -68,7 +73,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.identity,
     title: 'AI progressive overload',
     description: 'A smarter weight and rep suggestion for every set, tuned to how your last session actually went.',
-    tier: 'fortress',
+    tier: 'valhalla',
     showInComparison: true,
   },
   {
@@ -135,7 +140,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.arms,
     title: 'Expert guide library',
     description: 'In-depth programs and technique breakdowns written by coaches, with new guides added monthly.',
-    tier: 'fortress',
+    tier: 'valhalla',
     showInComparison: false,
   },
   {
@@ -214,7 +219,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.arms,
     title: 'Wearable sync',
     description: 'Connect Apple Health or Whoop so recovery and heart-rate data feed straight into your training suggestions.',
-    tier: 'fortress',
+    tier: 'valhalla',
     showInComparison: false,
   },
   {
