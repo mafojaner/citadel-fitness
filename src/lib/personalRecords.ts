@@ -1,6 +1,29 @@
+import { supabase } from './supabase';
 import { roundForDisplay } from './units';
-import { fetchExerciseHistories, type ExerciseHistory } from './workoutHistory';
+import { type ExerciseHistory } from './workoutHistory';
 import type { Category, DistanceUnit, ExerciseType, WeightUnit } from '../types/models';
+
+/** One row of get_personal_records, snake_case as Postgres returns it. */
+interface ServerPersonalRecord {
+  exercise_id: string;
+  exercise_name: string;
+  category: string;
+  type: string;
+  heaviest_weight: number | string;
+  heaviest_weight_reps: number;
+  heaviest_weight_date: string | null;
+  estimated_one_rep_max: number | string;
+  estimated_one_rep_max_date: string | null;
+  longest_duration_seconds: number;
+  longest_duration_date: string | null;
+  farthest_distance: number | string;
+  farthest_distance_date: string | null;
+  best_session_value: number | string;
+  best_session_date: string | null;
+  /** bigint — arrives as a string, so every numeric here goes through Number(). */
+  total_sets: number | string;
+  last_performed: string;
+}
 
 export type { ExerciseHistory, RecordSet } from './workoutHistory';
 
@@ -133,12 +156,48 @@ export function computePersonalRecords(histories: ExerciseHistory[]): PersonalRe
   return records.sort((a, b) => (a.lastPerformed < b.lastPerformed ? 1 : -1));
 }
 
+/**
+ * Records come from the server now, not from history computed here.
+ *
+ * `computePersonalRecords` above is still the definition of the arithmetic
+ * and still carries the tests, but it is no longer what the app runs: the
+ * same derivation exists in `get_personal_records`, and that one is gated.
+ * Computing locally meant every line of the feature shipped in the bundle,
+ * so unlocking it was a matter of flipping the tier check the client itself
+ * evaluated. Now a free caller gets an exception from Postgres.
+ *
+ * The two must not drift. If the Epley cap, the tie-to-earliest rule or a
+ * unit constant changes in one, it changes in the other — see the migration,
+ * which names this file for the same reason.
+ */
 export async function fetchPersonalRecords(
-  userId: string,
+  _userId: string,
   displayWeightUnit: WeightUnit,
   displayDistanceUnit: DistanceUnit
 ): Promise<PersonalRecord[]> {
-  return computePersonalRecords(
-    await fetchExerciseHistories(userId, displayWeightUnit, displayDistanceUnit)
-  );
+  const { data, error } = await supabase.rpc('get_personal_records', {
+    p_weight_unit: displayWeightUnit,
+    p_distance_unit: displayDistanceUnit,
+  });
+  if (error) throw error;
+
+  return (data ?? []).map((row: ServerPersonalRecord) => ({
+    exerciseId: row.exercise_id,
+    exerciseName: row.exercise_name,
+    category: row.category as Category,
+    type: row.type as ExerciseType,
+    heaviestWeight: roundForDisplay(Number(row.heaviest_weight)),
+    heaviestWeightReps: row.heaviest_weight_reps,
+    heaviestWeightDate: row.heaviest_weight_date,
+    estimatedOneRepMax: roundForDisplay(Number(row.estimated_one_rep_max)),
+    estimatedOneRepMaxDate: row.estimated_one_rep_max_date,
+    longestDurationSeconds: row.longest_duration_seconds,
+    longestDurationDate: row.longest_duration_date,
+    farthestDistance: roundForDisplay(Number(row.farthest_distance)),
+    farthestDistanceDate: row.farthest_distance_date,
+    bestSessionValue: roundForDisplay(Number(row.best_session_value)),
+    bestSessionDate: row.best_session_date,
+    totalSets: Number(row.total_sets),
+    lastPerformed: row.last_performed,
+  }));
 }
