@@ -39,7 +39,7 @@ export function WorkoutsStack() {
         component={DayDetailScreen}
         options={{ title: 'Day Detail' }}
       />
-      <Stack.Screen name="Programs" component={ProgramsScreen} options={{ title: 'Programs' }} />
+      <Stack.Screen name="Programs" component={ProgramsScreen} options={{ title: 'Programs' }} />
     </Stack.Navigator>
   );
 }

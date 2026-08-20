@@ -30,3 +30,25 @@ jobs:
       - name: Test
         if: '!cancelled()'
         run: npm test -- --ci
+
+      # A stray control character once reached production inside a JSX tree,
+      # where React Navigation read it as a text child and the whole
+      # Workouts tab crashed. Typecheck, lint and the full suite were all
+      # green throughout — the byte is invisible to every one of them — so
+      # this is the only gate that would have caught it.
+      # tr rather than `grep -P`, which needs a Perl-enabled build and a
+      # cooperative locale and silently matches nothing when it lacks
+      # either — a guard that quietly never fires is worse than none.
+      # This strips tab, newline, CR and every printable byte; whatever
+      # survives is a control character.
+      - name: No stray control characters
+        if: '!cancelled()'
+        run: |
+          hits=$(find src supabase \( -name '*.ts' -o -name '*.tsx' -o -name '*.sql' \) -type f \
+            -exec sh -c 'LC_ALL=C tr -d "\11\12\15\40-\176\200-\377" < "$1" | head -c1 | grep -q . && echo "$1"' _ {} \;)
+          if [ -n "$hits" ]; then
+            echo "$hits"
+            echo "::error::Control character found in the file(s) above."
+            exit 1
+          fi
+          echo "Clean."
