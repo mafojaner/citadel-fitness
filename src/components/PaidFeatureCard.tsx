@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
 import { GradientIconBadge } from './GradientIconBadge';
@@ -49,8 +49,8 @@ type Nav = CompositeNavigationProp<
  * footer on the thing it extends, the offer arrives while you're looking at
  * the shallower version.
  *
- * Carries the tier colour as a dot, since there's no room for a spine and no
- * card edge to run it down.
+ * Carries the tier as a pill beside the label, and the feature's own icon
+ * badge on the left, so it reads as a link rather than a form control.
  */
 export function PaidFeatureLink({
   featureId,
@@ -98,25 +98,39 @@ export function PaidFeatureLink({
           borderTopColor: colors.border,
         }}
       >
-        <View
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: accent.accent,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: accent.border,
-          }}
-        />
-        <Text style={[typography.caption, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '600' }]}>
-          {unlocked ? label : `${label} — ${TIER_LABELS[feature.tier]}`}
+        {/* The feature's own gradient badge, small. A plain tier-coloured
+            dot was tried and read as an unselected radio button — an empty
+            white circle beside a label is a control you tick, not a link
+            you follow. The badge says which feature this is, and the pill
+            beside the label carries the tier. */}
+        <GradientIconBadge icon={feature.icon} colors={feature.colors} size={26} />
+        <Text
+          style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '600' }]}
+          numberOfLines={1}
+        >
+          {label}
         </Text>
-        <Ionicons
-          name={unlocked ? 'chevron-forward' : 'lock-closed'}
-          size={14}
-          color={colors.textMuted}
-          style={{ borderRadius: radius.sm }}
-        />
+        {!unlocked ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: accent.accent,
+              borderWidth: 1,
+              borderColor: accent.border,
+              borderRadius: radius.pill,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: 2,
+            }}
+          >
+            <Ionicons name="lock-closed" size={9} color={accent.onAccent} />
+            <Text style={{ fontSize: 10, fontWeight: '700', color: accent.onAccent }}>
+              {TIER_LABELS[feature.tier]}
+            </Text>
+          </View>
+        ) : null}
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
       </View>
     </AnimatedPressable>
   );

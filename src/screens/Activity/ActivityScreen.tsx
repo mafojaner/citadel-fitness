@@ -517,16 +517,24 @@ export function ActivityScreen() {
           Advanced analytics used to sit here too and now lives on the chart
           it actually deepens — leaving a "Going deeper" heading over two
           cards, which is a heading doing no work, so it's gone. */}
-      <PaidFeatureLink
-        featureId="pr-vault"
-        label="Your personal records"
-        onOpen={() => navigation.navigate('PersonalRecords')}
-      />
-      <PaidFeatureLink
-        featureId="goal-forecasting"
-        label="Set a target and track it"
-        onOpen={() => navigation.navigate('GoalForecast')}
-      />
+      {/* Inside a Card, not loose at the end of the screen. As bare rows they
+          were the last thing in the scroll view, which put them under the
+          floating tab bar: the tap landed on the tab and switched screens
+          instead of opening the feature, which reads as "the link does
+          nothing". The Card also gives them a surface, so they stop looking
+          like list separators. */}
+      <Card>
+        <PaidFeatureLink
+          featureId="pr-vault"
+          label="Your personal records"
+          onOpen={() => navigation.navigate('PersonalRecords')}
+        />
+        <PaidFeatureLink
+          featureId="goal-forecasting"
+          label="Set a target and track it"
+          onOpen={() => navigation.navigate('GoalForecast')}
+        />
+      </Card>
       </ScreenContainer>
     </View>
   );
