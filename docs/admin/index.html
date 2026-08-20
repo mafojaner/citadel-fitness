@@ -484,6 +484,8 @@
   .priority.done { background: var(--good-soft); color: var(--good); }
   .priority.slipped { background: var(--bad-soft); color: var(--bad); }
   .priority.check { background: var(--flag-soft); color: var(--flag); border: 1px dashed var(--flag-border); }
+  .priority.blocks { background: var(--bad-soft); color: var(--bad); }
+  .priority.ready { background: var(--good-soft); color: var(--good); }
   .agenda-day.slipped .agenda-task { color: var(--mist); }
   .agenda-day.slipped .agenda-task strong { color: var(--slate); }
 </style>
@@ -1007,6 +1009,42 @@
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 21</span></div>
             <div class="agenda-task"><strong>Submit the Play Console production release</strong> &mdash; only once every row in the checklist above is checked.</div>
             <span class="priority critical">Critical</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Making the tiers sellable — after launch</h3></div>
+
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span><strong>Phases, not dates.</strong> Everything above this line has a day against it because the work and its order were both known. Past launch neither is: the sequence below is forced by dependency rather than calendar, and putting October dates on it would be inventing precision the plan doesn't have. Each phase starts when the one before it finishes.</span>
+        </div>
+
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 1 — Billing, which gates everything else.</strong> Nothing can be sold until this exists, so no tier work matters before it. RevenueCat (one integration covering Play Billing and StoreKit), the products configured in each console, a <code>subscriptions</code> table carrying status/provider/period rather than today's single <code>membership_tier</code> column, an Edge Function verifying the provider's webhook signature and writing entitlement server-side, then the purchase and restore-purchases flows. Two weeks of real work, and the largest security surface the app will ever add &mdash; which is exactly why it sits after a launch gated on being confident the app is secure, not before it.</div>
+            <span class="priority blocks">Blocks all</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 2 — Fortress goes on sale.</strong> It can, the moment billing works: nine features are already built, live in production and demonstrable. Nothing else is needed. Entitlement flips from the hand-granted column to whatever the webhook writes, and <code>migration_036</code>'s column allowlist already prevents a client touching it.</div>
+            <span class="priority ready">Ready</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 3 — Valhalla cannot go on sale yet, and not for a code reason.</strong> All seven of its features are unbuilt, and four of them (form check, nutrition coaching, priority support, and the guides written monthly) need a person, not a deploy. <strong>Selling it before a coach exists would be taking money for nothing.</strong> The gate is: decide who delivers the human work, set a hard cap on reviews per member per month, and close enrollment when that cap is reached &mdash; a waitlist here is the feature, not the failure. At fifteen minutes a review and four a month, ten members is an evening a week and fifty is a job.</div>
+            <span class="priority blocks">Blocked on people</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 4 — build what Valhalla actually sells.</strong> Ordered by what unblocks the tier soonest. <em>Form check</em> needs a submissions table, video upload and a review queue &mdash; the only one where the app itself is the bottleneck rather than the coach. <em>Priority support</em> is mostly routing: flag a member's feedback and answer it first. <em>Nutrition coaching</em> needs an intake form and somewhere for a coach to reply. <em>Expert guides</em> reuses the articles infrastructure already shipped, so it is writing rather than engineering.</div>
+            <span class="priority high">After 3</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 5 — the four genuinely hard ones, on their own merits.</strong> <em>AI progressive overload</em> can start as a readable heuristic over logged history rather than a model, which is cheaper and easier to defend to a user. <em>Wearable sync</em> means HealthKit and Whoop, native permissions and a fresh Data Safety declaration. <em>Offline sync</em> is a local write queue plus conflict resolution &mdash; the hardest thing on this list, and the one most likely to lose data if rushed. <em>Video demonstrations</em> is filming 125 exercises: a production budget, not a sprint. None of these should be promised a date until the one before it is done.</div>
+            <span class="priority medium">Unscheduled</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Standing rule — the catalogue is the contract.</strong> <code>featureCatalog.ts</code> drives every feature card, the tier grid and the comparison table, so a feature's tier and its wording move together or the pitch outruns the product. Three descriptions have already been corrected this way (tempo, challenges, and nutrition's &ldquo;automatically&rdquo;), and tests now pin the tier split, the no-automation promise, and that no shipped feature drifts out of Fortress.</div>
+            <span class="priority medium">Standing</span>
           </div>
         </div>
       </section>
