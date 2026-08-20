@@ -103,8 +103,12 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'nutrition',
     colors: gradients.pulse,
     title: 'Nutrition coaching',
-    description: 'Macro targets built around your training load, adjusted automatically as your program changes.',
-    tier: 'fortress',
+    // Was "adjusted automatically" while this sat in Fortress, which
+    // described an algorithm. It's a coached service now, so the promise
+    // has to move with the tier — otherwise Valhalla is charging a human
+    // price for something the copy says a program does by itself.
+    description: 'Macro targets set with a coach around your training load, and revisited as your program changes.',
+    tier: 'valhalla',
     showInComparison: true,
   },
   {

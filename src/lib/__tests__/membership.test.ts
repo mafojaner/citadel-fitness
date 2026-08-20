@@ -69,11 +69,26 @@ describe('the catalogue', () => {
   });
 
   it('puts the human-delivered features in Valhalla', () => {
-    // The split is marginal cost per member. These three are the ones
-    // where a person is on the other end, or which cost nothing to give
-    // the top tier — so they must not drift back down.
+    // The split is marginal cost per member: form check, nutrition
+    // coaching and priority support all have a person on the other end,
+    // and early access costs nothing to give the top tier. Pinned so they
+    // can't drift back down to a tier that couldn't afford to serve them.
     const valhallaIds = APP_FEATURES.filter((f) => f.tier === 'valhalla').map((f) => f.id).sort();
-    expect(valhallaIds).toEqual(['early-access', 'form-check', 'priority-support']);
+    expect(valhallaIds).toEqual([
+      'early-access',
+      'form-check',
+      'nutrition-coaching',
+      'priority-support',
+    ]);
+  });
+
+  it('does not promise automation for a coached service', () => {
+    // Nutrition coaching moved tiers because a person delivers it. If the
+    // copy still said "automatically", Valhalla would be charging a human
+    // price for something described as running itself.
+    const nutrition = APP_FEATURES.find((f) => f.id === 'nutrition-coaching');
+    expect(nutrition?.tier).toBe('valhalla');
+    expect(nutrition?.description).not.toMatch(/automatic/i);
   });
 
   it('keeps content features in Fortress, where serving them costs nothing extra', () => {
