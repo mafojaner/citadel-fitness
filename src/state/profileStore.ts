@@ -11,7 +11,12 @@ import {
 interface ProfileState {
   name: string;
   avatarUrl: string | null;
-  /** Fortress join date, or null on the free tier. Read via useIsFortress rather than directly. */
+  /**
+   * When this account started paying, or null on the free tier — for either
+   * paid tier, despite the name. Kept as `fortressSince` because the field
+   * is persisted: renaming it would read as absent on every device that
+   * rehydrates an older store. Ask useMembershipTier which tier, not this.
+   */
   fortressSince: string | null;
   membershipTier: MembershipTier;
   preferences: ProfilePreferences;

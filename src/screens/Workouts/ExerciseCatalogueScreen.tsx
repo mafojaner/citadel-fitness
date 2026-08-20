@@ -8,7 +8,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
-import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
@@ -239,7 +239,7 @@ export function ExerciseCatalogueScreen() {
                   taught us that stacking one bordered surface inside another
                   doubles the background and clips the shadow. This is where
                   the text description ends and a video would begin. */}
-              <FortressFeatureCard featureId="video-guides" />
+              <PaidFeatureCard featureId="video-guides" />
             </PopInView>
           </Pressable>
         </Pressable>

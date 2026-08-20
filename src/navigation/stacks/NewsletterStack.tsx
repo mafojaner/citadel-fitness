@@ -5,8 +5,8 @@ import { useTheme } from '../../theme/useTheme';
 import { stackScreenOptions } from '../screenOptions';
 
 export type NewsletterStackParamList = {
-  /** `tab` lets the Fortress pane be linked to directly, so a locked feature elsewhere can point at what unlocks it. */
-  Newsletter: { tab?: 'newsletter' | 'fortress' } | undefined;
+  /** `tab` lets the Plans pane be linked to directly, so a locked feature elsewhere can point at what unlocks it. */
+  Newsletter: { tab?: 'newsletter' | 'plans' } | undefined;
   ArticleDetail: { articleId: string };
 };
 

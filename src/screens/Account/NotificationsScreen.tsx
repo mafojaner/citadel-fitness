@@ -13,7 +13,7 @@ import {
   requestNotificationPermission,
   scheduleDailyReminder,
 } from '../../lib/notifications';
-import { useIsFortress } from '../../hooks/useIsFortress';
+import { useIsFortress } from '../../hooks/useMembership';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import type { ArticleCategory } from '../../types/models';

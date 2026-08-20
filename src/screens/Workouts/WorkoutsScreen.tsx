@@ -7,7 +7,7 @@ import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
@@ -187,7 +187,7 @@ export function WorkoutsScreen() {
       {/* Below the calendar rather than above it: this is an alternative to
           building a day one workout at a time, so it reads better after
           you've seen how that manual flow works than before it. */}
-      <FortressFeatureCard
+      <PaidFeatureCard
         featureId="structured-programs"
         onOpen={() => navigation.navigate('Programs')}
       />

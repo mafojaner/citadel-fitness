@@ -3,25 +3,27 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { SegmentedControl } from '../../components/SegmentedControl';
-import { FortressScreen } from '../Fortress/FortressScreen';
+import { PlansScreen } from '../Plans/PlansScreen';
 import { useContentMaxWidth } from '../../hooks/useResponsiveLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { NewsletterStackParamList } from '../../navigation/stacks/NewsletterStack';
 import { NewsletterScreen } from './NewsletterScreen';
 
-type LearnTab = 'newsletter' | 'fortress';
+type LearnTab = 'newsletter' | 'plans';
 
 const TABS: { label: string; value: LearnTab }[] = [
   { label: 'Newsletter', value: 'newsletter' },
-  { label: 'Fortress', value: 'fortress' },
+  { label: 'Plans', value: 'plans' },
 ];
 
 /**
  * The Learn tab's landing screen: a switcher between the free newsletter
- * and Fortress, which now lives here as "the newsletter for premium
- * features" rather than its own bottom tab. Search moved to its own
- * bottom-nav tab (covers exercises and newsletters together), so this
- * screen no longer has its own search field.
+ * and Plans, which lives here rather than in its own bottom tab. It was
+ * labelled "Fortress" while Fortress was the only thing to buy; with three
+ * tiers the pane compares them, so the label names the choice rather than
+ * one of the options. Search moved to its own bottom-nav tab (covers
+ * exercises and newsletters together), so this screen no longer has its own
+ * search field.
  */
 export function LearnScreen() {
   const { colors, spacing } = useTheme();
@@ -54,7 +56,7 @@ export function LearnScreen() {
         </View>
       </View>
       <View style={{ flex: 1 }}>
-        {tab === 'newsletter' ? <NewsletterScreen /> : <FortressScreen />}
+        {tab === 'newsletter' ? <NewsletterScreen /> : <PlansScreen />}
       </View>
     </View>
   );

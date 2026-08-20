@@ -11,18 +11,18 @@ export interface AppFeature {
   title: string;
   description: string;
   tier: FeatureTier;
-  /** Whether this row shows up in the tier comparison table on FortressScreen. */
+  /** Whether this row shows up in the tier comparison table on PlansScreen. */
   showInComparison: boolean;
 }
 
 /**
  * Single source of truth for which tier each feature belongs to, read by
- * FortressScreen for both the feature-tile grid and the comparison table.
+ * PlansScreen for both the feature-tile grid and the comparison table.
  * Before this existed, those two lists were hardcoded separately and could
  * (and did) drift out of sync with what the app actually ships for free —
  * e.g. leaderboards shipped free but stayed marked Fortress-only in both
  * places until caught. Reclassify a feature by moving its `tier` here
- * instead of editing FortressScreen directly.
+ * instead of editing PlansScreen directly.
  *
  * Three tiers, on a line someone can state in a sentence: Fortress tells
  * you what you did, Valhalla tells you what to do next. Records, analysis
@@ -243,3 +243,47 @@ export const APP_FEATURES: AppFeature[] = [
     showInComparison: false,
   },
 ];
+
+export interface TierPitch {
+  tier: FeatureTier;
+  /** Two families because Fortress kept the rook it has always been drawn with. */
+  icon: { family: 'ionicon'; name: keyof typeof Ionicons.glyphMap } | { family: 'material-community'; name: string };
+  /** One line on what you get, in the same voice for all three so they compare. */
+  tagline: string;
+  /**
+   * What it costs. No numbers anywhere yet — billing isn't built, and a
+   * price on screen before there is a way to charge it is a promise the app
+   * can't keep.
+   */
+  price: string;
+  /** Shown under the price where the tier has a real constraint. */
+  note?: string;
+}
+
+/** Cheapest first — the order the plans are drawn in, and the order they unlock. */
+export const TIER_ORDER: FeatureTier[] = ['free', 'fortress', 'valhalla'];
+
+export const TIER_PITCH: Record<FeatureTier, TierPitch> = {
+  free: {
+    tier: 'free',
+    icon: { family: 'ionicon', name: 'barbell' },
+    tagline: 'Log your training and watch it add up.',
+    price: 'Free, always',
+  },
+  fortress: {
+    tier: 'fortress',
+    icon: { family: 'material-community', name: 'chess-rook' },
+    tagline: 'Everything you did, measured and explained.',
+    price: 'Pricing at launch',
+  },
+  valhalla: {
+    tier: 'valhalla',
+    icon: { family: 'material-community', name: 'hammer' },
+    tagline: 'Everything Fortress has, plus people telling you what to do next.',
+    price: 'Pricing at launch',
+    // A coach reviewing video is hours, not server time, so this tier has a
+    // ceiling the other two never will. Said on the card because it's a real
+    // constraint on the product, not a scarcity tactic.
+    note: 'Limited places — a coach reviews every submission',
+  },
+};

@@ -19,7 +19,7 @@ import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
@@ -467,7 +467,7 @@ export function ActivityScreen() {
 
       {/* Directly below the public leaderboard it extends: a private,
           invite-only version of the same ranking concept. */}
-      <FortressFeatureCard
+      <PaidFeatureCard
         featureId="private-groups"
         onOpen={() => navigation.navigate('Groups')}
       />
@@ -505,15 +505,15 @@ export function ActivityScreen() {
           summarise. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
       {/* Built — members get the feature itself rather than a teaser. */}
-      <FortressFeatureCard
+      <PaidFeatureCard
         featureId="advanced-analytics"
         onOpen={() => navigation.navigate('AdvancedAnalytics')}
       />
-      <FortressFeatureCard
+      <PaidFeatureCard
         featureId="pr-vault"
         onOpen={() => navigation.navigate('PersonalRecords')}
       />
-      <FortressFeatureCard
+      <PaidFeatureCard
         featureId="goal-forecasting"
         onOpen={() => navigation.navigate('GoalForecast')}
       />

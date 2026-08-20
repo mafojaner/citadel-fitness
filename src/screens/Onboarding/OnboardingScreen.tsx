@@ -46,8 +46,8 @@ const SLIDES: Slide[] = [
   {
     icon: { family: 'material-community', name: 'chess-rook' },
     colors: gradients.favorite,
-    title: 'Fortress is coming',
-    description: 'A premium membership with AI coaching and advanced analytics is on the way. Join the waitlist to be first in line.',
+    title: 'Fortress and Valhalla are coming',
+    description: 'Two paid plans are on the way: Fortress for deeper analysis of your training, Valhalla for coaching from a real person on top. Join the waitlist to be first in line.',
   },
 ];
 

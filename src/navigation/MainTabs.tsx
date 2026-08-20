@@ -13,7 +13,7 @@ export type MainTabsParamList = {
   Home: undefined;
   Workouts: undefined;
   Activity: undefined;
-  /** Nested params so a locked feature elsewhere can open the Fortress pane directly. */
+  /** Nested params so a locked feature elsewhere can open the Plans pane directly. */
   Learn: NavigatorScreenParams<NewsletterStackParamList>;
   Search: undefined;
 };

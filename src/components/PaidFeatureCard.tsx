@@ -8,12 +8,12 @@ import { Card } from './Card';
 import { GradientIconBadge } from './GradientIconBadge';
 import { SettingsRow } from './SettingsRow';
 import { APP_FEATURES } from '../constants/featureCatalog';
-import { useMembershipTier } from '../hooks/useIsFortress';
+import { useMembershipTier } from '../hooks/useMembership';
 import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { useTheme } from '../theme/useTheme';
 import type { MainTabsParamList } from '../navigation/MainTabs';
 
-interface FortressFeatureCardProps {
+interface PaidFeatureCardProps {
   /** id from APP_FEATURES — title, description, icon and colours all come from there. */
   featureId: string;
   /**
@@ -21,7 +21,7 @@ interface FortressFeatureCardProps {
    * Its presence is what distinguishes "yours, go and use it" from "paid
    * for, still coming" — so a feature graduates from teaser to real entry
    * point by passing this, with nothing else to remember to change.
-   * Free accounts are unaffected: they still route to the Fortress page.
+   * Free accounts are unaffected: they still route to the Plans page.
    */
   onOpen?: () => void;
   /**
@@ -40,17 +40,17 @@ type Nav = CompositeNavigationProp<
 
 /**
  * A paid feature shown where it will actually live. Accounts below its tier
- * get a lock naming the tier that includes it, and a route to the Fortress
+ * get a lock naming the tier that includes it, and a route to the Plans
  * page; accounts at or above it get "Coming soon" instead, because telling
  * someone who paid that a feature is locked would be wrong — or, once
  * `onOpen` is supplied, the feature itself.
  *
  * Copy is pulled from featureCatalog by id rather than passed in, so these
- * placements can't drift from the Fortress page's own list the way the
+ * placements can't drift from the Plans page's own list the way the
  * landing page's chips once did.
  */
-export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: FortressFeatureCardProps) {
-  const { colors, spacing, radius, typography } = useTheme();
+export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFeatureCardProps) {
+  const { colors, tiers, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<Nav>();
   const tier = useMembershipTier();
 
@@ -68,7 +68,16 @@ export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: For
   const onPress =
     unlocked && onOpen
       ? onOpen
-      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'fortress' } });
+      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'plans' } });
+
+  // Only the locked badge is tier-coloured, because only it names a tier —
+  // it's the one place outside the Plans page where "Fortress" or "Valhalla"
+  // appears as a label, so it should look the way that plan's card does.
+  // "Open" and "Coming soon" describe availability, not a tier, and stay in
+  // the app's own accent.
+  const accent = tiers[feature.tier];
+  const badgeBackground = entitled ? colors.primaryMuted : accent.accent;
+  const badgeForeground = entitled ? colors.primary : accent.onAccent;
 
   const badge = (
     <View
@@ -76,14 +85,18 @@ export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: For
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: colors.primaryMuted,
+        backgroundColor: badgeBackground,
+        // Carried on both branches so the chip keeps one silhouette, and so
+        // a white Fortress chip on a white card is still a chip.
+        borderWidth: 1,
+        borderColor: entitled ? colors.primaryMuted : accent.border,
         borderRadius: radius.pill,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
       }}
     >
-      <Ionicons name={badgeIcon} size={10} color={colors.primary} />
-      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary }}>{badgeLabel}</Text>
+      <Ionicons name={badgeIcon} size={10} color={badgeForeground} />
+      <Text style={{ fontSize: 10, fontWeight: '700', color: badgeForeground }}>{badgeLabel}</Text>
     </View>
   );
 

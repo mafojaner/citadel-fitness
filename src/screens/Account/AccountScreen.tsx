@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import appJson from '../../../app.json';
-import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
@@ -153,7 +153,7 @@ export function AccountScreen() {
           deletion. Row variant so it reads as one of this screen's settings
           rows — the section already draws the surface a card would double. */}
       <SettingsSection title="Your data">
-        <FortressFeatureCard
+        <PaidFeatureCard
           featureId="data-export"
           variant="row"
           onOpen={exporting ? () => {} : onExport}
@@ -169,19 +169,23 @@ export function AccountScreen() {
           content of their own to attach to — nowhere on Home, Activity or
           Learn is any more "theirs" than here. offline-sync joins them for
           the same reason: it's a background capability, not a screen. */}
-      <SettingsSection title="Fortress perks">
-        <FortressFeatureCard featureId="priority-support" variant="row" />
-        <FortressFeatureCard featureId="early-access" variant="row" />
-        <FortressFeatureCard featureId="offline-sync" variant="row" />
+      {/* Not "Fortress perks": this list has always mixed the tiers, and now
+          that there are two paid ones the old title claimed Valhalla's
+          perks for Fortress. Each row already names the tier that includes
+          it, so the section header doesn't have to. */}
+      <SettingsSection title="Membership perks">
+        <PaidFeatureCard featureId="priority-support" variant="row" />
+        <PaidFeatureCard featureId="early-access" variant="row" />
+        <PaidFeatureCard featureId="offline-sync" variant="row" />
         {/* Built — the switch itself lives with the other email settings,
             so members land where they'd expect to turn it off again. */}
-        <FortressFeatureCard
+        <PaidFeatureCard
           featureId="weekly-digest"
           variant="row"
           onOpen={() => navigation.navigate('Notifications')}
         />
-        <FortressFeatureCard featureId="wearable-sync" variant="row" />
-        <FortressFeatureCard
+        <PaidFeatureCard featureId="wearable-sync" variant="row" />
+        <PaidFeatureCard
           featureId="referral"
           variant="row"
           onOpen={() => navigation.navigate('Referral')}

@@ -125,3 +125,57 @@ export const gradients = {
   rankBronze: ['#E4A472', '#A15C2E'],
   water: ['#22D3EE', '#3B82F6'],
 } as const;
+
+/**
+ * The key colour for each membership tier.
+ *
+ * Fortress is white and Valhalla is black — the two ends of the palette, so
+ * the pair reads as a ladder at a glance rather than as two arbitrary
+ * accents. Free is deliberately unbranded: it uses the theme's own surface,
+ * because giving the tier nobody pays for a signature colour would put it
+ * on the same footing as the two that cost money.
+ *
+ * Both accents keep their colour in both schemes rather than flipping, or
+ * "Fortress is the white one" would stop being true half the time. What
+ * changes per scheme is only what keeps them visible: white-on-white and
+ * black-on-black both need a border, and each gets one exactly where its
+ * fill would otherwise disappear into the page.
+ */
+export interface TierAccent {
+  /** Fill for the plan card's header and its badge. */
+  accent: string;
+  /** Text and icons drawn on top of `accent`. */
+  onAccent: string;
+  /** Outline, so a fill matching the page behind it still reads as a shape. */
+  border: string;
+}
+
+export function tierAccents(scheme: 'light' | 'dark'): Record<'free' | 'fortress' | 'valhalla', TierAccent> {
+  const dark = scheme === 'dark';
+  return {
+    free: {
+      // Plain grey, not a signature colour — but a grey far enough from the
+      // card surface to still read as a header. The first attempt reused
+      // `surface` itself, which made the free plan's header vanish into the
+      // body of its own card in dark mode.
+      accent: dark ? palette.ink500 : palette.ink300,
+      onAccent: dark ? palette.white : palette.ink900,
+      border: dark ? palette.ink500 : palette.ink300,
+    },
+    fortress: {
+      accent: palette.white,
+      // Never white-on-white: the fill is fixed, so the text on it is too.
+      onAccent: palette.ink900,
+      // Only light mode needs a contrasting outline — on a near-black page a
+      // white card is already the highest-contrast thing on screen.
+      border: dark ? palette.white : palette.ink300,
+    },
+    valhalla: {
+      accent: palette.ink900,
+      onAccent: palette.white,
+      // The mirror of Fortress: black is the colour that disappears in dark
+      // mode, so that's where it gets the outline.
+      border: dark ? palette.ink500 : palette.ink900,
+    },
+  };
+}

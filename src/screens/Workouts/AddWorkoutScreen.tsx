@@ -8,7 +8,7 @@ import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { InfoNote } from '../../components/InfoNote';
-import { FortressFeatureCard } from '../../components/FortressFeatureCard';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { RestTimer } from '../../components/RestTimer';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { WorkoutSavedAnimation } from '../../components/WorkoutSavedAnimation';
@@ -19,7 +19,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
-import { useIsFortress } from '../../hooks/useIsFortress';
+import { useIsFortress } from '../../hooks/useMembership';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
 import { trackEvent } from '../../lib/telemetry';
@@ -467,8 +467,8 @@ export function AddWorkoutScreen() {
           on what you just logged," one from a model and one from a person. */}
       {draftExercises.length > 0 ? (
         <>
-          <FortressFeatureCard featureId="ai-progressive-overload" />
-          <FortressFeatureCard featureId="form-check" />
+          <PaidFeatureCard featureId="ai-progressive-overload" />
+          <PaidFeatureCard featureId="form-check" />
         </>
       ) : null}
     </ScreenContainer>

@@ -1,4 +1,4 @@
-import { APP_FEATURES } from '../../constants/featureCatalog';
+import { APP_FEATURES, TIER_ORDER, TIER_PITCH } from '../../constants/featureCatalog';
 import { TIER_LABELS, parseTier, tierAllows, tierRank } from '../membership';
 
 describe('tierRank', () => {
@@ -103,6 +103,37 @@ describe('the catalogue', () => {
     const nutrition = APP_FEATURES.find((f) => f.id === 'nutrition-coaching');
     expect(nutrition?.tier).toBe('valhalla');
     expect(nutrition?.description).not.toMatch(/automatic/i);
+  });
+
+  it('pitches every tier, cheapest first', () => {
+    expect(TIER_ORDER).toEqual(['free', 'fortress', 'valhalla']);
+    for (const tier of TIER_ORDER) {
+      expect(TIER_PITCH[tier].tier).toBe(tier);
+      expect(TIER_PITCH[tier].tagline).toBeTruthy();
+    }
+    // Every feature must belong to a tier the Plans page actually draws, or
+    // it would be paid for and invisible.
+    for (const feature of APP_FEATURES) {
+      expect(TIER_ORDER).toContain(feature.tier);
+    }
+  });
+
+  it('quotes no price while there is no way to charge one', () => {
+    // Billing isn't built. A number on the Plans page before then is a
+    // promise the app cannot keep, and the kind of copy that gets pasted in
+    // "just as a placeholder" and then ships.
+    for (const tier of TIER_ORDER) {
+      expect(TIER_PITCH[tier].price).not.toMatch(/[0-9]|\$|£|€|R\s?\d/);
+    }
+  });
+
+  it('caps the tier a person has to deliver, and only that one', () => {
+    // Valhalla's cost is someone's hours, so it has a ceiling the software
+    // tiers never will. If that note ever disappears, the app is selling
+    // unlimited access to a finite person.
+    expect(TIER_PITCH.valhalla.note).toBeTruthy();
+    expect(TIER_PITCH.free.note).toBeUndefined();
+    expect(TIER_PITCH.fortress.note).toBeUndefined();
   });
 
   it('keeps video in Fortress but not the monthly guides', () => {
