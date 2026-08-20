@@ -185,6 +185,73 @@ interface DbGoal {
   target_date: string;
 }
 
+/** One element of get_goal_projections, which returns jsonb. */
+interface ServerProjection {
+  goalId: string;
+  exerciseName: string;
+  status: GoalStatus;
+  current: number | string;
+  target: number | string;
+  projected: number | string | null;
+  weeklyRate: number | string;
+  projectedDate: string | null;
+  daysRemaining: number;
+  sessions: number | string;
+}
+
+/**
+ * Projections from the server, merged back onto the goals they belong to.
+ *
+ * `projectGoals` above is still the definition and still carries the tests,
+ * but the app no longer runs it — the same fit lives in
+ * `get_goal_projections` behind the tier check. See personalRecords.ts.
+ *
+ * The merge exists because the server returns a goalId rather than the goal:
+ * the UI needs targetUnit and targetDate to label the numbers, and sending
+ * those back down would duplicate rows the client already holds.
+ */
+export async function fetchGoalProjections(goals: LiftGoal[]): Promise<GoalProjection[]> {
+  const { data, error } = await supabase.rpc('get_goal_projections');
+  if (error) throw error;
+
+  const byGoalId = new Map((data as ServerProjection[] | null ?? []).map((row) => [row.goalId, row]));
+
+  // Mapped over `goals` rather than over the response, because a goal for a
+  // lift with no logged history at all is absent from the response entirely.
+  // Iterating the response would silently drop it from the screen; the user
+  // set that goal and needs to see it sitting at "no trend yet".
+  return goals.map((goal) => {
+    const row = byGoalId.get(goal.id);
+    if (!row) {
+      return {
+        goal,
+        // Matches projectGoal's fallback for a goal with no history behind it.
+        exerciseName: 'Unknown exercise',
+        status: 'no-trend' as GoalStatus,
+        current: 0,
+        target: roundForDisplay(goal.targetWeight),
+        projected: null,
+        weeklyRate: 0,
+        projectedDate: null,
+        daysRemaining: daysBetween(todayISO(), goal.targetDate),
+        sessions: 0,
+      };
+    }
+    return {
+      goal,
+      exerciseName: row.exerciseName,
+      status: row.status,
+      current: Number(row.current),
+      target: Number(row.target),
+      projected: row.projected === null ? null : Number(row.projected),
+      weeklyRate: Number(row.weeklyRate),
+      projectedDate: row.projectedDate,
+      daysRemaining: row.daysRemaining,
+      sessions: Number(row.sessions),
+    };
+  });
+}
+
 export async function fetchLiftGoals(userId: string): Promise<LiftGoal[]> {
   const { data, error } = await supabase
     .from('lift_goals')

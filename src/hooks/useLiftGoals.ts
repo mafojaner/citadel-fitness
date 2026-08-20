@@ -2,8 +2,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {
   deleteLiftGoal,
+  fetchGoalProjections,
   fetchLiftGoals,
-  projectGoals,
   saveLiftGoal,
   type GoalProjection,
 } from '../lib/goals';
@@ -27,12 +27,14 @@ export function useLiftGoals() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    // Both in parallel: a projection needs the goals and the history that
-    // feeds them, and neither depends on the other.
+    // Goals and history in parallel, then projections, which need the goals
+    // to merge onto. History is still fetched because the picker below is
+    // built from it — that is the user's own logged data and deliberately
+    // ungated, unlike the projection itself, which the server now computes.
     Promise.all([fetchLiftGoals(userId), fetchExerciseHistories(userId, weightUnit, distanceUnit)])
-      .then(([goals, histories]) => {
+      .then(async ([goals, histories]) => {
         if (cancelled) return;
-        setProjections(projectGoals(goals, histories, weightUnit));
+        setProjections(await fetchGoalProjections(goals));
         // Only strength lifts the user has actually logged: a projection is
         // fitted to their own history, so offering the full 125-exercise
         // catalogue would mostly offer goals that can never show a trend.

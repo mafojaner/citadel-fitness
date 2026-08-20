@@ -1,7 +1,7 @@
-import { addDays, todayISO } from './analytics';
 import { estimateOneRepMax } from './personalRecords';
+import { supabase } from './supabase';
 import { roundForDisplay } from './units';
-import { fetchExerciseHistories, type ExerciseHistory } from './workoutHistory';
+import { type ExerciseHistory } from './workoutHistory';
 import type { Category, DistanceUnit, WeightUnit } from '../types/models';
 
 /** A lift needs at least this many separate days before a trend means anything. */
@@ -160,14 +160,59 @@ export function computeAdvancedAnalytics(
   };
 }
 
-/** null periodDays means "everything ever logged". */
+/**
+ * null periodDays means "everything ever logged".
+ *
+ * Computed by `get_advanced_analytics` now, not by the functions above. They
+ * remain the readable definition of the arithmetic and keep the tests, but
+ * running them here shipped the entire feature in the bundle with only a
+ * client-side tier check in front of it. See personalRecords.ts, which moved
+ * for the same reason — and keep the two definitions in step, because a
+ * muscle-balance share that disagrees with itself between builds is worse
+ * than one that is merely late.
+ */
 export async function fetchAdvancedAnalytics(
-  userId: string,
+  _userId: string,
   displayWeightUnit: WeightUnit,
   displayDistanceUnit: DistanceUnit,
   periodDays: number | null
 ): Promise<AdvancedAnalytics> {
-  const histories = await fetchExerciseHistories(userId, displayWeightUnit, displayDistanceUnit);
-  const since = periodDays === null ? null : addDays(todayISO(), -periodDays);
-  return computeAdvancedAnalytics(histories, since);
+  const { data, error } = await supabase.rpc('get_advanced_analytics', {
+    p_weight_unit: displayWeightUnit,
+    p_distance_unit: displayDistanceUnit,
+    p_period_days: periodDays,
+  });
+  if (error) throw error;
+
+  const result = data as {
+    balance: { category: Category; value: number; share: number; sets: number }[];
+    progressions: LiftProgression[];
+    totalValue: number;
+    totalSets: number;
+    activeDays: number;
+  };
+
+  // Numerics can arrive as strings from Postgres; Number() on each keeps the
+  // interface honestly typed rather than letting a string reach a chart axis.
+  return {
+    balance: result.balance.map((b) => ({
+      category: b.category,
+      value: Number(b.value),
+      share: Number(b.share),
+      sets: Number(b.sets),
+    })),
+    progressions: result.progressions.map((p) => ({
+      ...p,
+      first: Number(p.first),
+      latest: Number(p.latest),
+      changePct: Number(p.changePct),
+      points: p.points.map((pt) => ({
+        date: pt.date,
+        estimatedOneRepMax: Number(pt.estimatedOneRepMax),
+      })),
+    })),
+    totalValue: Number(result.totalValue),
+    totalSets: Number(result.totalSets),
+    activeDays: Number(result.activeDays),
+  };
 }
