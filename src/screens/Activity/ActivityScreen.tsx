@@ -19,7 +19,7 @@ import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { PaidFeatureCard } from '../../components/PaidFeatureCard';
+import { PaidFeatureCard, PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
@@ -461,6 +461,17 @@ export function ActivityScreen() {
             Peak: {Math.round(peak.value).toLocaleString()} {unitLabel} on {formatRangeDate(peak.date)}
           </Text>
         ) : null}
+
+        {/* The offer belongs on the chart it deepens, not in a card further
+            down the screen. This one plots one series over time; advanced
+            analytics is the same history cut by muscle group and lift, so
+            the moment to mention it is while you're reading the shallow
+            version. */}
+        <PaidFeatureLink
+          featureId="advanced-analytics"
+          label="See the full breakdown"
+          onOpen={() => navigation.navigate('AdvancedAnalytics')}
+        />
       </Card>
 
       <RankingCard />
@@ -500,21 +511,20 @@ export function ActivityScreen() {
         </View>
       )}
 
-      {/* Both sit under Analytics Summary because that's the section they
-          extend: deeper cuts of the same workout history the tiles above
-          summarise. */}
-      <Text style={[typography.subheading, { color: colors.textPrimary }]}>Going deeper</Text>
-      {/* Built — members get the feature itself rather than a teaser. */}
-      <PaidFeatureCard
-        featureId="advanced-analytics"
-        onOpen={() => navigation.navigate('AdvancedAnalytics')}
-      />
-      <PaidFeatureCard
+      {/* Records and forecasts extend the summary above rather than the
+          chart: both answer "what are my best numbers, and where are they
+          going", which is what these tiles report the shallow version of.
+          Advanced analytics used to sit here too and now lives on the chart
+          it actually deepens — leaving a "Going deeper" heading over two
+          cards, which is a heading doing no work, so it's gone. */}
+      <PaidFeatureLink
         featureId="pr-vault"
+        label="Your personal records"
         onOpen={() => navigation.navigate('PersonalRecords')}
       />
-      <PaidFeatureCard
+      <PaidFeatureLink
         featureId="goal-forecasting"
+        label="Set a target and track it"
         onOpen={() => navigation.navigate('GoalForecast')}
       />
       </ScreenContainer>

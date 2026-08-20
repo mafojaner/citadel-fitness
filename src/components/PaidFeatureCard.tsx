@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
 import { GradientIconBadge } from './GradientIconBadge';
@@ -39,6 +39,90 @@ type Nav = CompositeNavigationProp<
 >;
 
 /**
+ * A paid feature offered from inside a card that already exists, rather than
+ * as a card of its own.
+ *
+ * The point of this variant is that some features aren't a thing you go to,
+ * they're a deeper cut of something already on screen — advanced analytics
+ * against the progress chart, records against a lift. As its own card such a
+ * feature reads as unrelated and drifts to the bottom of the screen; as a
+ * footer on the thing it extends, the offer arrives while you're looking at
+ * the shallower version.
+ *
+ * Carries the tier colour as a dot, since there's no room for a spine and no
+ * card edge to run it down.
+ */
+export function PaidFeatureLink({
+  featureId,
+  label,
+  onOpen,
+}: {
+  featureId: string;
+  /** Phrased for its host card, e.g. "See the full breakdown". */
+  label: string;
+  onOpen?: () => void;
+}) {
+  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const navigation = useNavigation<Nav>();
+  const tier = useMembershipTier();
+
+  const feature = APP_FEATURES.find((f) => f.id === featureId);
+  if (!feature) return null;
+
+  const entitled = tierAllows(tier, feature.tier);
+  const unlocked = entitled && Boolean(onOpen);
+  const accent = tiers[feature.tier];
+  const onPress =
+    unlocked && onOpen
+      ? onOpen
+      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'plans' } });
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      scaleTo={0.98}
+      accessibilityRole="button"
+      accessibilityLabel={
+        unlocked
+          ? `${label}. ${feature.title}.`
+          : `${feature.title}. ${TIER_LABELS[feature.tier]} feature. Select to learn more.`
+      }
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          paddingTop: spacing.sm,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        }}
+      >
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: accent.accent,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: accent.border,
+          }}
+        />
+        <Text style={[typography.caption, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '600' }]}>
+          {unlocked ? label : `${label} — ${TIER_LABELS[feature.tier]}`}
+        </Text>
+        <Ionicons
+          name={unlocked ? 'chevron-forward' : 'lock-closed'}
+          size={14}
+          color={colors.textMuted}
+          style={{ borderRadius: radius.sm }}
+        />
+      </View>
+    </AnimatedPressable>
+  );
+}
+
+/**
  * A paid feature shown where it will actually live. Accounts below its tier
  * get a lock naming the tier that includes it, and a route to the Plans
  * page; accounts at or above it get "Coming soon" instead, because telling
@@ -50,7 +134,7 @@ type Nav = CompositeNavigationProp<
  * landing page's chips once did.
  */
 export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFeatureCardProps) {
-  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
   const navigation = useNavigation<Nav>();
   const tier = useMembershipTier();
 
@@ -100,6 +184,29 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFea
     </View>
   );
 
+  /**
+   * The tier reads as a soft glow in its own colour, not as an outline.
+   *
+   * An outlined card and a grey sheen were both tried and both looked like a
+   * boxed-off advert sitting on a page of clean cards. This follows the
+   * language the app already uses to make something feel like more —
+   * RankingCard lifts itself with a gold-tinted shadow and no border at all —
+   * so a paid feature keeps the exact silhouette of every other card and only
+   * the light around it changes.
+   *
+   * The glow is `accent.border` rather than `accent.accent` because those are
+   * the same colour wherever the accent is already visible, and the accent is
+   * only overridden where it would not be: a white glow in light mode is not
+   * a glow, so Fortress warms to silver there and stays white on dark.
+   */
+  const glow = {
+    shadowColor: accent.border,
+    shadowOpacity: scheme === 'dark' ? 0.5 : 0.22,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  } as const;
+
   if (variant === 'row') {
     return (
       <SettingsRow
@@ -133,10 +240,12 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFea
       }`}
       scaleTo={0.98}
     >
-      <Card>
+      <Card style={glow}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           {/* Full colour rather than greyed out: this is advertising what the
-              feature will be, not showing a disabled control. */}
+              feature will be, not showing a disabled control. The gradients
+              stay — the glow and the badge carry the tier, so the icons
+              don't have to go monochrome to say which plan this belongs to. */}
           <GradientIconBadge icon={feature.icon} colors={feature.colors} size={40} />
 
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
