@@ -1,3 +1,4 @@
+import { parseTier, type MembershipTier } from './membership';
 import { supabase } from './supabase';
 import type { ArticleCategory } from '../types/models';
 
@@ -55,14 +56,15 @@ export interface RawProfile {
   name: string;
   preferences: Partial<ProfilePreferences>;
   avatarUrl: string | null;
-  /** When this account became a Fortress member; null on the free tier. */
+  /** When this account first joined a paid tier; null if it never has. */
   fortressSince: string | null;
+  membershipTier: MembershipTier;
 }
 
 export async function fetchProfile(userId: string): Promise<RawProfile> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('name, preferences, avatar_url, fortress_since')
+    .select('name, preferences, avatar_url, fortress_since, membership_tier')
     .eq('id', userId)
     .single();
 
@@ -72,6 +74,7 @@ export async function fetchProfile(userId: string): Promise<RawProfile> {
     preferences: data.preferences,
     avatarUrl: data.avatar_url,
     fortressSince: data.fortress_since,
+    membershipTier: parseTier(data.membership_tier),
   };
 }
 

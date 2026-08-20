@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { MembershipTier } from '../lib/membership';
 import { gradients } from '../theme/tokens';
 
-export type FeatureTier = 'free' | 'fortress';
+export type FeatureTier = MembershipTier;
 
 export interface AppFeature {
   id: string;
@@ -15,13 +16,20 @@ export interface AppFeature {
 }
 
 /**
- * Single source of truth for what's free vs Fortress-exclusive, read by
+ * Single source of truth for which tier each feature belongs to, read by
  * FortressScreen for both the feature-tile grid and the comparison table.
  * Before this existed, those two lists were hardcoded separately and could
  * (and did) drift out of sync with what the app actually ships for free —
  * e.g. leaderboards shipped free but stayed marked Fortress-only in both
  * places until caught. Reclassify a feature by moving its `tier` here
  * instead of editing FortressScreen directly.
+ *
+ * Three tiers, split by marginal cost per member rather than by how hard
+ * something was to build. Fortress is what software serves for effectively
+ * nothing extra per person — including video and written guides, which are
+ * expensive to produce once and then free to serve, so putting them higher
+ * would shrink their audience without saving anything. Keep is where a
+ * human is on the other end and every member costs real hours.
  */
 export const APP_FEATURES: AppFeature[] = [
   // ---- Free, live today ----
@@ -53,7 +61,7 @@ export const APP_FEATURES: AppFeature[] = [
     showInComparison: true,
   },
 
-  // ---- Fortress-exclusive (not yet built) ----
+  // ---- Paid tiers ----
   {
     id: 'ai-progressive-overload',
     icon: 'sparkles',
@@ -105,7 +113,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.action,
     title: 'Form check reviews',
     description: 'Submit a set on video and get feedback from a real coach within 48 hours.',
-    tier: 'fortress',
+    tier: 'keep',
     showInComparison: true,
   },
   {
@@ -132,7 +140,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.identity,
     title: 'Early access',
     description: 'New features land in your hands first, weeks before they reach everyone else.',
-    tier: 'fortress',
+    tier: 'keep',
     showInComparison: false,
   },
   {
@@ -140,12 +148,12 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'headset',
     colors: gradients.pulse,
     title: 'Priority support',
-    description: 'Skip the queue: Fortress members get a same-day response from our team, every time.',
-    tier: 'fortress',
+    description: 'Skip the queue with a same-day reply from a real person, every time.',
+    tier: 'keep',
     showInComparison: true,
   },
 
-  // ---- Fortress-exclusive, added later (not yet built) ----
+  // ---- Paid tiers, added later ----
   {
     id: 'structured-programs',
     icon: 'calendar-number',

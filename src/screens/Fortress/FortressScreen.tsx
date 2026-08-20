@@ -9,16 +9,26 @@ import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { APP_FEATURES } from '../../constants/featureCatalog';
+import { tierAllows } from '../../lib/membership';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import { isEmailValid } from '../../lib/email';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
-const FEATURES = APP_FEATURES.filter((feature) => feature.tier === 'fortress');
+// Everything paid, not just Fortress: the grid is the pitch for upgrading
+// at all, and hiding the top tier's features would undersell it.
+const FEATURES = APP_FEATURES.filter((feature) => feature.tier !== 'free');
 
-const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean }[] = APP_FEATURES.filter(
-  (feature) => feature.showInComparison
-).map((feature) => ({ label: feature.title, free: feature.tier === 'free', fortress: true }));
+// Derived by tier comparison rather than hardcoded booleans, so a feature
+// moving between tiers updates every column at once — the drift this
+// catalogue exists to prevent.
+const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean; keep: boolean }[] =
+  APP_FEATURES.filter((feature) => feature.showInComparison).map((feature) => ({
+    label: feature.title,
+    free: tierAllows('free', feature.tier),
+    fortress: tierAllows('fortress', feature.tier),
+    keep: tierAllows('keep', feature.tier),
+  }));
 
 function ComparisonMark({
   on,
@@ -239,15 +249,18 @@ export function FortressScreen() {
         ))}
       </View>
 
-      <Card title="Free vs Fortress">
+      <Card title="Compare tiers">
         <View style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={[typography.caption, { flex: 1, color: colors.textMuted }]} />
             <Text style={[typography.caption, { width: 28, textAlign: 'center', color: colors.textMuted }]}>
               Free
             </Text>
-            <Text style={[typography.caption, { width: 44, textAlign: 'center', color: colors.primary }]}>
+            <Text style={[typography.caption, { width: 52, textAlign: 'center', color: colors.primary }]}>
               Fortress
+            </Text>
+            <Text style={[typography.caption, { width: 36, textAlign: 'center', color: colors.primary }]}>
+              Keep
             </Text>
           </View>
           {COMPARISON_ROWS.map((row) => (
@@ -265,7 +278,8 @@ export function FortressScreen() {
                 {row.label}
               </Text>
               <ComparisonMark on={row.free} colors={colors} />
-              <ComparisonMark on={row.fortress} colors={colors} width={44} />
+              <ComparisonMark on={row.fortress} colors={colors} width={52} />
+              <ComparisonMark on={row.keep} colors={colors} width={36} />
             </View>
           ))}
         </View>

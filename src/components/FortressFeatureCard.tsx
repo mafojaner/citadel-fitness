@@ -8,7 +8,8 @@ import { Card } from './Card';
 import { GradientIconBadge } from './GradientIconBadge';
 import { SettingsRow } from './SettingsRow';
 import { APP_FEATURES } from '../constants/featureCatalog';
-import { useIsFortress } from '../hooks/useIsFortress';
+import { useMembershipTier } from '../hooks/useIsFortress';
+import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { useTheme } from '../theme/useTheme';
 import type { MainTabsParamList } from '../navigation/MainTabs';
 
@@ -38,10 +39,11 @@ type Nav = CompositeNavigationProp<
 >;
 
 /**
- * A premium feature shown where it will actually live. Free accounts get a
- * lock and a route to the Fortress page; members get "Coming soon" instead,
- * because telling someone who paid that a feature is locked would be wrong
- * — or, once `onOpen` is supplied, the feature itself.
+ * A paid feature shown where it will actually live. Accounts below its tier
+ * get a lock naming the tier that includes it, and a route to the Fortress
+ * page; accounts at or above it get "Coming soon" instead, because telling
+ * someone who paid that a feature is locked would be wrong — or, once
+ * `onOpen` is supplied, the feature itself.
  *
  * Copy is pulled from featureCatalog by id rather than passed in, so these
  * placements can't drift from the Fortress page's own list the way the
@@ -50,14 +52,19 @@ type Nav = CompositeNavigationProp<
 export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: FortressFeatureCardProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<Nav>();
-  const isFortress = useIsFortress();
+  const tier = useMembershipTier();
 
   const feature = APP_FEATURES.find((f) => f.id === featureId);
   if (!feature) return null;
 
-  const unlocked = isFortress && Boolean(onOpen);
-  const badgeLabel = unlocked ? 'Open' : isFortress ? 'Coming soon' : 'Fortress';
-  const badgeIcon = unlocked ? 'sparkles' : isFortress ? 'time-outline' : 'lock-closed';
+  // Compared rather than equality-checked: a Keep member must not be told
+  // a Fortress feature is locked, and a Fortress member must be told the
+  // truth about a Keep one rather than "coming soon" for something their
+  // tier will never include.
+  const entitled = tierAllows(tier, feature.tier);
+  const unlocked = entitled && Boolean(onOpen);
+  const badgeLabel = unlocked ? 'Open' : entitled ? 'Coming soon' : TIER_LABELS[feature.tier];
+  const badgeIcon = unlocked ? 'sparkles' : entitled ? 'time-outline' : 'lock-closed';
   const onPress =
     unlocked && onOpen
       ? onOpen
@@ -107,9 +114,9 @@ export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: For
       accessibilityLabel={`${feature.title}. ${
         unlocked
           ? 'Select to open.'
-          : isFortress
-            ? 'Coming soon to Fortress.'
-            : 'Fortress feature. Select to learn more.'
+          : entitled
+            ? 'Coming soon.'
+            : `${TIER_LABELS[feature.tier]} feature. Select to learn more.`
       }`}
       scaleTo={0.98}
     >

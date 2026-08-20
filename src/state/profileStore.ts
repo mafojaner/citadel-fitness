@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { MembershipTier } from '../lib/membership';
 import {
   DEFAULT_PREFERENCES,
   fetchProfile,
@@ -12,6 +13,7 @@ interface ProfileState {
   avatarUrl: string | null;
   /** Fortress join date, or null on the free tier. Read via useIsFortress rather than directly. */
   fortressSince: string | null;
+  membershipTier: MembershipTier;
   preferences: ProfilePreferences;
   loaded: boolean;
   loading: boolean;
@@ -30,10 +32,17 @@ interface ProfileState {
   reset: () => void;
 }
 
-const INITIAL = {
+// Typed rather than inferred: without it `membershipTier` widens to string
+// and stops being assignable to MembershipTier, which is exactly the
+// narrowing that keeps a stray tier value out of the store.
+const INITIAL: Pick<
+  ProfileState,
+  'name' | 'avatarUrl' | 'fortressSince' | 'membershipTier' | 'preferences' | 'loaded' | 'loading' | 'error' | 'activeUserId'
+> = {
   name: '',
   avatarUrl: null,
   fortressSince: null,
+  membershipTier: 'free',
   preferences: DEFAULT_PREFERENCES,
   loaded: false,
   loading: false,
@@ -72,6 +81,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         name: profile.name,
         avatarUrl: profile.avatarUrl,
         fortressSince: profile.fortressSince,
+        membershipTier: profile.membershipTier,
         preferences: {
           ...DEFAULT_PREFERENCES,
           ...profile.preferences,
