@@ -22,12 +22,12 @@ const FEATURES = APP_FEATURES.filter((feature) => feature.tier !== 'free');
 // Derived by tier comparison rather than hardcoded booleans, so a feature
 // moving between tiers updates every column at once — the drift this
 // catalogue exists to prevent.
-const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean; keep: boolean }[] =
+const COMPARISON_ROWS: { label: string; free: boolean; fortress: boolean; valhalla: boolean }[] =
   APP_FEATURES.filter((feature) => feature.showInComparison).map((feature) => ({
     label: feature.title,
     free: tierAllows('free', feature.tier),
     fortress: tierAllows('fortress', feature.tier),
-    keep: tierAllows('keep', feature.tier),
+    valhalla: tierAllows('valhalla', feature.tier),
   }));
 
 function ComparisonMark({
@@ -260,7 +260,7 @@ export function FortressScreen() {
               Fortress
             </Text>
             <Text style={[typography.caption, { width: 36, textAlign: 'center', color: colors.primary }]}>
-              Keep
+              Valhalla
             </Text>
           </View>
           {COMPARISON_ROWS.map((row) => (
@@ -279,7 +279,7 @@ export function FortressScreen() {
               </Text>
               <ComparisonMark on={row.free} colors={colors} />
               <ComparisonMark on={row.fortress} colors={colors} width={52} />
-              <ComparisonMark on={row.keep} colors={colors} width={36} />
+              <ComparisonMark on={row.valhalla} colors={colors} width={36} />
             </View>
           ))}
         </View>

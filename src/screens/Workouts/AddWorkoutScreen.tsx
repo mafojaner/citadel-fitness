@@ -372,7 +372,11 @@ export function AddWorkoutScreen() {
                           // Empty rather than 0 when unset: an unreported
                           // effort must stay null all the way to the column,
                           // not become a real-looking value.
-                          value={set.rpe === null ? '' : String(set.rpe)}
+                          // Loose == on purpose: the draft is persisted, so a
+                          // draft saved before this field existed rehydrates
+                          // with rpe undefined rather than null, and a strict
+                          // check renders the text "undefined" in the box.
+                          value={set.rpe == null ? '' : String(set.rpe)}
                           onChangeText={(t) => {
                             const parsed = Number(t);
                             updateSet(exercise.id, set.id, {

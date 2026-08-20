@@ -28,7 +28,7 @@ export interface AppFeature {
  * something was to build. Fortress is what software serves for effectively
  * nothing extra per person — including video and written guides, which are
  * expensive to produce once and then free to serve, so putting them higher
- * would shrink their audience without saving anything. Keep is where a
+ * would shrink their audience without saving anything. Valhalla is where a
  * human is on the other end and every member costs real hours.
  */
 export const APP_FEATURES: AppFeature[] = [
@@ -113,7 +113,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.action,
     title: 'Form check reviews',
     description: 'Submit a set on video and get feedback from a real coach within 48 hours.',
-    tier: 'keep',
+    tier: 'valhalla',
     showInComparison: true,
   },
   {
@@ -140,7 +140,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.identity,
     title: 'Early access',
     description: 'New features land in your hands first, weeks before they reach everyone else.',
-    tier: 'keep',
+    tier: 'valhalla',
     showInComparison: false,
   },
   {
@@ -149,7 +149,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.pulse,
     title: 'Priority support',
     description: 'Skip the queue with a same-day reply from a real person, every time.',
-    tier: 'keep',
+    tier: 'valhalla',
     showInComparison: true,
   },
 

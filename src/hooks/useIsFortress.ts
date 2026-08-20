@@ -14,7 +14,7 @@ export function useMembershipTier(): MembershipTier {
 /**
  * Whether this account can use something requiring `needs`.
  *
- * Comparison rather than equality: Keep includes everything in Fortress, so
+ * Comparison rather than equality: Valhalla includes everything in Fortress, so
  * asking "is your tier exactly fortress" would lock the top tier out of the
  * middle one's features — a bug that only shows up for the members paying
  * the most.
@@ -23,11 +23,11 @@ export function useHasTier(needs: MembershipTier): boolean {
   return useProfileStore((s) => tierAllows(s.membershipTier, needs));
 }
 
-/** Kept as the common case, and now true for Keep members as well. */
+/** Kept as the common case, and now true for Valhalla members as well. */
 export function useIsFortress(): boolean {
   return useHasTier('fortress');
 }
 
-export function useIsKeep(): boolean {
-  return useHasTier('keep');
+export function useIsValhalla(): boolean {
+  return useHasTier('valhalla');
 }

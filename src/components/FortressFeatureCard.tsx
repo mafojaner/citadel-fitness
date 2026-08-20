@@ -57,9 +57,9 @@ export function FortressFeatureCard({ featureId, variant = 'card', onOpen }: For
   const feature = APP_FEATURES.find((f) => f.id === featureId);
   if (!feature) return null;
 
-  // Compared rather than equality-checked: a Keep member must not be told
+  // Compared rather than equality-checked: a Valhalla member must not be told
   // a Fortress feature is locked, and a Fortress member must be told the
-  // truth about a Keep one rather than "coming soon" for something their
+  // truth about a Valhalla one rather than "coming soon" for something their
   // tier will never include.
   const entitled = tierAllows(tier, feature.tier);
   const unlocked = entitled && Boolean(onOpen);
