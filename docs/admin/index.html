@@ -1048,6 +1048,47 @@
           </div>
         </div>
       </section>
+
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Fortress: scope to operational</h3></div>
+
+        <div class="callout bad" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          <span><strong>The gate is not real yet.</strong> <code>membership_tier</code> exists on <code>profiles</code> as a column with a <code>check</code> constraint, and that is the whole of it &mdash; no RLS policy on any table references it. Every Fortress feature is gated by <code>useMembershipTier()</code> in the client, which is a display rule. The Supabase anon key ships inside the app, so a free account can call PostgREST directly and read exactly what a member reads. This is the difference between selling a product and selling a hidden button, and it sits underneath all nine built features at once.</span>
+        </div>
+
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span><strong>Seven-point bar for &ldquo;done&rdquo;.</strong> Reachable where you would look for it; reads real rows, not fixtures; <strong>gated server-side</strong>; scheduled infrastructure has actually fired; empty and failure states written; tested at the logic layer; and <strong>verified against a real account by a person</strong>. Nine features have working code. None has been verified by a person, and none is gated server-side &mdash; those two criteria are the bulk of the remaining work. Full detail in <code>docs/fortress-scope.md</code>.</span>
+        </div>
+
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 1 &mdash; make the gate real.</strong> A <code>security definer</code> helper returning the caller's tier rank (definer so the policy can read <code>profiles</code> without recursing through its own RLS &mdash; the trap that already bit <code>group_members</code>), then an RLS policy requiring that rank on every table behind a paid feature: records, goals, programs, groups, and the RPE columns on sets. The same check inside Edge Functions, which run with the service key and bypass RLS entirely. Each table gets an abort-probe run against production proving a free account gets zero rows. Two things already help: tier is one ordered column rather than scattered booleans, and <code>migration_036</code>'s column allowlist already stops a member promoting themselves.</div>
+            <span class="priority blocks">Blocks all</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 2 &mdash; verify the nine.</strong> Walk each feature against real history with two accounts, one paid and one free, to check both sides of every gate: does the number agree with what the app shows elsewhere, does the empty state appear for a lift never performed, does the error state appear with the network off. The cheapest phase and the one skipped every time so far &mdash; hours of work that could surface days of it. It has to come after Phase 1, because verification done before the policies land would have to be redone after them.</div>
+            <span class="priority high">After 1</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 3 &mdash; prove the weekly digest fires.</strong> It is real code on a real schedule: <code>.github/workflows/weekly-digest.yml</code>, Sundays 17:00 UTC, calling the <code>send-weekly-digest</code> Edge Function through Resend. Scheduled in Actions rather than <code>pg_cron</code> on purpose, so no secret has to live inside a scheduled SQL statement. But no run has ever been observed and it depends on <code>SUPABASE_FUNCTIONS_URL</code> and <code>WEBHOOK_SECRET</code> being set. Trigger it by hand, watch the run, confirm the email lands with correct numbers and that opting out suppresses it &mdash; then let the schedule fire on its own for one week and check that it did.</div>
+            <span class="priority high">Unproven</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 4 &mdash; offline sync, the only Fortress feature left that is real engineering.</strong> A local write queue, a reconnect reconciler, and a conflict rule. <code>save_workout</code> already does a full-day REPLACE, so last-write-wins per day falls out naturally &mdash; but that means a day edited on two devices silently loses one, which has to be a stated behaviour rather than a surprise. One to two weeks, touching every write path. Last among the engineering because it is the only one that can slip without holding anything else up.</div>
+            <span class="priority medium">1&ndash;2 weeks</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Phase 5 &mdash; decide on video demonstrations.</strong> Filming 125 exercises and hosting them is a production budget, not a sprint, and it is the one Fortress item no amount of engineering finishes. Recommendation: cut it from the tier until footage exists rather than ship it as a permanent teaser. A paid tier advertising something that never arrives is the fastest way to earn refunds.</div>
+            <span class="priority medium">Not code</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Half-shipped, and honest about it.</strong> <em>Refer &amp; earn</em> tracks attribution today and stores a <code>reward_status</code>; self-referral, duplicates and bogus codes are all blocked and probed. The reward itself cannot exist before billing does, and the catalogue copy already says so rather than promising it. <em>Private groups</em> enforces group membership at the row level and was probed, but not tier &mdash; a free account inside a group can still read it, which Phase 1 closes.</div>
+            <span class="priority medium">Standing</span>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
