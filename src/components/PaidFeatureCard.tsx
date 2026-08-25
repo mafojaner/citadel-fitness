@@ -1,7 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
@@ -9,9 +6,9 @@ import { GradientIconBadge } from './GradientIconBadge';
 import { SettingsRow } from './SettingsRow';
 import { APP_FEATURES } from '../constants/featureCatalog';
 import { useMembershipTier } from '../hooks/useMembership';
+import { useOpenPlans } from '../hooks/useOpenPlans';
 import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { useTheme } from '../theme/useTheme';
-import type { MainTabsParamList } from '../navigation/MainTabs';
 
 interface PaidFeatureCardProps {
   /** id from APP_FEATURES — title, description, icon and colours all come from there. */
@@ -32,11 +29,6 @@ interface PaidFeatureCardProps {
    */
   variant?: 'card' | 'row';
 }
-
-type Nav = CompositeNavigationProp<
-  BottomTabNavigationProp<MainTabsParamList>,
-  BottomTabNavigationProp<MainTabsParamList>
->;
 
 /**
  * A paid feature offered from inside a card that already exists, rather than
@@ -74,7 +66,7 @@ export function PaidFeatureLink({
   divider?: 'top' | 'bottom' | 'none';
 }) {
   const { colors, tiers, spacing, radius, typography } = useTheme();
-  const navigation = useNavigation<Nav>();
+  const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
   const feature = APP_FEATURES.find((f) => f.id === featureId);
@@ -83,10 +75,7 @@ export function PaidFeatureLink({
   const entitled = tierAllows(tier, feature.tier);
   const unlocked = entitled && Boolean(onOpen);
   const accent = tiers[feature.tier];
-  const onPress =
-    unlocked && onOpen
-      ? onOpen
-      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'plans' } });
+  const onPress = unlocked && onOpen ? onOpen : openPlans;
 
   return (
     <AnimatedPressable
@@ -166,7 +155,7 @@ export function PaidFeatureLink({
  */
 export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFeatureCardProps) {
   const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
-  const navigation = useNavigation<Nav>();
+  const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
   const feature = APP_FEATURES.find((f) => f.id === featureId);
@@ -180,10 +169,7 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFea
   const unlocked = entitled && Boolean(onOpen);
   const badgeLabel = unlocked ? 'Open' : entitled ? 'Coming soon' : TIER_LABELS[feature.tier];
   const badgeIcon = unlocked ? 'sparkles' : entitled ? 'time-outline' : 'lock-closed';
-  const onPress =
-    unlocked && onOpen
-      ? onOpen
-      : () => navigation.navigate('Learn', { screen: 'Newsletter', params: { tab: 'plans' } });
+  const onPress = unlocked && onOpen ? onOpen : openPlans;
 
   // Only the locked badge is tier-coloured, because only it names a tier —
   // it's the one place outside the Plans page where "Fortress" or "Valhalla"
