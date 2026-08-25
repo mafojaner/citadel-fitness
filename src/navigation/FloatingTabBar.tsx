@@ -302,7 +302,7 @@ function SidebarTabButton({
   onLongPress,
   accessibilityLabel,
 }: SidebarTabButtonProps) {
-  const { colors, spacing, radius, typography } = useTheme();
+  const { colors, spacing, radius, typography, scheme } = useTheme();
 
   return (
     <Pressable
@@ -324,33 +324,37 @@ function SidebarTabButton({
           paddingVertical: spacing.sm + 2,
           paddingHorizontal: spacing.sm,
           borderRadius: radius.md,
-          // The selected row inverts the rail: a black pill in light mode, a
-          // white one in dark. Both come straight from the nav tokens, so
-          // the swap is exact rather than two hardcoded hexes that would
-          // have to be kept in step with the theme by hand.
-          backgroundColor: isFocused ? colors.navText : hovered ? colors.border : 'transparent',
+          // Grey pill in both schemes: `border` is a light grey on white and
+          // a dark grey on ink, so the selection sits a step away from the
+          // sidebar without inverting it.
+          //
+          // Hover has to be a step subtler still, and no single token is
+          // subtler in both schemes: `background` is offWhite in light but
+          // the same near-black as the sidebar in dark, while `surface` is
+          // the reverse. So it picks per scheme, or the hover state would be
+          // invisible in one of them — which is what happened when this used
+          // `surface` alone.
+          backgroundColor: isFocused
+            ? colors.border
+            : hovered
+              ? scheme === 'dark'
+                ? colors.surface
+                : colors.background
+              : 'transparent',
         };
       }}
     >
-      {/* Ink is navText normally, and navBackground when selected: black on
-          white, then white on black, and the mirror of that in dark mode.
-          No orange anywhere in the rail.
-
-          The hover fill is `border` rather than `surface`, which is white in
-          light mode and so was invisible against a white sidebar. */}
+      {/* One ink for every state: navText is ink900 in light and white in
+          dark, so the rail is black-on-white or white-on-black and never the
+          app's orange. It stays legible on the grey pill in both schemes,
+          which an inverted ink would not. */}
       <Ionicons
         name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
         size={ICON_SIZE}
-        color={isFocused ? colors.navBackground : colors.navText}
+        color={colors.navText}
       />
       <Text
-        style={[
-          typography.body,
-          {
-            color: isFocused ? colors.navBackground : colors.navText,
-            fontWeight: isFocused ? '700' : '500',
-          },
-        ]}
+        style={[typography.body, { color: colors.navText, fontWeight: isFocused ? '700' : '500' }]}
         numberOfLines={1}
       >
         {label}
