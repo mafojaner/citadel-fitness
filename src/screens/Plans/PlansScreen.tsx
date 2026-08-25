@@ -11,7 +11,9 @@ import { APP_FEATURES, TIER_ORDER, TIER_PITCH, type TierPitch } from '../../cons
 import { TIER_LABELS, tierAllows, type MembershipTier } from '../../lib/membership';
 import { useMembershipTier } from '../../hooks/useMembership';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
+import type { WaitlistTier } from '../../lib/fortress';
 import { isEmailValid } from '../../lib/email';
+import { planAction } from '../../lib/planAction';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
@@ -69,7 +71,24 @@ function ComparisonMark({ on, colors }: { on: boolean; colors: ReturnType<typeof
  * else sits on the normal card surface — the colour identifies the tier
  * without the rest of the card having to stay legible against it.
  */
-function PlanCard({ pitch, currentTier }: { pitch: TierPitch; currentTier: MembershipTier }) {
+function PlanCard({
+  pitch,
+  currentTier,
+  action,
+}: {
+  pitch: TierPitch;
+  currentTier: MembershipTier;
+  /**
+   * The plan's own call to action, rendered at the foot of the card.
+   *
+   * Each plan owns its action rather than the page carrying one shared
+   * button. That was the old shape and it could not say which plan you
+   * wanted, which is the only question a plans page exists to answer — and
+   * it is the slot a checkout button drops into later, per plan, without
+   * rearranging anything.
+   */
+  action?: React.ReactNode;
+}) {
   const { colors, tiers, spacing, radius, typography } = useTheme();
   const accent = tiers[pitch.tier];
   const included = FEATURES_BY_TIER[pitch.tier];
@@ -148,185 +167,248 @@ function PlanCard({ pitch, currentTier }: { pitch: TierPitch; currentTier: Membe
             </Text>
           </View>
         ))}
+
+        {action ? <View style={{ marginTop: spacing.sm }}>{action}</View> : null}
       </View>
-    </View>
-  );
-}
-
-interface WaitlistActionProps {
-  accountEmail: string | undefined;
-  joined: boolean;
-  joinedEmail: string | undefined;
-  loading: boolean;
-  joining: boolean;
-  leaving: boolean;
-  error: string | null;
-  onJoin: (email: string) => void;
-  onLeave: () => void;
-}
-
-/** The join-the-waitlist control, shared by the top card and the closing CTA. */
-function WaitlistAction({
-  accountEmail,
-  joined,
-  joinedEmail,
-  loading,
-  joining,
-  leaving,
-  error,
-  onJoin,
-  onLeave,
-}: WaitlistActionProps) {
-  const { colors, spacing, radius, typography } = useTheme();
-  const [showForm, setShowForm] = useState(false);
-  const [emailInput, setEmailInput] = useState(accountEmail ?? '');
-  const [alreadyJoinedNotice, setAlreadyJoinedNotice] = useState(false);
-
-  if (loading) {
-    return <ActivityIndicator color={colors.primary} />;
-  }
-
-  const handlePress = () => {
-    if (joined) {
-      setAlreadyJoinedNotice(true);
-      return;
-    }
-    setShowForm(true);
-  };
-
-  const trimmedEmail = emailInput.trim();
-  const emailInvalid = trimmedEmail.length > 0 && !isEmailValid(trimmedEmail);
-  // Once joined, the form should never show again — the button reappears as a
-  // plain "check your status" affordance instead of a way to resubmit.
-  const showingForm = showForm && !joined;
-
-  return (
-    <View style={{ gap: spacing.sm }}>
-      {joined ? (
-        <View
-          style={{
-            gap: spacing.sm,
-            backgroundColor: `${colors.success}1A`,
-            borderWidth: 1,
-            borderColor: colors.success,
-            borderRadius: radius.md,
-            padding: spacing.md,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: colors.success,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="checkmark" size={22} color="#FFFFFF" />
-            </View>
-            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                You&apos;re on the list!
-              </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                We&apos;ll email {joinedEmail ?? accountEmail ?? 'you'} the moment memberships go on sale.
-              </Text>
-            </View>
-          </View>
-          <AnimatedPressable onPress={onLeave} disabled={leaving} scaleTo={0.96}>
-            <Text style={[typography.caption, { color: colors.textMuted, textDecorationLine: 'underline' }]}>
-              {leaving ? 'Leaving…' : 'Wrong email? Leave the waitlist and rejoin'}
-            </Text>
-          </AnimatedPressable>
-          {error ? <ErrorNotice message={error} onRetry={onLeave} /> : null}
-        </View>
-      ) : null}
-
-      {showingForm ? (
-        <View style={{ gap: spacing.sm }}>
-          <TextInput
-            placeholder="Email address"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={emailInput}
-            onChangeText={setEmailInput}
-            editable={!joining}
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: emailInvalid ? colors.danger : colors.border,
-              borderWidth: 1,
-              borderRadius: radius.md,
-              padding: spacing.md,
-              color: colors.textPrimary,
-            }}
-          />
-          {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
-          {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail)} /> : null}
-          <GradientButton
-            label={joining ? 'Signing up...' : 'Notify me'}
-            colors={gradients.identity}
-            loading={joining}
-            disabled={!trimmedEmail || emailInvalid}
-            onPress={() => onJoin(trimmedEmail)}
-          />
-        </View>
-      ) : (
-        <GradientButton label="Join the waitlist" colors={gradients.identity} onPress={handlePress} />
-      )}
-
-      {alreadyJoinedNotice && joined ? (
-        <Text style={[typography.caption, { color: colors.success }]}>
-          You&apos;re already signed up, sit tight, we&apos;ll be in touch.
-        </Text>
-      ) : null}
     </View>
   );
 }
 
 /**
- * The Plans pane of the Learn tab. This was a single-tier Fortress pitch;
- * there are three tiers now, so it compares them rather than selling one,
- * and the free tier appears as a plan in its own right instead of as the
- * absence of one.
+ * The signup form, opened inside the plan it belongs to.
+ *
+ * Split out of the old shared WaitlistAction, which did three jobs at once
+ * — button, form and joined-state — for a page that only had one plan to
+ * sell. With a button per plan the form has to know which plan opened it,
+ * so that is a prop rather than something it infers.
  */
-export function PlansScreen() {
+function WaitlistForm({
+  accountEmail,
+  tier,
+  joining,
+  error,
+  onJoin,
+  onCancel,
+}: {
+  accountEmail: string | undefined;
+  tier: WaitlistTier;
+  joining: boolean;
+  error: string | null;
+  onJoin: (email: string, tier: WaitlistTier) => void;
+  onCancel: () => void;
+}) {
+  const { colors, spacing, radius, typography } = useTheme();
+  const [emailInput, setEmailInput] = useState(accountEmail ?? '');
+
+  const trimmedEmail = emailInput.trim();
+  const emailInvalid = trimmedEmail.length > 0 && !isEmailValid(trimmedEmail);
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <TextInput
+        placeholder="Email address"
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={emailInput}
+        onChangeText={setEmailInput}
+        editable={!joining}
+        accessibilityLabel={`Email address for the ${TIER_LABELS[tier]} waitlist`}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: emailInvalid ? colors.danger : colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
+      />
+      {emailInvalid ? <Text style={{ color: colors.danger }}>Enter a valid email address</Text> : null}
+      {error ? <ErrorNotice message={error} onRetry={() => onJoin(trimmedEmail, tier)} /> : null}
+      <GradientButton
+        label={joining ? 'Signing up...' : `Notify me about ${TIER_LABELS[tier]}`}
+        colors={gradients.identity}
+        loading={joining}
+        disabled={!trimmedEmail || emailInvalid}
+        onPress={() => onJoin(trimmedEmail, tier)}
+      />
+      <AnimatedPressable onPress={onCancel} scaleTo={0.96} accessibilityRole="button">
+        <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>Cancel</Text>
+      </AnimatedPressable>
+    </View>
+  );
+}
+
+/**
+ * Shown on every unheld plan once someone is on the list, because the list
+ * holds one row per person rather than one per plan — so joining for
+ * Valhalla and then being invited to "join the Fortress waitlist" on the
+ * card below would be offering something that cannot happen.
+ *
+ * The wording distinguishes the plan they actually chose from the others,
+ * rather than claiming they signed up for whichever card they are looking
+ * at. Rows created before the tiers existed have no plan recorded, and say
+ * so instead of guessing one.
+ */
+function WaitlistJoinedNotice({
+  joinedEmail,
+  joinedTier,
+  thisTier,
+  leaving,
+  error,
+  onLeave,
+}: {
+  joinedEmail: string | undefined;
+  joinedTier: WaitlistTier | null;
+  thisTier: WaitlistTier;
+  leaving: boolean;
+  error: string | null;
+  onLeave: () => void;
+}) {
+  const { colors, spacing, radius, typography } = useTheme();
+  const isThisOne = joinedTier === thisTier;
+
+  return (
+    <View
+      style={{
+        gap: spacing.sm,
+        backgroundColor: isThisOne ? `${colors.success}1A` : colors.background,
+        borderWidth: 1,
+        borderColor: isThisOne ? colors.success : colors.border,
+        borderRadius: radius.md,
+        padding: spacing.md,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <View
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: isThisOne ? colors.success : colors.textMuted,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name={isThisOne ? 'checkmark' : 'time-outline'} size={18} color="#FFFFFF" />
+        </View>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
+            {isThisOne
+              ? "You're on this list"
+              : joinedTier
+                ? `You're waiting for ${TIER_LABELS[joinedTier]}`
+                : "You're on the waitlist"}
+          </Text>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            {isThisOne
+              ? `We'll email ${joinedEmail ?? 'you'} the moment it goes on sale.`
+              : joinedTier
+                ? 'Leave that list first if you would rather wait for this plan.'
+                : 'You joined before the plans existed, so no plan is recorded against your place.'}
+          </Text>
+        </View>
+      </View>
+      <AnimatedPressable onPress={onLeave} disabled={leaving} scaleTo={0.96} accessibilityRole="button">
+        <Text style={[typography.caption, { color: colors.textMuted, textDecorationLine: 'underline' }]}>
+          {leaving ? 'Leaving…' : 'Leave the waitlist'}
+        </Text>
+      </AnimatedPressable>
+      {error ? <ErrorNotice message={error} onRetry={onLeave} /> : null}
+    </View>
+  );
+}
+
+/**
+ * The plans page. Reached two ways: as the Plans pane of the Learn tab,
+ * where someone is browsing, and as a screen pushed from Account, where
+ * someone has gone looking for their membership on purpose.
+ *
+ * `variant` is only about the heading. Pushed from Account the navigator
+ * already draws a "Plans" header, so repeating it inside the scroll view
+ * puts the word on screen twice; inside the Learn tab there is only a
+ * segmented control above, so the page has to name itself.
+ */
+export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' }) {
   const { colors, tiers, spacing, typography } = useTheme();
   const currentTier = useMembershipTier();
-  const { accountEmail, joined, joinedEmail, loading, joining, leaving, error, join, leave } =
+  const { accountEmail, joined, joinedEmail, joinedTier, loading, joining, leaving, error, join, leave } =
     useFortressWaitlist();
+  // Which plan's signup form is open. Null means none — tapping a plan's
+  // button opens the form inside that card, so the email field appears
+  // under the plan it belongs to rather than in a shared box elsewhere.
+  const [openTier, setOpenTier] = useState<WaitlistTier | null>(null);
+
+  const renderAction = (tier: MembershipTier) => {
+    // The decision lives in planAction so it can be tested without a screen;
+    // this only turns the answer into pixels. See lib/planAction.ts.
+    const action = planAction({ tier, currentTier, loading, joined, openTier });
+
+    switch (action.kind) {
+      case 'none':
+        return null;
+      case 'loading':
+        return <ActivityIndicator color={colors.primary} />;
+      case 'joined':
+        return (
+          <WaitlistJoinedNotice
+            joinedEmail={joinedEmail ?? accountEmail}
+            joinedTier={joinedTier}
+            thisTier={tier as WaitlistTier}
+            leaving={leaving}
+            error={error}
+            onLeave={leave}
+          />
+        );
+      case 'form':
+        return (
+          <WaitlistForm
+            accountEmail={accountEmail}
+            tier={action.tier}
+            joining={joining}
+            error={error}
+            onJoin={join}
+            onCancel={() => setOpenTier(null)}
+          />
+        );
+      case 'button':
+        return (
+          <GradientButton
+            label={`Join the ${TIER_LABELS[action.tier]} waitlist`}
+            colors={gradients.identity}
+            onPress={() => setOpenTier(action.tier)}
+          />
+        );
+    }
+  };
 
   return (
     <ScreenContainer>
-      <View style={{ gap: spacing.xs }}>
-        <Text style={[typography.title, { color: colors.textPrimary }]}>Plans</Text>
+      {variant === 'pane' ? (
+        <View style={{ gap: spacing.xs }}>
+          <Text style={[typography.title, { color: colors.textPrimary }]}>Plans</Text>
+          <Text style={[typography.body, { color: colors.textSecondary }]}>
+            Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
+            {TIER_LABELS[currentTier]}.
+          </Text>
+        </View>
+      ) : (
         <Text style={[typography.body, { color: colors.textSecondary }]}>
           Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
           {TIER_LABELS[currentTier]}.
         </Text>
-      </View>
+      )}
 
       <View style={{ gap: spacing.md }}>
         {TIER_ORDER.map((tier) => (
-          <PlanCard key={tier} pitch={TIER_PITCH[tier]} currentTier={currentTier} />
+          <PlanCard
+            key={tier}
+            pitch={TIER_PITCH[tier]}
+            currentTier={currentTier}
+            action={renderAction(tier)}
+          />
         ))}
       </View>
-
-      <Card title="Reserve your spot">
-        <WaitlistAction
-          accountEmail={accountEmail}
-          joined={joined}
-          joinedEmail={joinedEmail}
-          loading={loading}
-          joining={joining}
-          leaving={leaving}
-          error={error}
-          onJoin={join}
-          onLeave={leave}
-        />
-      </Card>
 
       <Card title="Compare plans">
         {/* Horizontal room is tight on a phone, so each column is headed by
@@ -391,19 +473,12 @@ export function PlansScreen() {
         </View>
       </Card>
 
-      <WaitlistAction
-        accountEmail={accountEmail}
-        joined={joined}
-        joinedEmail={joinedEmail}
-        loading={loading}
-        joining={joining}
-        leaving={leaving}
-        error={error}
-        onJoin={join}
-        onLeave={leave}
-      />
+      {/* The closing call to action is gone: every plan carries its own now,
+          and a second generic button underneath could only repeat whichever
+          one you had already scrolled past. The note stays, because it is
+          the honest framing for all three. */}
       <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
-        Nothing is on sale yet. Joining the waitlist just means you hear first.
+        Nothing is on sale yet. Joining a waitlist just means you hear first.
       </Text>
     </ScreenContainer>
   );

@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ReferralScreen } from '../../screens/Account/ReferralScreen';
 import { AccountManagementScreen } from '../../screens/Account/AccountManagementScreen';
 import { AccountScreen } from '../../screens/Account/AccountScreen';
+import { PlansScreen } from '../../screens/Plans/PlansScreen';
 import { AppearanceScreen } from '../../screens/Account/AppearanceScreen';
 import { ChangePasswordScreen } from '../../screens/Account/ChangePasswordScreen';
 import { HelpScreen } from '../../screens/Account/HelpScreen';
@@ -21,6 +22,7 @@ export type AccountStackParamList = {
   ChangePassword: undefined;
   Help: undefined;
   Referral: undefined;
+  Plans: undefined;
 };
 
 const Stack = createNativeStackNavigator<AccountStackParamList>();
@@ -50,6 +52,15 @@ export function AccountStack() {
         options={{ title: 'Change Password' }}
       />
       <Stack.Screen name="Help" component={HelpScreen} options={{ title: 'Help & Feedback' }} />
+      {/* The same page the Learn tab shows, pushed as its own screen.
+          `variant="screen"` drops its inline heading, since the navigator
+          already draws one — otherwise "Plans" appears twice. */}
+      <Stack.Screen
+        name="Plans"
+        options={{ title: 'Plans' }}
+      >
+        {() => <PlansScreen variant="screen" />}
+      </Stack.Screen>
       <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: 'Refer & Earn' }} />
     </Stack.Navigator>
   );

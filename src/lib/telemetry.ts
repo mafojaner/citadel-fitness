@@ -44,7 +44,12 @@ const host = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com';
 export type TrackedEvent =
   | { name: 'onboarding_completed'; properties?: undefined }
   | { name: 'workout_logged'; properties: { exerciseCount: number; isBackdated: boolean } }
-  | { name: 'fortress_waitlist_joined'; properties?: undefined }
+  // The tier is the whole reason this event is worth having: it answers how
+  // many people want the coached plan, which is the one with a capacity cap
+  // and so the one whose demand has to be known before it goes on sale. The
+  // submitted email stays out — it is the only thing in this flow that
+  // telemetry must never see.
+  | { name: 'fortress_waitlist_joined'; properties: { tier: 'fortress' | 'valhalla' } }
   | { name: 'water_logged'; properties: { source: 'preset' | 'custom' } };
 
 export const isTelemetryConfigured = Boolean(apiKey);

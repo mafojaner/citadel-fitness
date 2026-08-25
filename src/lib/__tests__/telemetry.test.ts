@@ -117,9 +117,23 @@ describe('with an API key', () => {
   });
 
   it('sends no properties for events that declare none', async () => {
+    // Was fortress_waitlist_joined until that event gained a tier. Moved to
+    // onboarding_completed rather than deleted: "an event with no properties
+    // sends undefined, not an empty object" is still a rule worth holding.
     const t = await loadTelemetry(env);
-    t.trackEvent({ name: 'fortress_waitlist_joined' });
-    expect(mockCapture).toHaveBeenCalledWith('fortress_waitlist_joined', undefined);
+    t.trackEvent({ name: 'onboarding_completed' });
+    expect(mockCapture).toHaveBeenCalledWith('onboarding_completed', undefined);
+  });
+
+  it('records which plan a waitlist signup chose, and never the email', async () => {
+    // The tier is the only reason this event earns its place — it answers
+    // how many people want the coached plan, which is the one with a
+    // capacity cap. The email is the one value in that flow that must never
+    // reach telemetry, so the assertion is on the whole payload rather than
+    // just the tier: an extra field would slip past a narrower check.
+    const t = await loadTelemetry(env);
+    t.trackEvent({ name: 'fortress_waitlist_joined', properties: { tier: 'valhalla' } });
+    expect(mockCapture).toHaveBeenCalledWith('fortress_waitlist_joined', { tier: 'valhalla' });
   });
 });
 

@@ -12,6 +12,8 @@ import { PRIVACY_POLICY_URL } from '../../constants/legal';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useDataExport } from '../../hooks/useDataExport';
+import { useMembershipTier } from '../../hooks/useMembership';
+import { TIER_LABELS } from '../../lib/membership';
 import { useThemeStore } from '../../state/themeStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -33,6 +35,7 @@ export function AccountScreen() {
   // the records it covers. The outcome wording has to match what the
   // platform actually did, so it lives in one place rather than two.
   const { exporting, result: exportResult, run: onExport } = useDataExport();
+  const currentTier = useMembershipTier();
 
   return (
     <ScreenContainer>
@@ -107,6 +110,22 @@ export function AccountScreen() {
           title="Notifications"
           subtitle="Workout reminders and newsletter alerts"
           onPress={() => navigation.navigate('Notifications')}
+        />
+      </SettingsSection>
+
+      {/* Above account management on purpose: this is the row someone comes
+          to Account looking for, and it is where the payment portal will
+          live once there is something to buy. It states the plan you are on
+          rather than only offering to show you the others, so the common
+          case — "what am I actually on?" — is answered without a tap. */}
+      <SettingsSection title="Membership">
+        <SettingsRow
+          icon="pricetags"
+          iconColors={gradients.identity}
+          title="Plans"
+          subtitle="Compare Free, Fortress and Valhalla"
+          value={TIER_LABELS[currentTier]}
+          onPress={() => navigation.navigate('Plans')}
         />
       </SettingsSection>
 

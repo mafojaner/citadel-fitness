@@ -1,6 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { fetchFortressWaitlistStatus, joinFortressWaitlist, leaveFortressWaitlist } from '../lib/fortress';
+import {
+  fetchFortressWaitlistStatus,
+  joinFortressWaitlist,
+  leaveFortressWaitlist,
+  type WaitlistTier,
+} from '../lib/fortress';
 import { trackEvent } from '../lib/telemetry';
 import { useAuthStore } from '../state/authStore';
 
@@ -9,6 +14,7 @@ export function useFortressWaitlist() {
   const accountEmail = useAuthStore((s) => s.session?.user.email);
   const [joined, setJoined] = useState(false);
   const [joinedEmail, setJoinedEmail] = useState<string | undefined>(undefined);
+  const [joinedTier, setJoinedTier] = useState<WaitlistTier | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -24,6 +30,7 @@ export function useFortressWaitlist() {
         if (!cancelled) {
           setJoined(result.joined);
           setJoinedEmail(result.email);
+          setJoinedTier(result.tier);
         }
       })
       .catch((err) => {
@@ -42,17 +49,19 @@ export function useFortressWaitlist() {
   useFocusEffect(load);
 
   const join = useCallback(
-    async (submittedEmail: string) => {
+    async (submittedEmail: string, tier: WaitlistTier) => {
       if (!userId || !submittedEmail || joined || joining) return;
       setJoining(true);
       setError(null);
       try {
-        await joinFortressWaitlist(userId, submittedEmail);
-        // No properties: the submitted email is the one thing this flow
-        // has that telemetry must never see.
-        trackEvent({ name: 'fortress_waitlist_joined' });
+        await joinFortressWaitlist(userId, submittedEmail, tier);
+        // The tier is safe to send and is the whole point of the event —
+        // it answers how many people want the coached plan. The submitted
+        // email is the one thing this flow has that telemetry must never see.
+        trackEvent({ name: 'fortress_waitlist_joined', properties: { tier } });
         setJoined(true);
         setJoinedEmail(submittedEmail);
+        setJoinedTier(tier);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to join the waitlist');
       } finally {
@@ -70,6 +79,7 @@ export function useFortressWaitlist() {
       await leaveFortressWaitlist(userId);
       setJoined(false);
       setJoinedEmail(undefined);
+      setJoinedTier(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to leave the waitlist');
     } finally {
@@ -77,5 +87,5 @@ export function useFortressWaitlist() {
     }
   }, [userId, joined, leaving]);
 
-  return { accountEmail, joined, joinedEmail, loading, joining, leaving, error, join, leave };
+  return { accountEmail, joined, joinedEmail, joinedTier, loading, joining, leaving, error, join, leave };
 }
