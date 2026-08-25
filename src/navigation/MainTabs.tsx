@@ -8,6 +8,7 @@ import { HomeStack } from './stacks/HomeStack';
 import { NewsletterStack } from './stacks/NewsletterStack';
 import { SearchStack } from './stacks/SearchStack';
 import { WorkoutsStack } from './stacks/WorkoutsStack';
+import { PlansScreen } from '../screens/Plans/PlansScreen';
 
 export type MainTabsParamList = {
   Home: undefined;
@@ -16,6 +17,14 @@ export type MainTabsParamList = {
   /** Nested params so a locked feature elsewhere can open the Plans pane directly. */
   Learn: NavigatorScreenParams<NewsletterStackParamList>;
   Search: undefined;
+  /**
+   * Desktop only. On a phone the bottom bar has five tabs and no room for a
+   * sixth, so Plans is reached through Account instead; the sidebar has the
+   * vertical space, and being a real tab is what lets it stay on screen and
+   * show as active while you are on it. Pushing the Account stack instead
+   * covers the whole tab navigator, sidebar included.
+   */
+  Plans: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -39,6 +48,15 @@ export function MainTabs() {
       <Tab.Screen name="Activity" component={ActivityStack} />
       <Tab.Screen name="Learn" component={NewsletterStack} />
       <Tab.Screen name="Search" component={SearchStack} />
+      {/* Conditionally registered, so the phone's bottom bar never sees it.
+          Resizing a desktop browser down while on this tab unregisters the
+          focused route; React Navigation falls back to the first tab, which
+          is the right outcome and the only one available. */}
+      {isDesktop ? (
+        <Tab.Screen name="Plans" options={{ title: 'Plans' }}>
+          {() => <PlansScreen />}
+        </Tab.Screen>
+      ) : null}
     </Tab.Navigator>
   );
 }
