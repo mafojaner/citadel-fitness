@@ -13,11 +13,13 @@ import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useDataExport } from '../../hooks/useDataExport';
 import { useMembershipTier } from '../../hooks/useMembership';
+import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { TIER_LABELS } from '../../lib/membership';
 import { useThemeStore } from '../../state/themeStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
+import type { RootStackParamList } from '../../navigation/RootNavigator';
 
 const THEME_LABELS = { system: 'System', light: 'Light', dark: 'Dark' } as const;
 
@@ -36,6 +38,23 @@ export function AccountScreen() {
   // platform actually did, so it lives in one place rather than two.
   const { exporting, result: exportResult, run: onExport } = useDataExport();
   const currentTier = useMembershipTier();
+  const isDesktop = useIsDesktop();
+
+  // Addressed to the parent navigator explicitly rather than letting the
+  // name bubble. Bubbling did focus the Plans tab, but left this stack
+  // sitting on top of it, so you arrived on Plans with a back button and no
+  // sidebar — the exact thing routing to the tab was meant to avoid.
+  // navigate() on the root pops back to Main because Main is already below
+  // Account there.
+  const openPlansTab = () => {
+    const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    // Two dispatches, and both are needed. navigate() alone focused the
+    // Plans tab but left this stack sitting on top of it, so you arrived on
+    // Plans with a back button and no sidebar. goBack() pops the Account
+    // stack off the root; navigate() then selects the tab underneath.
+    root?.goBack();
+    root?.navigate('Main', { screen: 'Plans' });
+  };
 
   return (
     <ScreenContainer>
@@ -125,7 +144,13 @@ export function AccountScreen() {
           title="Plans"
           subtitle="Compare Free, Fortress and Valhalla"
           value={TIER_LABELS[currentTier]}
-          onPress={() => navigation.navigate('Plans')}
+          // On desktop Plans is a tab, and pushing this stack's copy would
+          // cover the sidebar — the one thing that tab exists to keep on
+          // screen. On mobile there is no tab, so the local route is the
+          // only one; it is addressed directly rather than through
+          // useOpenPlans, whose mobile branch would resolve 'Account' to
+          // this very stack's own route and go nowhere.
+          onPress={isDesktop ? openPlansTab : () => navigation.navigate('Plans')}
         />
       </SettingsSection>
 

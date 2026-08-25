@@ -22,12 +22,13 @@ import { useProfileStore } from '../state/profileStore';
 import { useWorkoutDraftStore } from '../state/workoutDraftStore';
 import { motion } from '../theme/motion';
 import { useTheme } from '../theme/useTheme';
-import { MainTabs } from './MainTabs';
+import { MainTabs, type MainTabsParamList } from './MainTabs';
 import { AccountStack, type AccountStackParamList } from './stacks/AccountStack';
 import { AuthStack } from './stacks/AuthStack';
 
 export type RootStackParamList = {
-  Main: undefined;
+  /** Nested params so anywhere in the app can focus a specific tab — including from inside the Account stack, which sits on top of this one. */
+  Main: NavigatorScreenParams<MainTabsParamList>;
   /** Nested params so the desktop sidebar can open Plans directly, rather than landing on Account and making you find it. */
   Account: NavigatorScreenParams<AccountStackParamList>;
 };

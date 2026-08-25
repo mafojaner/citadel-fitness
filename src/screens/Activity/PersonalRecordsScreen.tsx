@@ -179,7 +179,7 @@ export function PersonalRecordsScreen() {
                 No records yet
               </Text>
               <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                Log a workout and your bests start appearing here automatically — there&apos;s nothing to set up.
+                Log a workout and your bests start appearing here automatically. There&apos;s nothing to set up.
               </Text>
             </View>
           </View>

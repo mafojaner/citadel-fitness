@@ -43,7 +43,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'What are Fortress and Valhalla?',
     answer:
-      "They're Citadel Fitness's two upcoming paid plans, on top of the free tier everyone has. Fortress covers what you did: records, analytics, export, programs and groups. Valhalla adds what to do next, including coached nutrition and form-check reviews by a real person. Neither is on sale yet — see Learn → Plans to compare them and join the waitlist.",
+      "They're Citadel Fitness's two upcoming paid plans, on top of the free tier everyone has. Fortress covers what you did: records, analytics, export, programs and groups. Valhalla adds what to do next, including coached nutrition and form-check reviews by a real person. Neither is on sale yet. Open Account, then Plans, to compare them and join the waitlist.",
   },
   {
     question: 'Is my data private?',

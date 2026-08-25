@@ -30,9 +30,9 @@ export function useDataExport() {
       const outcome = await saveTextFile(filename, csv);
       setResult(
         outcome === 'downloaded'
-          ? `Downloaded ${filename} — ${rowCount} sets.`
+          ? `Downloaded ${filename} (${rowCount} sets).`
           : outcome === 'shared'
-            ? `Shared ${filename} — ${rowCount} sets.`
+            ? `Shared ${filename} (${rowCount} sets).`
             : 'This device has no way to share the file.'
       );
     } catch (err) {

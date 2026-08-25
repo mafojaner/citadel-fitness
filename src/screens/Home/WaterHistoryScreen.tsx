@@ -101,7 +101,7 @@ export function WaterHistoryScreen() {
           <Text style={[typography.title, { color: '#FFFFFF' }]}>{formatWaterAmount(totalMl, unit)}</Text>
           <Text style={[typography.body, { color: 'rgba(255,255,255,0.85)' }]}>
             of {formatWaterAmount(goalMl, unit)}
-            {metGoal ? ' — goal reached' : ''}
+            {metGoal ? ' · goal reached' : ''}
           </Text>
         </View>
         <WaterProgressBar progress={progress} trackColor="rgba(255,255,255,0.25)" fillColor="#FFFFFF" />

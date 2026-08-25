@@ -10,6 +10,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { APP_FEATURES, TIER_ORDER, TIER_PITCH, type TierPitch } from '../../constants/featureCatalog';
 import { TIER_LABELS, tierAllows, type MembershipTier } from '../../lib/membership';
 import { useMembershipTier } from '../../hooks/useMembership';
+import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import type { WaitlistTier } from '../../lib/fortress';
 import { isEmailValid } from '../../lib/email';
@@ -75,9 +76,12 @@ function PlanCard({
   pitch,
   currentTier,
   action,
+  fill = false,
 }: {
   pitch: TierPitch;
   currentTier: MembershipTier;
+  /** Share the row equally with its siblings, for the desktop side-by-side layout. */
+  fill?: boolean;
   /**
    * The plan's own call to action, rendered at the foot of the card.
    *
@@ -102,6 +106,14 @@ function PlanCard({
   return (
     <View
       style={{
+        // flexBasis 0 alongside flex 1: without it the three cards divide
+        // the leftover space after their content, so the plan with eleven
+        // features ends up wider than the one with three. With it they
+        // divide the whole row and come out equal, which is the point of
+        // showing them together.
+        flex: fill ? 1 : undefined,
+        flexBasis: fill ? 0 : undefined,
+        minWidth: 0,
         borderRadius: radius.lg,
         borderWidth: 1,
         borderColor: accent.border,
@@ -150,7 +162,10 @@ function PlanCard({
         <Text style={{ color: accent.onAccent, fontSize: 14, opacity: 0.85 }}>{pitch.tagline}</Text>
       </View>
 
-      <View style={{ padding: spacing.lg, gap: spacing.sm }}>
+      {/* flex 1 so the body fills the equal-height card, letting the spacer
+          below push each plan's action to the bottom — three buttons at
+          three different heights would undo the row's comparability. */}
+      <View style={{ flex: fill ? 1 : undefined, padding: spacing.lg, gap: spacing.sm }}>
         <Text style={[typography.subheading, { color: colors.textPrimary }]}>{pitch.price}</Text>
         {pitch.note ? (
           <Text style={[typography.caption, { color: colors.textSecondary }]}>{pitch.note}</Text>
@@ -168,6 +183,7 @@ function PlanCard({
           </View>
         ))}
 
+        {fill ? <View style={{ flex: 1, minHeight: spacing.sm }} /> : null}
         {action ? <View style={{ marginTop: spacing.sm }}>{action}</View> : null}
       </View>
     </View>
@@ -332,6 +348,7 @@ function WaitlistJoinedNotice({
 export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' }) {
   const { colors, tiers, spacing, typography } = useTheme();
   const currentTier = useMembershipTier();
+  const isDesktop = useIsDesktop();
   const { accountEmail, joined, joinedEmail, joinedTier, loading, joining, leaving, error, join, leave } =
     useFortressWaitlist();
   // Which plan's signup form is open. Null means none — tapping a plan's
@@ -399,13 +416,27 @@ export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' 
         </Text>
       )}
 
-      <View style={{ gap: spacing.md }}>
+      {/* Side by side on desktop, stacked on a phone. Three plans read as a
+          comparison when they sit in a row — the eye scans across the
+          feature lists — where stacked they read as three separate offers
+          you meet one at a time and have to hold in memory. `alignItems:
+          stretch` is what makes that work: without it each card is only as
+          tall as its own content, so the three headers no longer line up
+          and the shortest plan looks truncated rather than shorter. */}
+      <View
+        style={{
+          flexDirection: isDesktop ? 'row' : 'column',
+          alignItems: isDesktop ? 'stretch' : undefined,
+          gap: spacing.md,
+        }}
+      >
         {TIER_ORDER.map((tier) => (
           <PlanCard
             key={tier}
             pitch={TIER_PITCH[tier]}
             currentTier={currentTier}
             action={renderAction(tier)}
+            fill={isDesktop}
           />
         ))}
       </View>

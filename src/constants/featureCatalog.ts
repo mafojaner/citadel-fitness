@@ -168,7 +168,7 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'calendar-number',
     colors: gradients.calendar,
     title: 'Structured programs',
-    description: 'Pick a program — 5x5, push/pull/legs, an 8-week hypertrophy block — and it fills in your workouts day by day.',
+    description: 'Pick a program (5x5, push/pull/legs, an 8-week hypertrophy block) and it fills in your workouts day by day.',
     tier: 'fortress',
     showInComparison: true,
   },
@@ -284,6 +284,6 @@ export const TIER_PITCH: Record<FeatureTier, TierPitch> = {
     // A coach reviewing video is hours, not server time, so this tier has a
     // ceiling the other two never will. Said on the card because it's a real
     // constraint on the product, not a scarcity tactic.
-    note: 'Limited places — a coach reviews every submission',
+    note: 'Limited places, because a coach reviews every submission',
   },
 };

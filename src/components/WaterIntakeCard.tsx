@@ -84,7 +84,7 @@ export function WaterIntakeCard() {
             <Text style={[typography.subheading, { color: '#FFFFFF' }]}>Water intake</Text>
             <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>
               {formatWaterAmount(totalMl, unit)} of {formatWaterAmount(goalMl, unit)}
-              {metGoal ? ' — goal reached' : ''}
+              {metGoal ? ' · goal reached' : ''}
             </Text>
           </View>
           {entries.length > 0 ? (

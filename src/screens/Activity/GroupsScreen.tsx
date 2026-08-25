@@ -234,7 +234,7 @@ export function GroupsScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
               <Ionicons name="lock-closed" size={13} color={colors.textMuted} />
               <Text style={[typography.caption, { color: colors.textMuted, flex: 1, minWidth: 0 }]}>
-                Members only see each other&apos;s name and how many days they trained — never what
+                Members only see each other&apos;s name and how many days they trained. Never what
                 was lifted, and never an email address.
               </Text>
             </View>

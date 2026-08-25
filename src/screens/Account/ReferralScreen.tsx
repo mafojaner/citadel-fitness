@@ -21,7 +21,7 @@ export function ReferralScreen() {
     // React Native's own Share rather than expo-sharing: this is a string,
     // not a file, and Share is the one that reaches messaging apps.
     await Share.share({
-      message: `Join me on Citadel Fitness — use my code ${summary.code} when you sign up.`,
+      message: `Join me on Citadel Fitness. Use my code ${summary.code} when you sign up.`,
     });
   };
 
@@ -82,7 +82,7 @@ export function ReferralScreen() {
                 {/* Deliberately no names or emails: someone who used your
                     code hasn't agreed to be listed to you by name. */}
                 <Text style={[typography.caption, { color: colors.textMuted }]}>
-                  Shown as a count rather than a list — people who use your code aren&apos;t
+                  Shown as a count rather than a list, because people who use your code aren&apos;t
                   identified to you.
                 </Text>
               </>

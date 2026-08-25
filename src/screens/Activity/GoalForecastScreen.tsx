@@ -137,12 +137,12 @@ export function GoalForecastScreen() {
       <Card title="Set a target">
         <Text style={[typography.caption, { color: colors.textMuted }]}>
           Pick a lift, a weight, and a date. The projection comes from your own logged
-          history — nothing to keep updated by hand.
+          history, so there&apos;s nothing to keep updated by hand.
         </Text>
 
         {liftedExercises.length === 0 ? (
           <Text style={[typography.body, { color: colors.textSecondary }]}>
-            Log a strength exercise first — a projection is fitted to your own history, so
+            Log a strength exercise first. A projection is fitted to your own history, so
             there needs to be some.
           </Text>
         ) : (

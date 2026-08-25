@@ -26,9 +26,17 @@ export function useOpenPlans(): () => void {
   return useCallback(() => {
     const navigate = navigation.navigate as unknown as (name: string, params?: object) => void;
     if (isDesktop) {
-      navigate('Plans');
+      // Addressed through the root's 'Main' rather than as a bare 'Plans'.
+      // Both work from a tab screen, but only this one works from inside
+      // the Account stack, and it also pops that stack off on the way — so
+      // the sidebar is on screen when you arrive, which is the whole reason
+      // Plans is a tab on desktop.
+      navigate('Main', { screen: 'Plans' });
       return;
     }
+    // Not reachable from inside the Account stack: that stack has its own
+    // route named 'Account', which would swallow this and go nowhere. The
+    // one caller in there navigates to its local 'Plans' route instead.
     navigate('Account', { screen: 'Plans' });
   }, [navigation, isDesktop]);
 }

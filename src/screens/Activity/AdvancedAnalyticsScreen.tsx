@@ -126,7 +126,7 @@ export function AdvancedAnalyticsScreen() {
           <Card title="Strength progression">
             <Text style={[typography.caption, { color: colors.textMuted }]}>
               Estimated one-rep max, first to latest session in this period. Lifts logged on
-              only one day are left out — there&apos;s no trend in a single point.
+              only one day are left out, since there&apos;s no trend in a single point.
             </Text>
             {progressions.length === 0 ? (
               <Text style={[typography.body, { color: colors.textSecondary }]}>
