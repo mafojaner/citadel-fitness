@@ -6,14 +6,11 @@ import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
 import { Animated, Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnimatedPressable } from '../components/AnimatedPressable';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
 import { useTheme } from '../theme/useTheme';
-import { useAuthStore } from '../state/authStore';
-import { useProfileStore } from '../state/profileStore';
 
 /** Solid variant shown for the active tab, outline for every inactive one — the standard iOS tab-bar convention. */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -252,95 +249,39 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 }
 
 /**
- * Who is signed in, and the way into Account, sitting under the nav items.
+ * The way into Account, sitting under the nav items.
  *
- * Desktop only by construction: it is rendered by SidebarTabBar, which the
- * phone never shows. On a phone the same route is one tap away from the
- * avatar in every screen header, so nothing is lost there; the sidebar has
- * the room to say whose account it is rather than only offering a way in.
+ * Rendered as an ordinary SidebarTabButton rather than as its own thing: it
+ * started out showing the avatar, name and email behind a dividing rule,
+ * which made a block that looked like a different kind of control from the
+ * six above it. As a plain icon and label it reads as one more destination,
+ * which is what it is.
  *
- * It is not a tab and deliberately never highlights. Account is a sibling
- * of the whole tab navigator, so opening it covers the sidebar entirely.
- * There is no state in which a highlight here could be seen, which is the
- * same reason Plans had to become a real tab before it could have one.
+ * Desktop only by construction, since SidebarTabBar is what renders it and
+ * the phone never shows that. Nothing is lost there: the same route is one
+ * tap from the avatar in every screen header.
+ *
+ * Never focused, deliberately. Account is a sibling of the whole tab
+ * navigator, so opening it covers the sidebar entirely and there is no
+ * state in which a highlight here could be seen. That is the same thing
+ * that made Plans need to be a real tab before it could have one.
  */
 function SidebarProfile() {
-  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const name = useProfileStore((s) => s.name);
-  const avatarUrl = useProfileStore((s) => s.avatarUrl);
-  const email = useAuthStore((s) => s.session?.user.email);
-
-  // Same fallback chain as AccountScreen's own header, so the sidebar and
-  // that screen never disagree about what to call someone.
-  const displayName = name || email || 'Signed in user';
-  const initial = displayName[0]?.toUpperCase();
 
   return (
-    <AnimatedPressable
+    <SidebarTabButton
+      label="Profile"
+      icon="person"
+      isFocused={false}
       // The inner screen is named explicitly because the root's Account
-      // route now carries nested params, so it is no longer optional. It
-      // also documents which of that stack's screens this lands on, given
-      // the stack has a route with the same name as itself.
+      // route carries nested params, so they are not optional. It also
+      // documents which screen this lands on, given that stack has a route
+      // with the same name as itself.
       onPress={() => navigation.navigate('Account', { screen: 'Account' })}
-      scaleTo={0.98}
-      accessibilityRole="button"
-      accessibilityLabel={`Open account for ${displayName}`}
-      style={{
-        marginTop: spacing.sm,
-        paddingTop: spacing.sm,
-        borderTopWidth: 1,
-        borderTopColor: colors.navBorder,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: spacing.sm,
-          paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.xs,
-        }}
-      >
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
-            style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface }}
-          />
-        ) : (
-          <View
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              backgroundColor: colors.primaryMuted,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>{initial}</Text>
-          </View>
-        )}
-
-        {/* minWidth 0 on the growing column: without it a long email refuses
-            to shrink below its own content width and pushes the chevron out
-            of the 232px rail instead of truncating. */}
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[typography.body, { color: colors.navText, fontWeight: '600' }]} numberOfLines={1}>
-            {displayName}
-          </Text>
-          {/* Hidden when the name IS the email, which is the fallback above.
-              Printing it twice says nothing and costs a line. */}
-          {email && email !== displayName ? (
-            <Text style={{ color: colors.tabInactive, fontSize: 11 }} numberOfLines={1}>
-              {email}
-            </Text>
-          ) : null}
-        </View>
-
-        <Ionicons name="chevron-forward" size={16} color={colors.tabInactive} />
-      </View>
-    </AnimatedPressable>
+      onLongPress={() => {}}
+      accessibilityLabel="Profile"
+    />
   );
 }
 
@@ -383,19 +324,32 @@ function SidebarTabButton({
           paddingVertical: spacing.sm + 2,
           paddingHorizontal: spacing.sm,
           borderRadius: radius.md,
-          backgroundColor: isFocused ? colors.primaryMuted : hovered ? colors.surface : 'transparent',
+          // The selected row inverts the rail: a black pill in light mode, a
+          // white one in dark. Both come straight from the nav tokens, so
+          // the swap is exact rather than two hardcoded hexes that would
+          // have to be kept in step with the theme by hand.
+          backgroundColor: isFocused ? colors.navText : hovered ? colors.border : 'transparent',
         };
       }}
     >
+      {/* Ink is navText normally, and navBackground when selected: black on
+          white, then white on black, and the mirror of that in dark mode.
+          No orange anywhere in the rail.
+
+          The hover fill is `border` rather than `surface`, which is white in
+          light mode and so was invisible against a white sidebar. */}
       <Ionicons
         name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
         size={ICON_SIZE}
-        color={isFocused ? colors.primary : colors.tabInactive}
+        color={isFocused ? colors.navBackground : colors.navText}
       />
       <Text
         style={[
           typography.body,
-          { color: isFocused ? colors.primary : colors.tabInactive, fontWeight: isFocused ? '700' : '500' },
+          {
+            color: isFocused ? colors.navBackground : colors.navText,
+            fontWeight: isFocused ? '700' : '500',
+          },
         ]}
         numberOfLines={1}
       >
