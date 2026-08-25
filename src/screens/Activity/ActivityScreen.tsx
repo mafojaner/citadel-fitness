@@ -192,6 +192,14 @@ function RewardsCard() {
 
 export function ActivityScreen() {
   const { colors, spacing, typography } = useTheme();
+  // This screen navigated to four of its own routes without ever declaring
+  // `navigation`. It compiled, because on web `navigation` resolves to the
+  // DOM's global Navigation API, whose navigate() legitimately takes a URL
+  // string — so `navigation.navigate('PersonalRecords')` type-checked as a
+  // browser navigation to a relative path. At runtime it reloaded the app
+  // instead of pushing a screen, which looked exactly like a dead link:
+  // no error, no warning, just a bounce back to Home.
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [rangePreset, setRangePreset] = useState<RangePreset>('7d');
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
