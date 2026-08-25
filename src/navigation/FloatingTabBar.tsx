@@ -1,13 +1,19 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
 import { Animated, Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
+import type { RootStackParamList } from './RootNavigator';
 import { useTheme } from '../theme/useTheme';
+import { useAuthStore } from '../state/authStore';
+import { useProfileStore } from '../state/profileStore';
 
 /** Solid variant shown for the active tab, outline for every inactive one — the standard iOS tab-bar convention. */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -207,6 +213,8 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         );
       })}
 
+      <SidebarProfile />
+
       {/* Plans is a real tab here, registered by MainTabs on desktop only, so
           it highlights like any other. It used to push the Account stack
           instead, which covers the whole tab navigator — the sidebar
@@ -240,6 +248,99 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         </>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * Who is signed in, and the way into Account, sitting under the nav items.
+ *
+ * Desktop only by construction: it is rendered by SidebarTabBar, which the
+ * phone never shows. On a phone the same route is one tap away from the
+ * avatar in every screen header, so nothing is lost there; the sidebar has
+ * the room to say whose account it is rather than only offering a way in.
+ *
+ * It is not a tab and deliberately never highlights. Account is a sibling
+ * of the whole tab navigator, so opening it covers the sidebar entirely.
+ * There is no state in which a highlight here could be seen, which is the
+ * same reason Plans had to become a real tab before it could have one.
+ */
+function SidebarProfile() {
+  const { colors, spacing, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const name = useProfileStore((s) => s.name);
+  const avatarUrl = useProfileStore((s) => s.avatarUrl);
+  const email = useAuthStore((s) => s.session?.user.email);
+
+  // Same fallback chain as AccountScreen's own header, so the sidebar and
+  // that screen never disagree about what to call someone.
+  const displayName = name || email || 'Signed in user';
+  const initial = displayName[0]?.toUpperCase();
+
+  return (
+    <AnimatedPressable
+      // The inner screen is named explicitly because the root's Account
+      // route now carries nested params, so it is no longer optional. It
+      // also documents which of that stack's screens this lands on, given
+      // the stack has a route with the same name as itself.
+      onPress={() => navigation.navigate('Account', { screen: 'Account' })}
+      scaleTo={0.98}
+      accessibilityRole="button"
+      accessibilityLabel={`Open account for ${displayName}`}
+      style={{
+        marginTop: spacing.sm,
+        paddingTop: spacing.sm,
+        borderTopWidth: 1,
+        borderTopColor: colors.navBorder,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
+        }}
+      >
+        {avatarUrl ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: colors.primaryMuted,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: colors.primary, fontWeight: '700' }}>{initial}</Text>
+          </View>
+        )}
+
+        {/* minWidth 0 on the growing column: without it a long email refuses
+            to shrink below its own content width and pushes the chevron out
+            of the 232px rail instead of truncating. */}
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[typography.body, { color: colors.navText, fontWeight: '600' }]} numberOfLines={1}>
+            {displayName}
+          </Text>
+          {/* Hidden when the name IS the email, which is the fallback above.
+              Printing it twice says nothing and costs a line. */}
+          {email && email !== displayName ? (
+            <Text style={{ color: colors.tabInactive, fontSize: 11 }} numberOfLines={1}>
+              {email}
+            </Text>
+          ) : null}
+        </View>
+
+        <Ionicons name="chevron-forward" size={16} color={colors.tabInactive} />
+      </View>
+    </AnimatedPressable>
   );
 }
 
