@@ -4,7 +4,8 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
-import { GradientPill } from '../../components/GradientPill';
+import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
+import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -13,10 +14,12 @@ import {
   CATEGORY_ICONS,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
+import { useDataExport } from '../../hooks/useDataExport';
 import { usePersonalRecords } from '../../hooks/usePersonalRecords';
 import { formatDuration } from '../../lib/units';
 import type { PersonalRecord } from '../../lib/personalRecords';
 import { useProfileStore } from '../../state/profileStore';
+import type { Category } from '../../types/models';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
@@ -63,11 +66,19 @@ export function PersonalRecordsScreen() {
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const { records, loading, error, reload } = usePersonalRecords();
-  const [category, setCategory] = useState<string>('all');
+  const { exporting, result: exportResult, run: runExport } = useDataExport();
+  const [category, setCategory] = useState<Category | 'all'>('all');
 
+  // Only the categories this member has actually logged. The catalogue's
+  // picker lists all nine because you are choosing what to browse; here you
+  // are filtering what exists, and offering "Boxing" to someone who has
+  // never boxed just gives them an empty screen to back out of.
   const categories = useMemo(() => {
     const present = Array.from(new Set(records.map((r) => r.category))).sort();
-    return ['all', ...present];
+    return [
+      { label: 'All', value: 'all' as const },
+      ...present.map((c) => ({ label: c[0].toUpperCase() + c.slice(1), value: c })),
+    ];
   }, [records]);
 
   const visible = category === 'all' ? records : records.filter((r) => r.category === category);
@@ -175,20 +186,30 @@ export function PersonalRecordsScreen() {
         </Card>
       ) : (
         <>
+          {/* One pill that opens a picker, matching the exercise catalogue.
+              A wrapping row of seven pills kept the whole "pick a category"
+              choice permanently on screen when only one is ever active, and
+              pushed the records themselves below the fold. */}
           {categories.length > 2 ? (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              {categories.map((c) => (
-                <GradientPill
-                  key={c}
-                  label={c === 'all' ? 'All' : c[0].toUpperCase() + c.slice(1)}
-                  active={c === category}
-                  onPress={() => setCategory(c)}
-                />
-              ))}
-            </View>
+            <CategoryFilterPicker options={categories} value={category} onChange={setCategory} />
           ) : null}
 
           <StatChip icon="trophy-outline" value={`${visible.length} exercise${visible.length === 1 ? '' : 's'}`} />
+
+          {/* Export sits with the records rather than only in Account: this
+              is the screen where someone is looking at their numbers and
+              thinking "I want these in a spreadsheet". Same hook as Account,
+              so the two can't report different outcomes for the same file. */}
+          <Card>
+            <PaidFeatureLink
+              featureId="data-export"
+              label={exporting ? 'Preparing your export…' : 'Export this history as CSV'}
+              onOpen={exporting ? () => {} : runExport}
+            />
+            {exportResult ? (
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>{exportResult}</Text>
+            ) : null}
+          </Card>
 
           {visible.map(renderRecord)}
         </>
