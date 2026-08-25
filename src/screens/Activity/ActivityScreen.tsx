@@ -536,6 +536,10 @@ export function ActivityScreen() {
           featureId="pr-vault"
           label="Your personal records"
           onOpen={() => navigation.navigate('PersonalRecords')}
+          // First in its card, so a rule above it separates nothing. The one
+          // on the row below stays: that line divides the two links, which
+          // is work worth doing.
+          divider="none"
         />
         <PaidFeatureLink
           featureId="goal-forecasting"
