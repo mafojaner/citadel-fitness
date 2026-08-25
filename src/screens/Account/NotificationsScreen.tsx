@@ -89,6 +89,7 @@ export function NotificationsScreen() {
             Workout reminders
           </Text>
           <Switch
+            accessibilityLabel="Workout reminders"
             value={preferences.notifications}
             onValueChange={onToggleNotifications}
             trackColor={{ false: colors.border, true: colors.primary }}
@@ -114,6 +115,9 @@ export function NotificationsScreen() {
               {ARTICLE_CATEGORY_LABELS[category]}
             </Text>
             <Switch
+              // Names the category, since a screen reader otherwise reads
+              // five identical "switch, on" rows in a row here.
+              accessibilityLabel={`${ARTICLE_CATEGORY_LABELS[category]} article alerts`}
               value={preferences.notifications && preferences.articleNotifications[category]}
               disabled={!preferences.notifications}
               onValueChange={(value) => onToggleArticleCategory(category, value)}
@@ -136,6 +140,7 @@ export function NotificationsScreen() {
             </Text>
           </View>
           <Switch
+            accessibilityLabel="Email me about new articles and app news"
             value={preferences.emailNewsletter}
             onValueChange={onToggleEmailNewsletter}
             trackColor={{ false: colors.border, true: colors.primary }}
@@ -169,6 +174,7 @@ export function NotificationsScreen() {
               </Text>
             </View>
             <Switch
+              accessibilityLabel="Weekly digest email"
               value={preferences.weeklyDigest}
               onValueChange={onToggleWeeklyDigest}
               trackColor={{ false: colors.border, true: colors.primary }}
