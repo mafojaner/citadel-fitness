@@ -56,11 +56,22 @@ export function PaidFeatureLink({
   featureId,
   label,
   onOpen,
+  divider = 'top',
 }: {
   featureId: string;
   /** Phrased for its host card, e.g. "See the full breakdown". */
   label: string;
   onOpen?: () => void;
+  /**
+   * Which side the rule sits on.
+   *
+   * 'top' is right when this is a footer under content it extends — the rule
+   * separates it from the chart or tiles above. It is wrong when the link is
+   * the only thing in its card, where a leading rule is a line with nothing
+   * above it. 'bottom' matches how a record card rules off its header: the
+   * content first, then the line.
+   */
+  divider?: 'top' | 'bottom' | 'none';
 }) {
   const { colors, tiers, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<Nav>();
@@ -93,9 +104,15 @@ export function PaidFeatureLink({
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.sm,
-          paddingTop: spacing.sm,
-          borderTopWidth: 1,
+          // The padding follows the rule to whichever side it is on, so the
+          // gap always sits between the line and this row rather than
+          // stranding it against the card edge.
+          paddingTop: divider === 'top' ? spacing.sm : 0,
+          paddingBottom: divider === 'bottom' ? spacing.sm : 0,
+          borderTopWidth: divider === 'top' ? 1 : 0,
           borderTopColor: colors.border,
+          borderBottomWidth: divider === 'bottom' ? 1 : 0,
+          borderBottomColor: colors.border,
         }}
       >
         {/* The feature's own gradient badge, small. A plain tier-coloured

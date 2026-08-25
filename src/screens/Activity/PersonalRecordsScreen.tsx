@@ -205,6 +205,10 @@ export function PersonalRecordsScreen() {
               featureId="data-export"
               label={exporting ? 'Preparing your export…' : 'Export this history as CSV'}
               onOpen={exporting ? () => {} : runExport}
+              // Alone in its card, so a leading rule would be a line with
+              // nothing above it. Ruled underneath instead, the way a record
+              // card rules off its header.
+              divider="bottom"
             />
             {exportResult ? (
               <Text style={[typography.caption, { color: colors.textSecondary }]}>{exportResult}</Text>
