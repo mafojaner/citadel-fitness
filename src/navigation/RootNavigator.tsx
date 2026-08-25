@@ -3,6 +3,7 @@ import {
   DefaultTheme,
   NavigationContainer,
   useNavigationContainerRef,
+  type NavigatorScreenParams,
   type ParamListBase,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -22,12 +23,13 @@ import { useWorkoutDraftStore } from '../state/workoutDraftStore';
 import { motion } from '../theme/motion';
 import { useTheme } from '../theme/useTheme';
 import { MainTabs } from './MainTabs';
-import { AccountStack } from './stacks/AccountStack';
+import { AccountStack, type AccountStackParamList } from './stacks/AccountStack';
 import { AuthStack } from './stacks/AuthStack';
 
 export type RootStackParamList = {
   Main: undefined;
-  Account: undefined;
+  /** Nested params so the desktop sidebar can open Plans directly, rather than landing on Account and making you find it. */
+  Account: NavigatorScreenParams<AccountStackParamList>;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

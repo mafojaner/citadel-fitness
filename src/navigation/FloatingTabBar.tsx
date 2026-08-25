@@ -1,4 +1,6 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
@@ -8,6 +10,7 @@ import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
+import type { RootStackParamList } from './RootNavigator';
 
 /** Solid variant shown for the active tab, outline for every inactive one — the standard iOS tab-bar convention. */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -145,6 +148,9 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
 function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, spacing, typography } = useTheme();
   const insets = useSafeAreaInsets();
+  // The tab navigator's own `navigation` cannot reach Account — it is a
+  // sibling of the whole tab navigator, not one of its routes.
+  const rootNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   return (
     <View
@@ -200,6 +206,29 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           />
         );
       })}
+
+      {/* Plans is not a tab — it lives in the Account stack, and adding a
+          sixth tab would cost the phone's bottom bar a fifth of its width
+          for something you visit rarely. The sidebar has vertical room the
+          bottom bar does not, so desktop gets a direct route and mobile
+          keeps reaching it through Account.
+
+          Below a rule and pushed to the bottom, because it leaves the tabs
+          rather than switching between them: it opens a stack on top of the
+          whole tab navigator, so grouping it with the five would promise a
+          symmetry the navigation does not have. isFocused is always false
+          for the same reason — the tab state it would have to read belongs
+          to a different navigator. */}
+      <View style={{ flex: 1 }} />
+      <View style={{ height: 1, backgroundColor: colors.navBorder, marginVertical: spacing.sm }} />
+      <SidebarTabButton
+        label="Plans"
+        icon="pricetags"
+        isFocused={false}
+        onPress={() => rootNavigation.navigate('Account', { screen: 'Plans' })}
+        onLongPress={() => {}}
+        accessibilityLabel="Plans and membership"
+      />
     </View>
   );
 }
