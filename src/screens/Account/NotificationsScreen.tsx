@@ -1,10 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import {
-  ARTICLE_CATEGORY_GRADIENTS,
   ARTICLE_CATEGORY_ICONS,
   ARTICLE_CATEGORY_LABELS,
 } from '../../constants/articles';
@@ -17,7 +16,6 @@ import { useIsFortress } from '../../hooks/useMembership';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import type { ArticleCategory } from '../../types/models';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 export function NotificationsScreen() {
@@ -84,7 +82,7 @@ export function NotificationsScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge icon="notifications" colors={gradients.flame} size={32} />
+          <Ionicons name="notifications" size={22} color={colors.textSecondary} />
           <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
             Workout reminders
           </Text>
@@ -106,11 +104,7 @@ export function NotificationsScreen() {
         </Text>
         {(Object.keys(ARTICLE_CATEGORY_LABELS) as ArticleCategory[]).map((category) => (
           <View key={category} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge
-              icon={ARTICLE_CATEGORY_ICONS[category]}
-              colors={ARTICLE_CATEGORY_GRADIENTS[category]}
-              size={28}
-            />
+            <Ionicons name={ARTICLE_CATEGORY_ICONS[category]} size={18} color={colors.textSecondary} />
             <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
               {ARTICLE_CATEGORY_LABELS[category]}
             </Text>
@@ -130,7 +124,7 @@ export function NotificationsScreen() {
 
       <Card title="Email updates">
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge icon="mail" colors={gradients.identity} size={32} />
+          <Ionicons name="mail" size={22} color={colors.textSecondary} />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
             <Text style={[typography.body, { color: colors.textPrimary }]}>
               Email me about new articles &amp; app news
@@ -163,7 +157,7 @@ export function NotificationsScreen() {
               borderTopColor: colors.border,
             }}
           >
-            <GradientIconBadge icon="mail-unread" colors={gradients.identity} size={32} />
+            <Ionicons name="mail-unread" size={22} color={colors.textSecondary} />
             <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
               <Text style={[typography.body, { color: colors.textPrimary }]}>
                 Weekly digest

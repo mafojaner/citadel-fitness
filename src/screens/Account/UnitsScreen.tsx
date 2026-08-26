@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
-import { GradientButton } from '../../components/GradientButton';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { mlToOz, ozToMl } from '../../lib/water';
@@ -137,7 +137,7 @@ export function UnitsScreen() {
           <Text style={{ color: colors.textSecondary }}>{preferences.waterUnit === 'ml' ? 'ml' : 'fl oz'}</Text>
         </View>
         {goalDirty ? (
-          <GradientButton
+          <PlainButton
             label={savingGoal ? 'Saving...' : 'Save goal'}
             loading={savingGoal}
             disabled={!goalIsValid}

@@ -1,18 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ActivityIndicator, Image, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { AvatarCropModal } from '../../components/AvatarCropModal';
 import { Card } from '../../components/Card';
-import { GradientButton } from '../../components/GradientButton';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { confirmAsync } from '../../lib/confirm';
 import { removeAvatar, uploadAvatar } from '../../lib/profile';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 export function ProfileSettingsScreen() {
@@ -137,20 +135,20 @@ export function ProfileSettingsScreen() {
                   style={{ width: 72, height: 72, borderRadius: 36 }}
                 />
               ) : (
-                <LinearGradient
-                  colors={gradients.identity}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 36,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '700' }}>{initial}</Text>
-                </LinearGradient>
+                <View
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 36,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <Text style={{ color: colors.textPrimary, fontSize: 28, fontWeight: '700' }}>{initial}</Text>
+              </View>
               )}
               {avatarBusy ? (
                 <View
@@ -231,7 +229,7 @@ export function ProfileSettingsScreen() {
         />
         {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
         {saved ? <Text style={{ color: colors.success }}>Saved</Text> : null}
-        <GradientButton label={saving ? 'Saving...' : 'Save'} loading={saving} disabled={!dirty} onPress={onSave} />
+        <PlainButton label={saving ? 'Saving...' : 'Save'} loading={saving} disabled={!dirty} onPress={onSave} />
       </Card>
 
       <AvatarCropModal

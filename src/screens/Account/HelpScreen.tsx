@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { GradientButton } from '../../components/GradientButton';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { submitFeedback } from '../../lib/feedback';
 import { useAuthStore } from '../../state/authStore';
@@ -150,7 +150,7 @@ export function HelpScreen() {
         />
         {error ? <ErrorNotice message={error} onRetry={onSubmit} /> : null}
         {sent ? <Text style={{ color: colors.success }}>Thanks, your feedback was sent.</Text> : null}
-        <GradientButton
+        <PlainButton
           label={submitting ? 'Sending...' : 'Send feedback'}
           loading={submitting}
           disabled={!canSubmit}

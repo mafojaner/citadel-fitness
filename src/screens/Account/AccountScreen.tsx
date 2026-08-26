@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import appJson from '../../../app.json';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
@@ -16,7 +15,6 @@ import { useMembershipTier } from '../../hooks/useMembership';
 import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { TIER_LABELS } from '../../lib/membership';
 import { useThemeStore } from '../../state/themeStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
@@ -80,20 +78,20 @@ export function AccountScreen() {
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56, borderRadius: 28 }} />
             ) : (
-              <LinearGradient
-                colors={gradients.identity}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+              <View
                 style={{
                   width: 56,
                   height: 56,
                   borderRadius: 28,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  backgroundColor: colors.background,
+                  borderWidth: 1,
+                  borderColor: colors.border,
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700' }}>{initial}</Text>
-              </LinearGradient>
+                <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: '700' }}>{initial}</Text>
+              </View>
             )}
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -111,21 +109,18 @@ export function AccountScreen() {
       <SettingsSection title="Preferences">
         <SettingsRow
           icon="color-palette"
-          iconColors={gradients.calendar}
           title="Appearance"
           value={THEME_LABELS[themeMode]}
           onPress={() => navigation.navigate('Appearance')}
         />
         <SettingsRow
           icon="barbell"
-          iconColors={gradients.volume}
           title="Units"
           value={`${preferences.units} · ${preferences.distanceUnit}`}
           onPress={() => navigation.navigate('Units')}
         />
         <SettingsRow
           icon="notifications"
-          iconColors={gradients.flame}
           title="Notifications"
           subtitle="Workout reminders and newsletter alerts"
           onPress={() => navigation.navigate('Notifications')}
@@ -140,7 +135,6 @@ export function AccountScreen() {
       <SettingsSection title="Membership">
         <SettingsRow
           icon="pricetags"
-          iconColors={gradients.identity}
           title="Plans"
           subtitle="Compare Free, Fortress and Valhalla"
           value={TIER_LABELS[currentTier]}
@@ -157,7 +151,6 @@ export function AccountScreen() {
       <SettingsSection title="Account">
         <SettingsRow
           icon="settings"
-          iconColors={gradients.pulse}
           title="Account management"
           subtitle="Password, sign out, delete account"
           onPress={() => navigation.navigate('AccountManagement')}
@@ -211,7 +204,6 @@ export function AccountScreen() {
       <SettingsSection title="Support">
         <SettingsRow
           icon="help-buoy"
-          iconColors={gradients.favorite}
           title="Help & feedback"
           subtitle="FAQs, and a direct line to the team"
           onPress={() => navigation.navigate('Help')}
@@ -221,13 +213,11 @@ export function AccountScreen() {
       <SettingsSection title="About">
         <SettingsRow
           icon="shield-checkmark"
-          iconColors={gradients.identity}
           title="Privacy policy"
           onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
         />
         <SettingsRow
           icon="information-circle"
-          iconColors={gradients.action}
           title="Version"
           value={appJson.expo.version}
         />

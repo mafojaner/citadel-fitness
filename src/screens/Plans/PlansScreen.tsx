@@ -6,6 +6,7 @@ import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { APP_FEATURES, TIER_ORDER, TIER_PITCH, type TierPitch } from '../../constants/featureCatalog';
 import { TIER_LABELS, tierAllows, type MembershipTier } from '../../lib/membership';
@@ -71,14 +72,13 @@ function ComparisonMark({ on, colors }: { on: boolean; colors: ReturnType<typeof
  * A plan's call to action.
  *
  * The tier colour lives here now rather than in a filled card header. It is
- * the same white and black as before, but expressed the way a pricing page
- * expresses it: Fortress is the outlined button, Valhalla the solid dark
- * one. That reads as a hierarchy between two offers, where two coloured
- * header slabs just read as two differently coloured cards.
+ * the same white and black as before, said the way a pricing page says it:
+ * Fortress is the outlined button, Valhalla the solid dark one. Two coloured
+ * header slabs read as two differently coloured cards; two buttons read as a
+ * hierarchy between two offers.
  *
- * Held plans get a flat, unpressable version. They still draw a button,
- * because a card with an empty space where every sibling has an action
- * looks broken rather than finished.
+ * Held plans still draw a button, flat and unpressable. A card with an empty
+ * space where every sibling has an action looks broken rather than finished.
  */
 function PlanButton({
   label,
@@ -91,42 +91,19 @@ function PlanButton({
   disabled?: boolean;
   onPress?: () => void;
 }) {
-  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const { colors, tiers } = useTheme();
   const accent = tiers[tier];
 
-  const background = disabled ? colors.background : accent.accent;
-  const ink = disabled ? colors.textMuted : accent.onAccent;
-  const border = disabled ? colors.border : accent.border;
-
-  const body = (
-    <View
-      style={{
-        backgroundColor: background,
-        borderWidth: 1,
-        borderColor: border,
-        borderRadius: radius.md,
-        paddingVertical: spacing.md - 2,
-        paddingHorizontal: spacing.md,
-        alignItems: 'center',
-      }}
-    >
-      <Text style={[typography.body, { color: ink, fontWeight: '700' }]} numberOfLines={1}>
-        {label}
-      </Text>
-    </View>
-  );
-
-  if (disabled || !onPress) {
-    // Not a disabled Pressable: this is a statement of fact, not a control
-    // that happens to be unavailable, so it should not read as tappable to
-    // a screen reader either.
-    return <View accessibilityRole="text" accessibilityLabel={label}>{body}</View>;
-  }
-
   return (
-    <AnimatedPressable onPress={onPress} scaleTo={0.98} accessibilityRole="button" accessibilityLabel={label}>
-      {body}
-    </AnimatedPressable>
+    <PlainButton
+      label={label}
+      onPress={disabled ? undefined : onPress}
+      palette={
+        disabled
+          ? { background: colors.background, ink: colors.textMuted, border: colors.border }
+          : { background: accent.accent, ink: accent.onAccent, border: accent.border }
+      }
+    />
   );
 }
 

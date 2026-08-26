@@ -228,7 +228,6 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFea
     return (
       <SettingsRow
         icon={feature.icon}
-        iconColors={feature.colors}
         title={feature.title}
         subtitle={feature.description}
         onPress={onPress}

@@ -3,12 +3,10 @@ import { useState } from 'react';
 import { ActivityIndicator, Share, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import { useReferrals } from '../../hooks/useReferrals';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 export function ReferralScreen() {
@@ -37,7 +35,7 @@ export function ReferralScreen() {
         <>
           <Card title="Your code">
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <GradientIconBadge icon="gift" colors={gradients.favorite} size={44} />
+              <Ionicons name="gift" size={34} color={colors.textSecondary} />
               <Text
                 style={[
                   typography.title,
@@ -48,7 +46,7 @@ export function ReferralScreen() {
                 {summary.code}
               </Text>
             </View>
-            <GradientButton label="Share my code" onPress={onShare} />
+            <PlainButton label="Share my code" onPress={onShare} />
           </Card>
 
           {/* Stated plainly rather than buried: the reward this feature
@@ -122,7 +120,7 @@ export function ReferralScreen() {
                   }}
                 />
                 {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
-                <GradientButton
+                <PlainButton
                   label={busy ? 'Checking...' : 'Redeem code'}
                   loading={busy}
                   disabled={code.trim().length === 0 || busy}

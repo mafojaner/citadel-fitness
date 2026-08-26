@@ -33,7 +33,7 @@ export function SettingsSection({ title, footer, children }: SettingsSectionProp
       <View
         style={{
           backgroundColor: colors.surface,
-          borderRadius: radius.md,
+          borderRadius: radius.lg,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: colors.border,
           overflow: 'hidden',
@@ -47,7 +47,10 @@ export function SettingsSection({ title, footer, children }: SettingsSectionProp
                 style={{
                   height: StyleSheet.hairlineWidth,
                   backgroundColor: colors.border,
-                  marginLeft: spacing.md + 40 + spacing.md,
+                  // Indented past the icon column so the rule starts under
+                  // the text, not under the icon. The icon is 24 wide now
+                  // rather than a 40px disc, so this follows it in.
+                  marginLeft: spacing.md + 24 + spacing.md,
                 }}
               />
             ) : null}

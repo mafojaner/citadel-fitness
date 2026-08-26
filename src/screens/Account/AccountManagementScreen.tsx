@@ -8,7 +8,6 @@ import { SettingsSection } from '../../components/SettingsSection';
 import { deleteAccount } from '../../lib/account';
 import { confirmAsync } from '../../lib/confirm';
 import { useAuthStore } from '../../state/authStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 
@@ -65,7 +64,6 @@ export function AccountManagementScreen() {
       <SettingsSection title="Security">
         <SettingsRow
           icon="lock-closed"
-          iconColors={gradients.pulse}
           title="Change password"
           onPress={() => navigation.navigate('ChangePassword')}
         />

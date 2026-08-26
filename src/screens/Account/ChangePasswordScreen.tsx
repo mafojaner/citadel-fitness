@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { Card } from '../../components/Card';
-import { GradientButton } from '../../components/GradientButton';
+import { PlainButton } from '../../components/PlainButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -96,7 +96,7 @@ export function ChangePasswordScreen() {
         {mismatch ? <Text style={{ color: colors.danger }}>Passwords don&apos;t match</Text> : null}
         {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
         {saved ? <Text style={{ color: colors.success }}>Password updated</Text> : null}
-        <GradientButton
+        <PlainButton
           label={submitting ? 'Saving...' : 'Update password'}
           loading={submitting}
           disabled={!canSubmit}

@@ -2,13 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
-import { GradientIconBadge } from './GradientIconBadge';
-import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
-  iconColors?: readonly [string, string, ...string[]];
   danger?: boolean;
   title: string;
   subtitle?: string;
@@ -22,7 +19,6 @@ interface SettingsRowProps {
 /** A single icon + title (+ optional subtitle/value/accessory) row, meant to be stacked inside a SettingsSection. */
 export function SettingsRow({
   icon,
-  iconColors = gradients.identity,
   danger = false,
   title,
   subtitle,
@@ -45,22 +41,17 @@ export function SettingsRow({
         opacity: disabled ? 0.5 : 1,
       }}
     >
-      {danger ? (
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.danger,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name={icon} size={20} color="#FFFFFF" />
-        </View>
-      ) : (
-        <GradientIconBadge icon={icon} colors={iconColors} size={40} />
-      )}
+      {/* A plain line icon rather than a filled gradient disc. Nine vivid
+          circles down a settings list are nine competing focal points, and
+          none of them means anything — the gradient was decoration, where
+          on a stat tile it encodes which metric you are looking at. Destructive
+          rows keep their red, because there the colour is the message. */}
+      <Ionicons
+        name={icon}
+        size={22}
+        color={danger ? colors.danger : colors.textSecondary}
+        style={{ width: 24, textAlign: 'center' }}
+      />
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
         {loading ? (
           <ActivityIndicator color={danger ? colors.danger : colors.primary} style={{ alignSelf: 'flex-start' }} />
