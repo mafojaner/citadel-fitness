@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import type { RouteProp } from '@react-navigation/native';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
@@ -5,7 +6,6 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FavoriteButton } from '../../components/FavoriteButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -115,15 +115,33 @@ export function ArticleDetailScreen() {
   return (
     <ScreenContainer>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        <GradientIconBadge
-          icon={ARTICLE_CATEGORY_ICONS[article.category]}
-          colors={ARTICLE_CATEGORY_GRADIENTS[article.category]}
-          size={44}
+        {/* Matches the list this was opened from: a plain icon, with the
+            category's colour reduced to the dot beside its name. A gradient
+            disc here would be the loudest thing above an article, which is
+            the one screen that is entirely about the words. */}
+        <Ionicons
+          name={ARTICLE_CATEGORY_ICONS[article.category]}
+          size={26}
+          color={colors.textSecondary}
+          style={{ width: 28, textAlign: 'center' }}
         />
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <Text style={[typography.caption, { color: colors.textMuted }]}>
-            {ARTICLE_CATEGORY_LABELS[article.category]}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor:
+                  ARTICLE_CATEGORY_GRADIENTS[article.category][
+                    ARTICLE_CATEGORY_GRADIENTS[article.category].length - 1
+                  ],
+              }}
+            />
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {ARTICLE_CATEGORY_LABELS[article.category]}
+            </Text>
+          </View>
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{article.title}</Text>
         </View>
         <FavoriteButton articleId={article.id} size={26} />
