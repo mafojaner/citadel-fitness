@@ -28,7 +28,7 @@ export function ReferralScreen() {
   return (
     <ScreenContainer>
       {loading ? (
-        <ActivityIndicator color={colors.primary} />
+        <ActivityIndicator color={colors.textSecondary} />
       ) : error && !summary ? (
         <ErrorNotice message={error} onRetry={reload} />
       ) : summary ? (

@@ -22,7 +22,7 @@ export function AppearanceScreen() {
         <Text style={[typography.caption, { color: colors.textMuted }]}>
           Choose how Citadel Fitness looks. System matches your device setting automatically.
         </Text>
-        <SegmentedControl options={THEME_OPTIONS} value={mode} onChange={setMode} />
+        <SegmentedControl options={THEME_OPTIONS} value={mode} onChange={setMode} tone="ink" />
       </Card>
     </ScreenContainer>
   );

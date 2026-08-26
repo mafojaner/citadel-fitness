@@ -90,7 +90,7 @@ export function NotificationsScreen() {
             accessibilityLabel="Workout reminders"
             value={preferences.notifications}
             onValueChange={onToggleNotifications}
-            trackColor={{ false: colors.border, true: colors.primary }}
+            trackColor={{ false: colors.border, true: colors.textPrimary }}
             thumbColor={colors.surface}
           />
         </View>
@@ -115,7 +115,7 @@ export function NotificationsScreen() {
               value={preferences.notifications && preferences.articleNotifications[category]}
               disabled={!preferences.notifications}
               onValueChange={(value) => onToggleArticleCategory(category, value)}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border, true: colors.textPrimary }}
               thumbColor={colors.surface}
             />
           </View>
@@ -137,7 +137,7 @@ export function NotificationsScreen() {
             accessibilityLabel="Email me about new articles and app news"
             value={preferences.emailNewsletter}
             onValueChange={onToggleEmailNewsletter}
-            trackColor={{ false: colors.border, true: colors.primary }}
+            trackColor={{ false: colors.border, true: colors.textPrimary }}
             thumbColor={colors.surface}
           />
         </View>
@@ -171,7 +171,7 @@ export function NotificationsScreen() {
               accessibilityLabel="Weekly digest email"
               value={preferences.weeklyDigest}
               onValueChange={onToggleWeeklyDigest}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border, true: colors.textPrimary }}
               thumbColor={colors.surface}
             />
           </View>

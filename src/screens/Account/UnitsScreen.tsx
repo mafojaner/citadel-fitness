@@ -98,7 +98,7 @@ export function UnitsScreen() {
   return (
     <ScreenContainer>
       <Card title="Weight">
-        <SegmentedControl options={UNIT_OPTIONS} value={preferences.units} onChange={onChangeUnits} />
+        <SegmentedControl options={UNIT_OPTIONS} value={preferences.units} onChange={onChangeUnits} tone="ink" />
       </Card>
 
       <Card title="Distance">
@@ -106,6 +106,7 @@ export function UnitsScreen() {
           options={DISTANCE_UNIT_OPTIONS}
           value={preferences.distanceUnit}
           onChange={onChangeDistanceUnit}
+          tone="ink"
         />
       </Card>
 
@@ -114,6 +115,7 @@ export function UnitsScreen() {
           options={WATER_UNIT_OPTIONS}
           value={preferences.waterUnit}
           onChange={onChangeWaterUnit}
+          tone="ink"
         />
 
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>Daily goal</Text>

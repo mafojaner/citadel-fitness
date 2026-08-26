@@ -173,7 +173,7 @@ export function ProfileSettingsScreen() {
                     width: 26,
                     height: 26,
                     borderRadius: 13,
-                    backgroundColor: colors.primary,
+                    backgroundColor: colors.textPrimary,
                     borderWidth: 2,
                     borderColor: colors.surface,
                     alignItems: 'center',
