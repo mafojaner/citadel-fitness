@@ -6,6 +6,7 @@ import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { APP_FEATURES, TIER_ORDER, TIER_PITCH, type TierPitch } from '../../constants/featureCatalog';
@@ -372,16 +373,15 @@ function WaitlistJoinedNotice({
 }
 
 /**
- * The plans page. Reached two ways: as the Plans pane of the Learn tab,
- * where someone is browsing, and as a screen pushed from Account, where
+ * The plans page. Reached two ways: as a tab on desktop, where the sidebar
+ * keeps it one click away, and as a screen pushed from Account, where
  * someone has gone looking for their membership on purpose.
  *
- * `variant` is only about the heading. Pushed from Account the navigator
- * already draws a "Plans" header, so repeating it inside the scroll view
- * puts the word on screen twice; inside the Learn tab there is only a
- * segmented control above, so the page has to name itself.
+ * `variant` is only about the header. As a tab it draws its own, the way
+ * Home, Workouts, Activity and Learn all do. Pushed from Account the
+ * navigator already draws one, and a second would stack two titles.
  */
-export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' }) {
+export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' }) {
   const { colors, tiers, spacing, typography } = useTheme();
   const currentTier = useMembershipTier();
   const isDesktop = useIsDesktop();
@@ -444,22 +444,17 @@ export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' 
     }
   };
 
-  return (
+  const content = (
     <ScreenContainer>
-      {variant === 'pane' ? (
-        <View style={{ gap: spacing.xs }}>
-          <Text style={[typography.title, { color: colors.textPrimary }]}>Plans</Text>
-          <Text style={[typography.body, { color: colors.textSecondary }]}>
-            Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
-            {TIER_LABELS[currentTier]}.
-          </Text>
-        </View>
-      ) : (
-        <Text style={[typography.body, { color: colors.textSecondary }]}>
-          Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
-          {TIER_LABELS[currentTier]}.
-        </Text>
-      )}
+      {/* One line for both variants. It used to print its own big "Plans"
+          title as a tab, which is not how any other tab titles itself —
+          Home, Workouts, Activity and Learn all use HeaderSearchBar, and
+          this one wore a heading inside its scroll view instead. The header
+          below supplies the title now, so this is only the subtitle. */}
+      <Text style={[typography.body, { color: colors.textSecondary }]}>
+        Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
+        {TIER_LABELS[currentTier]}.
+      </Text>
 
       {/* Side by side on desktop, stacked on a phone. Three plans read as a
           comparison when they sit in a row — the eye scans across the
@@ -557,5 +552,17 @@ export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' 
         Nothing is on sale yet. Joining a waitlist just means you hear first.
       </Text>
     </ScreenContainer>
+  );
+
+  // As a tab it has to title itself the way the other tabs do. Pushed from
+  // Account the navigator already draws a header, and a second one would
+  // stack two titles down the top of the screen.
+  if (variant === 'screen') return content;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <HeaderSearchBar title="Plans" showSearch={false} />
+      {content}
+    </View>
   );
 }
