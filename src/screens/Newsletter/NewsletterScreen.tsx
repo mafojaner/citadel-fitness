@@ -11,9 +11,9 @@ import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
-  ARTICLE_CATEGORY_GRADIENTS,
   ARTICLE_CATEGORY_ICONS,
   ARTICLE_CATEGORY_LABELS,
+  articleCategoryInk,
 } from '../../constants/articles';
 import { useArticles } from '../../hooks/useArticles';
 import { useIsDesktop } from '../../hooks/useResponsiveLayout';
@@ -28,28 +28,6 @@ import type { NewsletterStackParamList } from '../../navigation/stacks/Newslette
 type FilterValue = ArticleCategory | 'favorites';
 
 const CATEGORY_ORDER: ArticleCategory[] = ['splits', 'exercise', 'nutrition', 'recovery', 'updates'];
-
-/**
- * The saturated end of a category's gradient, used as its one spot of colour.
- *
- * The page used to be built from colour: five gradient-filled tiles and a
- * gradient disc on every article row. That made the category the loudest
- * thing on a screen whose actual content is the writing, and it did not sit
- * next to an account centre that had gone monochrome.
- *
- * Colour still identifies a category, but as a mark rather than a surface --
- * the last stop of the gradient, which is the vivid one, on something a few
- * pixels across. Enough to tell two categories apart at a glance, not enough
- * to compete with the headline beside it.
- */
-function categoryInk(category: ArticleCategory): string {
-  const ramp = ARTICLE_CATEGORY_GRADIENTS[category];
-  return ramp[ramp.length - 1];
-}
-
-function CategoryDot({ color, size = 8 }: { color: string; size?: number }) {
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />;
-}
 
 export function NewsletterScreen() {
   const { colors, spacing, radius, typography } = useTheme();
@@ -107,19 +85,18 @@ export function NewsletterScreen() {
     >
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          {/* The icon carries the category's colour, so the row needs no
+              separate mark to say which category it is. */}
           <Ionicons
             name={ARTICLE_CATEGORY_ICONS[article.category]}
             size={22}
-            color={colors.textSecondary}
+            color={articleCategoryInk(article.category)}
             style={{ width: 24, textAlign: 'center' }}
           />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-              <CategoryDot color={categoryInk(article.category)} size={6} />
-              <Text style={[typography.caption, { color: colors.textMuted }]}>
-                {ARTICLE_CATEGORY_LABELS[article.category]}
-              </Text>
-            </View>
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {ARTICLE_CATEGORY_LABELS[article.category]}
+            </Text>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{article.title}</Text>
           </View>
           <FavoriteButton articleId={article.id} />
@@ -159,14 +136,11 @@ export function NewsletterScreen() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Ionicons name={ARTICLE_CATEGORY_ICONS[cat]} size={26} color={colors.textSecondary} />
+                  <Ionicons name={ARTICLE_CATEGORY_ICONS[cat]} size={26} color={articleCategoryInk(cat)} />
                   <View style={{ gap: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                      <CategoryDot color={categoryInk(cat)} />
-                      <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 16 }}>
-                        {ARTICLE_CATEGORY_LABELS[cat]}
-                      </Text>
-                    </View>
+                    <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 16 }}>
+                      {ARTICLE_CATEGORY_LABELS[cat]}
+                    </Text>
                     <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                       {count} article{count === 1 ? '' : 's'}
                     </Text>
@@ -188,9 +162,9 @@ export function NewsletterScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              {/* The heart keeps its colour rather than taking a dot. It is
-                  already a small element, and a filled heart says "saved"
-                  in a way a grey one beside a coloured dot would not. */}
+              {/* Coloured for the same reason as the category icons, and
+                  filled rather than outlined: a solid heart says "saved"
+                  where an outline says "save this". */}
               <Ionicons name="heart" size={26} color={gradients.favorite[gradients.favorite.length - 1]} />
               <View style={{ gap: 4 }}>
                 <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 16 }}>Favorites</Text>

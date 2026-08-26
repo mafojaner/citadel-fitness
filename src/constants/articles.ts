@@ -40,3 +40,17 @@ export const ARTICLE_CATEGORY_GRADIENTS: Record<
   // is a product/brand announcement, not workout content.
   updates: gradients.identity,
 };
+
+/**
+ * The one spot of colour a category gets: the saturated end of its gradient.
+ *
+ * The newsletter used to be built from colour -- gradient-filled tiles, a
+ * gradient disc on every row -- which made the category the loudest thing on
+ * a screen whose actual content is the writing. It now carries colour on the
+ * category's own icon instead, which is a shape that already means something
+ * rather than a mark added beside it.
+ */
+export function articleCategoryInk(category: ArticleCategory): string {
+  const ramp = ARTICLE_CATEGORY_GRADIENTS[category];
+  return ramp[ramp.length - 1];
+}

@@ -9,9 +9,9 @@ import { FavoriteButton } from '../../components/FavoriteButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
-  ARTICLE_CATEGORY_GRADIENTS,
   ARTICLE_CATEGORY_ICONS,
   ARTICLE_CATEGORY_LABELS,
+  articleCategoryInk,
 } from '../../constants/articles';
 import { fetchArticleById } from '../../lib/articles';
 import { useAuthStore } from '../../state/authStore';
@@ -115,33 +115,20 @@ export function ArticleDetailScreen() {
   return (
     <ScreenContainer>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        {/* Matches the list this was opened from: a plain icon, with the
-            category's colour reduced to the dot beside its name. A gradient
-            disc here would be the loudest thing above an article, which is
-            the one screen that is entirely about the words. */}
+        {/* Matches the list this was opened from: the icon carries the
+            category's colour, and nothing else on the header does. A
+            gradient disc here would be the loudest thing above an article,
+            which is the one screen that is entirely about the words. */}
         <Ionicons
           name={ARTICLE_CATEGORY_ICONS[article.category]}
           size={26}
-          color={colors.textSecondary}
+          color={articleCategoryInk(article.category)}
           style={{ width: 28, textAlign: 'center' }}
         />
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor:
-                  ARTICLE_CATEGORY_GRADIENTS[article.category][
-                    ARTICLE_CATEGORY_GRADIENTS[article.category].length - 1
-                  ],
-              }}
-            />
-            <Text style={[typography.caption, { color: colors.textMuted }]}>
-              {ARTICLE_CATEGORY_LABELS[article.category]}
-            </Text>
-          </View>
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            {ARTICLE_CATEGORY_LABELS[article.category]}
+          </Text>
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{article.title}</Text>
         </View>
         <FavoriteButton articleId={article.id} size={26} />
