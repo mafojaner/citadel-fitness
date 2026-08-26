@@ -9,6 +9,7 @@ export type SettingsSectionId =
   | 'plans'
   | 'perks'
   | 'account'
+  | 'uploads'
   | 'data'
   | 'help'
   | 'about';
@@ -93,6 +94,13 @@ export const SETTINGS_ITEMS: SettingsItem[] = [
     icon: 'settings',
     group: 'Account',
     route: 'AccountManagement',
+  },
+  {
+    id: 'uploads',
+    label: 'Pending uploads',
+    subtitle: 'Workouts saved offline, waiting to sync',
+    icon: 'cloud-upload',
+    group: 'Account',
   },
   {
     id: 'data',

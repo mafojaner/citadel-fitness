@@ -113,11 +113,6 @@ export const useOfflineQueueStore = create<OfflineQueueState>()(
   )
 );
 
-/** How many saves are waiting, for the indicator. */
-export function pendingCount(queue: PendingSave[]): number {
-  return queue.length;
-}
-
 /** How many have given up and need a decision. */
 export function stalledCount(queue: PendingSave[]): number {
   return stalledItems(queue).length;

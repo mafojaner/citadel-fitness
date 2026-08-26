@@ -17,6 +17,9 @@ import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore } from '../../state/themeStore';
 import { stalledCount, useOfflineQueueStore } from '../../state/offlineQueueStore';
+import { MAX_ATTEMPTS, type PendingSave } from '../../lib/offlineQueue';
+import { PlainButton } from '../../components/PlainButton';
+import { confirmAsync } from '../../lib/confirm';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
@@ -185,6 +188,79 @@ function GroupHeading({ label }: { label: string }) {
 }
 
 /**
+ * One queued workout, with the two things a person can actually do about it.
+ *
+ * The queue was previously able to tell someone a save was stuck and offer
+ * nothing else, which is a worse state than not telling them: it names a
+ * problem and hands over no way out. Retrying is the answer when the cause
+ * has passed, and discarding is the answer when it has not — a save the
+ * server refuses will be refused forever, and its owner should be able to
+ * clear it rather than watch a permanent badge.
+ */
+function PendingUploadRow({
+  item,
+  onRetry,
+  onDiscard,
+}: {
+  item: PendingSave;
+  onRetry: () => void;
+  onDiscard: () => void;
+}) {
+  const { colors, spacing, radius, typography } = useTheme();
+  const stalled = item.attempts >= MAX_ATTEMPTS;
+  const exerciseCount = Array.isArray(item.payload.p_exercises) ? item.payload.p_exercises.length : 0;
+
+  return (
+    <View
+      style={{
+        gap: spacing.sm,
+        borderWidth: 1,
+        borderColor: stalled ? colors.danger : colors.border,
+        borderRadius: radius.md,
+        padding: spacing.md,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+        <Ionicons
+          name={stalled ? 'alert-circle-outline' : 'cloud-upload-outline'}
+          size={18}
+          color={stalled ? colors.danger : colors.textSecondary}
+        />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
+            {item.date}
+          </Text>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            {exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}
+            {stalled
+              ? ' · not accepted'
+              : item.attempts === 0
+                ? ' · waiting to upload'
+                : ` · retrying, attempt ${item.attempts + 1}`}
+          </Text>
+        </View>
+      </View>
+
+      {/* The server's own words. A generic "it didn't work" would leave
+          someone with no way to tell a dead connection from a real refusal,
+          which are the two cases with completely different answers. */}
+      {stalled && item.lastError ? (
+        <Text style={[typography.caption, { color: colors.textMuted }]}>{item.lastError}</Text>
+      ) : null}
+
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <View style={{ flex: 1 }}>
+          <PlainButton label="Try now" variant="outline" onPress={onRetry} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <PlainButton label="Discard" danger onPress={onDiscard} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/**
  * The account centre.
  *
  * Two layouts of the same catalogue. On a phone it is a list of rows that
@@ -209,9 +285,24 @@ export function AccountScreen() {
   // the records it covers. The outcome wording has to match what the
   // platform actually did, so it lives in one place rather than two.
   const { exporting, result: exportResult, run: onExport } = useDataExport();
-  const pendingSaves = useOfflineQueueStore((state) => state.queue.length);
+  const pending = useOfflineQueueStore((state) => state.queue);
+  const pendingSaves = pending.length;
+  const retryUploads = useOfflineQueueStore((state) => state.flush);
+  const discardUpload = useOfflineQueueStore((state) => state.discard);
   const stalledSaves = useOfflineQueueStore((state) => stalledCount(state.queue));
   const [section, setSection] = useState<SettingsSectionId>('profile');
+
+  // Discarding throws away a workout the person logged, which nothing else
+  // will bring back, so it asks first. Same treatment as removing an avatar,
+  // which is the app's other irreversible small action.
+  const onDiscardUpload = async (item: PendingSave) => {
+    const confirmed = await confirmAsync(
+      'Discard this workout?',
+      `The workout saved for ${item.date} has not reached the server and will be lost. This cannot be undone.`,
+      'Discard'
+    );
+    if (confirmed) discardUpload(item.id);
+  };
 
   // On desktop Plans is a tab, and pushing this stack's copy would cover the
   // sidebar that tab exists to keep on screen. Two dispatches: goBack() pops
@@ -231,6 +322,32 @@ export function AccountScreen() {
         : id === 'plans'
           ? TIER_LABELS[currentTier]
           : undefined;
+
+  const uploadsPane = (
+    <ScreenContainer>
+      <SettingsSection
+        title="Pending uploads"
+        footer="Workouts saved with no signal upload themselves when you are back online. Nothing here means everything has reached the server."
+      >
+        <View style={{ padding: spacing.md, gap: spacing.sm }}>
+          {pending.length === 0 ? (
+            <Text style={[typography.body, { color: colors.textSecondary }]}>
+              Everything is uploaded.
+            </Text>
+          ) : (
+            pending.map((item) => (
+              <PendingUploadRow
+                key={item.id}
+                item={item}
+                onRetry={retryUploads}
+                onDiscard={() => onDiscardUpload(item)}
+              />
+            ))
+          )}
+        </View>
+      </SettingsSection>
+    </ScreenContainer>
+  );
 
   const dataPane = (
     <ScreenContainer>
@@ -311,6 +428,8 @@ export function AccountScreen() {
         return <HelpScreen />;
       case 'perks':
         return perksPane;
+      case 'uploads':
+        return uploadsPane;
       case 'data':
         return dataPane;
       case 'about':
@@ -350,6 +469,7 @@ export function AccountScreen() {
         {/* The three sections with no screen of their own open in place
             underneath, since a phone has nowhere else to put them. */}
         {section === 'perks' ? perksPane : null}
+        {section === 'uploads' ? uploadsPane : null}
         {section === 'data' ? dataPane : null}
         {section === 'about' ? aboutPane : null}
       </ScreenContainer>
