@@ -280,7 +280,12 @@ function SidebarProfile() {
       // with the same name as itself.
       onPress={() => navigation.navigate('Account', { screen: 'Account' })}
       onLongPress={() => {}}
-      accessibilityLabel="Profile"
+      // `open-outline` is the conventional "this opens somewhere else" mark.
+      // Earned here: Account is a sibling of the whole tab navigator, so
+      // this row covers the sidebar rather than swapping a pane within it,
+      // which is also why it can never show as focused.
+      trailingIcon="open-outline"
+      accessibilityLabel="Profile, opens the account centre"
     />
   );
 }
@@ -292,6 +297,13 @@ interface SidebarTabButtonProps {
   onPress: () => void;
   onLongPress: () => void;
   accessibilityLabel?: string;
+  /**
+   * Drawn small and muted at the end of the row, for an entry that does
+   * something other than switch tabs. Every other row in this rail swaps the
+   * pane beside it and stays highlighted; one that leaves the tab set
+   * entirely should say so before it is tapped rather than after.
+   */
+  trailingIcon?: keyof typeof Ionicons.glyphMap;
 }
 
 function SidebarTabButton({
@@ -301,6 +313,7 @@ function SidebarTabButton({
   onPress,
   onLongPress,
   accessibilityLabel,
+  trailingIcon,
 }: SidebarTabButtonProps) {
   const { colors, spacing, radius, typography, scheme } = useTheme();
 
@@ -354,11 +367,16 @@ function SidebarTabButton({
         color={colors.navText}
       />
       <Text
-        style={[typography.body, { color: colors.navText, fontWeight: isFocused ? '700' : '500' }]}
+        style={[typography.body, { flex: 1, minWidth: 0, color: colors.navText, fontWeight: isFocused ? '700' : '500' }]}
         numberOfLines={1}
       >
         {label}
       </Text>
+      {trailingIcon ? (
+        // Muted rather than full navText: it annotates the row, it is not a
+        // second thing to read.
+        <Ionicons name={trailingIcon} size={14} color={colors.tabInactive} />
+      ) : null}
     </Pressable>
   );
 }
