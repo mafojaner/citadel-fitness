@@ -91,16 +91,28 @@ function ProfileHeader({ onPress }: { onPress: () => void }) {
   );
 }
 
-/** One row of the desktop rail. Selected reads as a grey pill, matching the app's nav sidebar. */
+/**
+ * One settings row, used by both layouts so they look the same.
+ *
+ * Selected reads as a grey pill, matching the app's nav sidebar. The phone
+ * never selects — it pushes — so there it shows a chevron instead, which is
+ * the one honest difference between the two: on desktop the row swaps the
+ * pane beside it, on a phone it opens a new screen, and the affordance
+ * should say which.
+ */
 function RailItem({
   label,
   icon,
   selected,
+  value,
+  chevron,
   onPress,
 }: {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   selected: boolean;
+  value?: string;
+  chevron?: boolean;
   onPress: () => void;
 }) {
   const { colors, spacing, radius, typography, scheme } = useTheme();
@@ -140,7 +152,34 @@ function RailItem({
       >
         {label}
       </Text>
+      {value ? (
+        <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={1}>
+          {value}
+        </Text>
+      ) : null}
+      {chevron ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null}
     </Pressable>
+  );
+}
+
+/** The uppercase heading above each group, shared so both layouts space it identically. */
+function GroupHeading({ label }: { label: string }) {
+  const { colors, spacing, typography } = useTheme();
+  return (
+    <Text
+      style={[
+        typography.caption,
+        {
+          color: colors.textMuted,
+          textTransform: 'uppercase',
+          letterSpacing: 0.6,
+          paddingHorizontal: spacing.sm,
+          marginTop: spacing.xs,
+        },
+      ]}
+    >
+      {label}
+    </Text>
   );
 }
 
@@ -269,25 +308,29 @@ export function AccountScreen() {
     }
   };
 
-  // ---- phone: a list of rows that push ----
+  // ---- phone: the same rows, full width, pushing instead of selecting ----
   if (!isDesktop) {
     return (
       <ScreenContainer>
         <ProfileHeader onPress={() => navigation.navigate('ProfileSettings')} />
 
         {SETTINGS_GROUPS.map((group) => (
-          <SettingsSection key={group} title={group}>
+          <View key={group} style={{ gap: spacing.xs }}>
+            <GroupHeading label={group} />
             {SETTINGS_ITEMS.filter((item) => item.group === group).map((item) => (
-              <SettingsRow
+              <RailItem
                 key={item.id}
+                label={item.label}
                 icon={item.icon}
-                title={item.label}
-                subtitle={item.subtitle}
+                // A phone opens the section rather than selecting it, so
+                // nothing here is ever the "current" row.
+                selected={false}
                 value={valueFor(item.id)}
+                chevron
                 onPress={() => (item.route ? navigation.navigate(item.route) : setSection(item.id))}
               />
             ))}
-          </SettingsSection>
+          </View>
         ))}
 
         {/* The three sections with no screen of their own open in place
@@ -317,20 +360,7 @@ export function AccountScreen() {
 
         {SETTINGS_GROUPS.map((group) => (
           <View key={group} style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
-            <Text
-              style={[
-                typography.caption,
-                {
-                  color: colors.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.6,
-                  paddingHorizontal: spacing.sm,
-                  marginTop: spacing.xs,
-                },
-              ]}
-            >
-              {group}
-            </Text>
+            <GroupHeading label={group} />
             {SETTINGS_ITEMS.filter((item) => item.group === group).map((item) => (
               <RailItem
                 key={item.id}
