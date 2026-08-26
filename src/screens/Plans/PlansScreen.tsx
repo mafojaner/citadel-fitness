@@ -68,9 +68,78 @@ function ComparisonMark({ on, colors }: { on: boolean; colors: ReturnType<typeof
 }
 
 /**
- * One plan. The header is filled with the tier's key colour and everything
- * else sits on the normal card surface — the colour identifies the tier
- * without the rest of the card having to stay legible against it.
+ * A plan's call to action.
+ *
+ * The tier colour lives here now rather than in a filled card header. It is
+ * the same white and black as before, but expressed the way a pricing page
+ * expresses it: Fortress is the outlined button, Valhalla the solid dark
+ * one. That reads as a hierarchy between two offers, where two coloured
+ * header slabs just read as two differently coloured cards.
+ *
+ * Held plans get a flat, unpressable version. They still draw a button,
+ * because a card with an empty space where every sibling has an action
+ * looks broken rather than finished.
+ */
+function PlanButton({
+  label,
+  tier,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  tier: MembershipTier;
+  disabled?: boolean;
+  onPress?: () => void;
+}) {
+  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const accent = tiers[tier];
+
+  const background = disabled ? colors.background : accent.accent;
+  const ink = disabled ? colors.textMuted : accent.onAccent;
+  const border = disabled ? colors.border : accent.border;
+
+  const body = (
+    <View
+      style={{
+        backgroundColor: background,
+        borderWidth: 1,
+        borderColor: border,
+        borderRadius: radius.md,
+        paddingVertical: spacing.md - 2,
+        paddingHorizontal: spacing.md,
+        alignItems: 'center',
+      }}
+    >
+      <Text style={[typography.body, { color: ink, fontWeight: '700' }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+
+  if (disabled || !onPress) {
+    // Not a disabled Pressable: this is a statement of fact, not a control
+    // that happens to be unavailable, so it should not read as tappable to
+    // a screen reader either.
+    return <View accessibilityRole="text" accessibilityLabel={label}>{body}</View>;
+  }
+
+  return (
+    <AnimatedPressable onPress={onPress} scaleTo={0.98} accessibilityRole="button" accessibilityLabel={label}>
+      {body}
+    </AnimatedPressable>
+  );
+}
+
+/**
+ * One plan, in the shape a pricing page takes: icon, name, tagline, price,
+ * the action, then a rule and what the plan adds.
+ *
+ * The tier's colour used to fill a header band across the top of the card.
+ * That made three cards that differed by slab colour rather than three
+ * offers you compare down the same columns, and on the black one it forced
+ * a second text colour for the header alone. The colour now identifies the
+ * plan through its button, which is the element you are being asked to act
+ * on anyway.
  */
 function PlanCard({
   pitch,
@@ -82,26 +151,18 @@ function PlanCard({
   currentTier: MembershipTier;
   /** Share the row equally with its siblings, for the desktop side-by-side layout. */
   fill?: boolean;
-  /**
-   * The plan's own call to action, rendered at the foot of the card.
-   *
-   * Each plan owns its action rather than the page carrying one shared
-   * button. That was the old shape and it could not say which plan you
-   * wanted, which is the only question a plans page exists to answer — and
-   * it is the slot a checkout button drops into later, per plan, without
-   * rearranging anything.
-   */
+  /** The plan's own call to action, rendered under the price. */
   action?: React.ReactNode;
 }) {
-  const { colors, tiers, spacing, radius, typography } = useTheme();
-  const accent = tiers[pitch.tier];
+  const { colors, spacing, radius, typography } = useTheme();
   const included = FEATURES_BY_TIER[pitch.tier];
   const isCurrent = currentTier === pitch.tier;
-  // Not "is this your tier": someone on Valhalla holds Fortress too, and
-  // showing that card as not-yours would be the same equality bug the
-  // access check exists to avoid.
-  const held = tierAllows(currentTier, pitch.tier);
-  const addsLabel = pitch.tier === 'free' ? 'Includes' : 'Everything below, plus';
+  const addsLabel =
+    pitch.tier === 'free'
+      ? 'Includes'
+      : pitch.tier === 'fortress'
+        ? 'Everything in Free, and:'
+        : 'Everything in Fortress, plus:';
 
   return (
     <View
@@ -116,75 +177,73 @@ function PlanCard({
         minWidth: 0,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: accent.border,
+        borderColor: colors.border,
         backgroundColor: colors.surface,
         overflow: 'hidden',
       }}
     >
-      {/* The seam matters most for Fortress: its white header sits directly
-          on a white card body in light mode, so without this the header and
-          the feature list read as one undivided block. Free and Valhalla
-          are already separated by their fill; the rule is harmless there. */}
-      <View
-        style={{
-          backgroundColor: accent.accent,
-          borderBottomWidth: 1,
-          borderBottomColor: accent.border,
-          padding: spacing.lg,
-          gap: spacing.xs,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <TierIcon icon={pitch.icon} color={accent.onAccent} size={24} />
-          <Text style={{ color: accent.onAccent, fontSize: 22, fontWeight: '800', flex: 1, minWidth: 0 }}>
-            {TIER_LABELS[pitch.tier]}
-          </Text>
-          {held ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                borderWidth: 1,
-                borderColor: accent.onAccent,
-                borderRadius: radius.pill,
-                paddingHorizontal: spacing.sm,
-                paddingVertical: 2,
-              }}
-            >
-              <Ionicons name="checkmark" size={11} color={accent.onAccent} />
-              <Text style={{ fontSize: 10, fontWeight: '700', color: accent.onAccent }}>
-                {isCurrent ? 'Your plan' : 'Included'}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <Text style={{ color: accent.onAccent, fontSize: 14, opacity: 0.85 }}>{pitch.tagline}</Text>
-      </View>
+      <View style={{ padding: spacing.lg, gap: spacing.sm }}>
+        <TierIcon icon={pitch.icon} color={colors.textPrimary} size={34} />
 
-      {/* flex 1 so the body fills the equal-height card, letting the spacer
-          below push each plan's action to the bottom — three buttons at
-          three different heights would undo the row's comparability. */}
-      <View style={{ flex: fill ? 1 : undefined, padding: spacing.lg, gap: spacing.sm }}>
-        <Text style={[typography.subheading, { color: colors.textPrimary }]}>{pitch.price}</Text>
-        {pitch.note ? (
-          <Text style={[typography.caption, { color: colors.textSecondary }]}>{pitch.note}</Text>
+        <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: '800' }}>
+          {TIER_LABELS[pitch.tier]}
+        </Text>
+        <Text style={[typography.body, { color: colors.textSecondary }]}>{pitch.tagline}</Text>
+
+        <Text style={{ color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: spacing.xs }}>
+          {pitch.price}
+        </Text>
+
+        {isCurrent ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.sm,
+              backgroundColor: colors.background,
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: radius.md,
+              padding: spacing.md,
+            }}
+          >
+            <Ionicons name="information-circle-outline" size={18} color={colors.textMuted} />
+            <Text style={[typography.caption, { flex: 1, minWidth: 0, color: colors.textSecondary }]}>
+              You are on this plan.
+            </Text>
+          </View>
         ) : null}
 
-        <Text style={[typography.caption, { color: colors.textMuted, marginTop: spacing.xs }]}>
-          {addsLabel}
-        </Text>
+        {/* Pushed to the bottom of the equal-height card so the three buttons
+            line up. Three actions at three different heights would undo the
+            row's comparability, which is the only reason to put the plans
+            side by side at all. */}
+        {fill ? <View style={{ flex: 1, minHeight: spacing.sm }} /> : null}
+        {action}
+
+        {/* Sits under the button, the way a pricing page qualifies its own
+            call to action. Valhalla is the only plan with a caveat worth
+            printing, and it is a real constraint rather than a scarcity
+            line: a coach's hours do not scale. */}
+        {pitch.note ? (
+          <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
+            {pitch.note}
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={{ height: 1, backgroundColor: colors.border }} />
+
+      <View style={{ padding: spacing.lg, gap: spacing.sm }}>
+        <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>{addsLabel}</Text>
         {included.map((feature) => (
           <View key={feature.id} style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' }}>
-            <Ionicons name="checkmark" size={16} color={colors.success} style={{ marginTop: 2 }} />
+            <Ionicons name="checkmark" size={16} color={colors.textMuted} style={{ marginTop: 2 }} />
             <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary }]}>
               {feature.title}
             </Text>
           </View>
         ))}
-
-        {fill ? <View style={{ flex: 1, minHeight: spacing.sm }} /> : null}
-        {action ? <View style={{ marginTop: spacing.sm }}>{action}</View> : null}
       </View>
     </View>
   );
@@ -362,8 +421,13 @@ export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' 
     const action = planAction({ tier, currentTier, loading, joined, openTier });
 
     switch (action.kind) {
-      case 'none':
-        return null;
+      case 'current':
+        return <PlanButton label="Your current plan" tier={tier} disabled />;
+      case 'included':
+        // Worded from the reader's side. "Included" alone invites the
+        // question "included in what?", and this is the card for the plan
+        // they are not on.
+        return <PlanButton label="Included in your plan" tier={tier} disabled />;
       case 'loading':
         return <ActivityIndicator color={colors.primary} />;
       case 'joined':
@@ -389,10 +453,14 @@ export function PlansScreen({ variant = 'pane' }: { variant?: 'pane' | 'screen' 
           />
         );
       case 'button':
+        // Not "Get Fortress", which the reference design's button says. That
+        // wording promises a purchase, and this opens an email form for a
+        // plan that is not on sale. The button takes the shape a pricing
+        // page gives it; the words still describe what happens.
         return (
-          <GradientButton
-            label={`Join the ${TIER_LABELS[action.tier]} waitlist`}
-            colors={gradients.identity}
+          <PlanButton
+            label="Join the waitlist"
+            tier={action.tier}
             onPress={() => setOpenTier(action.tier)}
           />
         );

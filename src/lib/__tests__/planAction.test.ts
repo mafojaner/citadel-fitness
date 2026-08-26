@@ -4,22 +4,25 @@ import type { MembershipTier } from '../membership';
 const base = { currentTier: 'free' as MembershipTier, loading: false, joined: false, openTier: null };
 
 describe('planAction', () => {
-  it('offers nothing on the free plan', () => {
-    // There is nothing to wait for on the tier everyone already has.
-    expect(planAction({ ...base, tier: 'free' }).kind).toBe('none');
-    expect(planAction({ ...base, tier: 'free', currentTier: 'valhalla' }).kind).toBe('none');
+  it('marks the plan you are actually on as current', () => {
+    expect(planAction({ ...base, tier: 'free' }).kind).toBe('current');
+    expect(planAction({ ...base, tier: 'fortress', currentTier: 'fortress' }).kind).toBe('current');
+    expect(planAction({ ...base, tier: 'valhalla', currentTier: 'valhalla' }).kind).toBe('current');
   });
 
-  it('offers nothing on a plan the account already holds', () => {
-    expect(planAction({ ...base, tier: 'fortress', currentTier: 'fortress' }).kind).toBe('none');
-    expect(planAction({ ...base, tier: 'valhalla', currentTier: 'valhalla' }).kind).toBe('none');
+  it('marks a lower held plan as included, not as current', () => {
+    // The distinction every card having a button forced: collapsing these
+    // into one state labelled Free "your current plan" while the account was
+    // paying for Valhalla.
+    expect(planAction({ ...base, tier: 'free', currentTier: 'valhalla' }).kind).toBe('included');
+    expect(planAction({ ...base, tier: 'free', currentTier: 'fortress' }).kind).toBe('included');
   });
 
-  it('offers nothing on Fortress to a Valhalla member', () => {
+  it('offers nothing to buy on Fortress to a Valhalla member', () => {
     // Comparison, not equality. This is the bug that would only ever hit the
     // members paying the most: being invited to join a waitlist for
     // something their plan already includes.
-    expect(planAction({ ...base, tier: 'fortress', currentTier: 'valhalla' }).kind).toBe('none');
+    expect(planAction({ ...base, tier: 'fortress', currentTier: 'valhalla' }).kind).toBe('included');
   });
 
   it('still offers Valhalla to a Fortress member', () => {
@@ -63,7 +66,7 @@ describe('planAction', () => {
         for (const loading of [true, false]) {
           for (const joined of [true, false]) {
             const action = planAction({ tier: 'free', currentTier, loading, joined, openTier });
-            expect(action).toEqual({ kind: 'none' });
+            expect(['current', 'included']).toContain(action.kind);
           }
         }
       }

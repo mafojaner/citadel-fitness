@@ -13,8 +13,10 @@ import { tierAllows, type MembershipTier } from './membership';
  * worth having a test around it before money depends on it.
  */
 export type PlanAction =
-  /** Free plan, or one this account already holds. */
-  | { kind: 'none' }
+  /** Exactly the plan this account is on. */
+  | { kind: 'current' }
+  /** A lower plan, held by virtue of being on a higher one. */
+  | { kind: 'included' }
   /** Waitlist status not known yet. */
   | { kind: 'loading' }
   /** Already on the list — for this plan or another one. */
@@ -37,10 +39,16 @@ export function planAction({
   joined: boolean;
   openTier: WaitlistTier | null;
 }): PlanAction {
-  // Nothing to wait for on a plan you already hold, and nothing to buy on
-  // the free one. Note this is `tierAllows`, not equality: a Valhalla member
-  // holds Fortress too, so the Fortress card must not offer them anything.
-  if (tier === 'free' || tierAllows(currentTier, tier)) return { kind: 'none' };
+  // Held plans are told apart from each other rather than collapsed into one
+  // "nothing to do". Every card carries a button, so the two need different
+  // words: the plan you are on says so, and a lower one you hold by virtue
+  // of being above it says that instead. Collapsing them labelled Free as
+  // your current plan while you were paying for Valhalla.
+  //
+  // tierAllows, not equality: a Valhalla member holds Fortress too, so the
+  // Fortress card must not offer them anything to buy.
+  if (currentTier === tier) return { kind: 'current' };
+  if (tier === 'free' || tierAllows(currentTier, tier)) return { kind: 'included' };
 
   // Checked before `joined` on purpose. While the status is still loading,
   // `joined` is false, and treating that as "not on the list" would flash a
