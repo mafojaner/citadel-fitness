@@ -1,227 +1,350 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import appJson from '../../../app.json';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
 import { PRIVACY_POLICY_URL } from '../../constants/legal';
-import { useAuthStore } from '../../state/authStore';
-import { useProfileStore } from '../../state/profileStore';
 import { useDataExport } from '../../hooks/useDataExport';
 import { useMembershipTier } from '../../hooks/useMembership';
 import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { TIER_LABELS } from '../../lib/membership';
+import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore } from '../../state/themeStore';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
+import { AccountManagementScreen } from './AccountManagementScreen';
+import { AppearanceScreen } from './AppearanceScreen';
+import { HelpScreen } from './HelpScreen';
+import { NotificationsScreen } from './NotificationsScreen';
+import { ProfileSettingsScreen } from './ProfileSettingsScreen';
+import { UnitsScreen } from './UnitsScreen';
+import { SETTINGS_GROUPS, SETTINGS_ITEMS, type SettingsSectionId } from './settingsCatalogue';
 
 const THEME_LABELS = { system: 'System', light: 'Light', dark: 'Dark' } as const;
 
-export function AccountScreen() {
+/** Width of the settings rail. Narrower than the app's nav sidebar, which carries the brand too. */
+const RAIL_WIDTH = 232;
+
+/** Whose account this is, shown above the settings on both layouts. */
+function ProfileHeader({ onPress }: { onPress: () => void }) {
   const { colors, spacing, radius, typography } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
   const session = useAuthStore((s) => s.session);
   const name = useProfileStore((s) => s.name);
   const avatarUrl = useProfileStore((s) => s.avatarUrl);
-  const preferences = useProfileStore((s) => s.preferences);
-  const themeMode = useThemeStore((s) => s.mode);
+
   const displayName = name || session?.user.email || 'Signed in user';
   const initial = displayName[0]?.toUpperCase();
+
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Edit your profile">
+      {({ pressed }) => (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.md,
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderRadius: radius.lg,
+            padding: spacing.md,
+            opacity: pressed ? 0.7 : 1,
+          }}
+        >
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56, borderRadius: 28 }} />
+          ) : (
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.background,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: '700' }}>{initial}</Text>
+            </View>
+          )}
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
+              {displayName}
+            </Text>
+            <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={1}>
+              {session?.user.email ?? ''}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+/** One row of the desktop rail. Selected reads as a grey pill, matching the app's nav sidebar. */
+function RailItem({
+  label,
+  icon,
+  selected,
+  onPress,
+}: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { colors, spacing, radius, typography, scheme } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      style={(state) => {
+        const hovered = (state as { hovered?: boolean }).hovered ?? false;
+        return {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          borderRadius: radius.md,
+          backgroundColor: selected
+            ? colors.border
+            : hovered
+              ? scheme === 'dark'
+                ? colors.surface
+                : colors.background
+              : 'transparent',
+        };
+      }}
+    >
+      <Ionicons name={icon} size={18} color={colors.textSecondary} style={{ width: 22, textAlign: 'center' }} />
+      <Text
+        style={[
+          typography.body,
+          { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: selected ? '700' : '500' },
+        ]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * The account centre.
+ *
+ * Two layouts of the same catalogue. On a phone it is a list of rows that
+ * push a screen, which is the only thing that fits. On desktop it is the
+ * master-detail shape a settings dialog takes: a grouped rail on the left
+ * and the section itself rendered beside it, so moving between Appearance
+ * and Notifications changes one pane rather than pushing and popping the
+ * whole window.
+ *
+ * The detail pane reuses the very screens the phone pushes rather than a
+ * second desktop-only copy of each. They are still inside the Account stack
+ * here, so anything that navigates onward from one of them keeps working.
+ */
+export function AccountScreen() {
+  const { colors, spacing, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<AccountStackParamList>>();
+  const isDesktop = useIsDesktop();
+  const currentTier = useMembershipTier();
+  const themeMode = useThemeStore((s) => s.mode);
+  const preferences = useProfileStore((s) => s.preferences);
   // Shared with PersonalRecordsScreen, which offers the same export beside
   // the records it covers. The outcome wording has to match what the
   // platform actually did, so it lives in one place rather than two.
   const { exporting, result: exportResult, run: onExport } = useDataExport();
-  const currentTier = useMembershipTier();
-  const isDesktop = useIsDesktop();
+  const [section, setSection] = useState<SettingsSectionId>('profile');
 
-  // Addressed to the parent navigator explicitly rather than letting the
-  // name bubble. Bubbling did focus the Plans tab, but left this stack
-  // sitting on top of it, so you arrived on Plans with a back button and no
-  // sidebar — the exact thing routing to the tab was meant to avoid.
-  // navigate() on the root pops back to Main because Main is already below
-  // Account there.
+  // On desktop Plans is a tab, and pushing this stack's copy would cover the
+  // sidebar that tab exists to keep on screen. Two dispatches: goBack() pops
+  // this stack off the root, navigate() then selects the tab underneath.
   const openPlansTab = () => {
     const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    // Two dispatches, and both are needed. navigate() alone focused the
-    // Plans tab but left this stack sitting on top of it, so you arrived on
-    // Plans with a back button and no sidebar. goBack() pops the Account
-    // stack off the root; navigate() then selects the tab underneath.
     root?.goBack();
     root?.navigate('Main', { screen: 'Plans' });
   };
 
-  return (
+  /** The value shown on the right of a row, where the row has one worth showing. */
+  const valueFor = (id: SettingsSectionId) =>
+    id === 'appearance'
+      ? THEME_LABELS[themeMode]
+      : id === 'units'
+        ? `${preferences.units} · ${preferences.distanceUnit}`
+        : id === 'plans'
+          ? TIER_LABELS[currentTier]
+          : undefined;
+
+  const dataPane = (
     <ScreenContainer>
-      <Pressable
-        onPress={() => navigation.navigate('ProfileSettings')}
-        accessibilityRole="button"
-        accessibilityLabel="Edit your profile"
-      >
-        {({ pressed }) => (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderRadius: radius.md,
-              padding: spacing.md,
-              opacity: pressed ? 0.7 : 1,
-            }}
-          >
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56, borderRadius: 28 }} />
-            ) : (
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: colors.background,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: '700' }}>{initial}</Text>
-              </View>
-            )}
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
-                {displayName}
-              </Text>
-              <Text style={[typography.caption, { color: colors.textMuted }]} numberOfLines={1}>
-                {session?.user.email ?? ''}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </View>
-        )}
-      </Pressable>
-
-      <SettingsSection title="Preferences">
-        <SettingsRow
-          icon="color-palette"
-          title="Appearance"
-          value={THEME_LABELS[themeMode]}
-          onPress={() => navigation.navigate('Appearance')}
-        />
-        <SettingsRow
-          icon="barbell"
-          title="Units"
-          value={`${preferences.units} · ${preferences.distanceUnit}`}
-          onPress={() => navigation.navigate('Units')}
-        />
-        <SettingsRow
-          icon="notifications"
-          title="Notifications"
-          subtitle="Workout reminders and newsletter alerts"
-          onPress={() => navigation.navigate('Notifications')}
-        />
-      </SettingsSection>
-
-      {/* Above account management on purpose: this is the row someone comes
-          to Account looking for, and it is where the payment portal will
-          live once there is something to buy. It states the plan you are on
-          rather than only offering to show you the others, so the common
-          case — "what am I actually on?" — is answered without a tap. */}
-      <SettingsSection title="Membership">
-        <SettingsRow
-          icon="pricetags"
-          title="Plans"
-          subtitle="Compare Free, Fortress and Valhalla"
-          value={TIER_LABELS[currentTier]}
-          // On desktop Plans is a tab, and pushing this stack's copy would
-          // cover the sidebar — the one thing that tab exists to keep on
-          // screen. On mobile there is no tab, so the local route is the
-          // only one; it is addressed directly rather than through
-          // useOpenPlans, whose mobile branch would resolve 'Account' to
-          // this very stack's own route and go nowhere.
-          onPress={isDesktop ? openPlansTab : () => navigation.navigate('Plans')}
-        />
-      </SettingsSection>
-
-      <SettingsSection title="Account">
-        <SettingsRow
-          icon="settings"
-          title="Account management"
-          subtitle="Password, sign out, delete account"
-          onPress={() => navigation.navigate('AccountManagement')}
-        />
-      </SettingsSection>
-
       {/* Its own section rather than a row inside Account management: export
           is about getting data out, not about the account's credentials or
-          deletion. Row variant so it reads as one of this screen's settings
-          rows — the section already draws the surface a card would double. */}
+          deletion. */}
       <SettingsSection title="Your data">
-        <PaidFeatureCard
-          featureId="data-export"
-          variant="row"
-          onOpen={exporting ? () => {} : onExport}
-        />
+        <PaidFeatureCard featureId="data-export" variant="row" onOpen={exporting ? () => {} : onExport} />
       </SettingsSection>
       {exporting ? (
         <Text style={[typography.caption, { color: colors.textMuted }]}>Preparing your export…</Text>
       ) : exportResult ? (
         <Text style={[typography.caption, { color: colors.textSecondary }]}>{exportResult}</Text>
       ) : null}
+    </ScreenContainer>
+  );
 
+  const perksPane = (
+    <ScreenContainer>
       {/* early-access and priority-support are account-wide policies with no
-          content of their own to attach to — nowhere on Home, Activity or
+          content of their own to attach to: nowhere on Home, Activity or
           Learn is any more "theirs" than here. offline-sync joins them for
-          the same reason: it's a background capability, not a screen. */}
-      {/* Not "Fortress perks": this list has always mixed the tiers, and now
-          that there are two paid ones the old title claimed Valhalla's
-          perks for Fortress. Each row already names the tier that includes
-          it, so the section header doesn't have to. */}
+          the same reason, being a background capability rather than a screen. */}
       <SettingsSection title="Membership perks">
         <PaidFeatureCard featureId="priority-support" variant="row" />
         <PaidFeatureCard featureId="early-access" variant="row" />
         <PaidFeatureCard featureId="offline-sync" variant="row" />
-        {/* Built — the switch itself lives with the other email settings,
-            so members land where they'd expect to turn it off again. */}
+        {/* Built: the switch itself lives with the other email settings, so
+            members land where they'd expect to turn it off again. */}
         <PaidFeatureCard
           featureId="weekly-digest"
           variant="row"
           onOpen={() => navigation.navigate('Notifications')}
         />
         <PaidFeatureCard featureId="wearable-sync" variant="row" />
-        <PaidFeatureCard
-          featureId="referral"
-          variant="row"
-          onOpen={() => navigation.navigate('Referral')}
-        />
+        <PaidFeatureCard featureId="referral" variant="row" onOpen={() => navigation.navigate('Referral')} />
       </SettingsSection>
+    </ScreenContainer>
+  );
 
-      <SettingsSection title="Support">
-        <SettingsRow
-          icon="help-buoy"
-          title="Help & feedback"
-          subtitle="FAQs, and a direct line to the team"
-          onPress={() => navigation.navigate('Help')}
-        />
-      </SettingsSection>
-
+  const aboutPane = (
+    <ScreenContainer>
       <SettingsSection title="About">
         <SettingsRow
           icon="shield-checkmark"
           title="Privacy policy"
           onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
         />
-        <SettingsRow
-          icon="information-circle"
-          title="Version"
-          value={appJson.expo.version}
-        />
+        <SettingsRow icon="information-circle" title="Version" value={appJson.expo.version} />
       </SettingsSection>
     </ScreenContainer>
+  );
+
+  const detailFor = (id: SettingsSectionId) => {
+    switch (id) {
+      case 'profile':
+        return <ProfileSettingsScreen />;
+      case 'appearance':
+        return <AppearanceScreen />;
+      case 'units':
+        return <UnitsScreen />;
+      case 'notifications':
+        return <NotificationsScreen />;
+      case 'account':
+        return <AccountManagementScreen />;
+      case 'help':
+        return <HelpScreen />;
+      case 'perks':
+        return perksPane;
+      case 'data':
+        return dataPane;
+      case 'about':
+        return aboutPane;
+      // Plans is a tab on desktop and never renders in this pane; the rail
+      // item navigates to it instead. Cased so the switch stays exhaustive.
+      case 'plans':
+        return null;
+    }
+  };
+
+  // ---- phone: a list of rows that push ----
+  if (!isDesktop) {
+    return (
+      <ScreenContainer>
+        <ProfileHeader onPress={() => navigation.navigate('ProfileSettings')} />
+
+        {SETTINGS_GROUPS.map((group) => (
+          <SettingsSection key={group} title={group}>
+            {SETTINGS_ITEMS.filter((item) => item.group === group).map((item) => (
+              <SettingsRow
+                key={item.id}
+                icon={item.icon}
+                title={item.label}
+                subtitle={item.subtitle}
+                value={valueFor(item.id)}
+                onPress={() => (item.route ? navigation.navigate(item.route) : setSection(item.id))}
+              />
+            ))}
+          </SettingsSection>
+        ))}
+
+        {/* The three sections with no screen of their own open in place
+            underneath, since a phone has nowhere else to put them. */}
+        {section === 'perks' ? perksPane : null}
+        {section === 'data' ? dataPane : null}
+        {section === 'about' ? aboutPane : null}
+      </ScreenContainer>
+    );
+  }
+
+  // ---- desktop: rail on the left, the section itself on the right ----
+  return (
+    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: colors.background }}>
+      <ScrollView
+        style={{
+          width: RAIL_WIDTH,
+          borderRightWidth: 1,
+          borderRightColor: colors.border,
+          backgroundColor: colors.surface,
+        }}
+        contentContainerStyle={{ padding: spacing.md, gap: spacing.xs }}
+      >
+        <View style={{ marginBottom: spacing.sm }}>
+          <ProfileHeader onPress={() => setSection('profile')} />
+        </View>
+
+        {SETTINGS_GROUPS.map((group) => (
+          <View key={group} style={{ gap: spacing.xs, marginBottom: spacing.sm }}>
+            <Text
+              style={[
+                typography.caption,
+                {
+                  color: colors.textMuted,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.6,
+                  paddingHorizontal: spacing.sm,
+                  marginTop: spacing.xs,
+                },
+              ]}
+            >
+              {group}
+            </Text>
+            {SETTINGS_ITEMS.filter((item) => item.group === group).map((item) => (
+              <RailItem
+                key={item.id}
+                label={item.label}
+                icon={item.icon}
+                selected={section === item.id}
+                onPress={() => (item.id === 'plans' ? openPlansTab() : setSection(item.id))}
+              />
+            ))}
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={{ flex: 1, minWidth: 0 }}>{detailFor(section)}</View>
+    </View>
   );
 }
