@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy: Citadel Fitness</title>
+<meta name="description" content="Privacy Policy for the Citadel Fitness app: what we collect, why, and how to delete your account." />
+<style>
+  :root {
+    --paper: #F5F6F8;
+    --ink: #0B0E14;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --border: #E2E5EC;
+    --ember: #FF5A36;
+    --ember-soft: #FFE8E1;
+    --slate: #4A5468;
+    --mist: #8A93A6;
+    --flag: #A5680C;
+    --flag-soft: #FBEFDA;
+    --flag-border: #E7C688;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0B0E14;
+      --ink: #F4F5F7;
+      --surface: #151A24;
+      --surface-raised: #1B212E;
+      --border: #262E3D;
+      --ember: #FF7A57;
+      --ember-soft: #2A180F;
+      --slate: #B7BECC;
+      --mist: #7C879A;
+      --flag: #E8B457;
+      --flag-soft: #2A2110;
+      --flag-border: #4A3A17;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sans {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+  }
+
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 680px);
+    gap: 64px;
+    align-items: start;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.doc-head {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ember);
+  }
+
+  h1 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 13px;
+    color: var(--mist);
+  }
+  .doc-meta strong { color: var(--slate); font-weight: 600; }
+
+  .lede {
+    max-width: 62ch;
+    color: var(--slate);
+    font-size: 18px;
+    margin: 4px 0 0;
+  }
+
+  /* ---------- TOC / spine ---------- */
+
+  nav.toc {
+    position: sticky;
+    top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-left: 2px solid var(--border);
+    padding-left: 16px;
+  }
+
+  nav.toc a {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mist);
+    text-decoration: none;
+    padding: 7px 0;
+    display: flex;
+    gap: 10px;
+  }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--ember); }
+  nav.toc a:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 2px; }
+  nav.toc .n { color: var(--border); font-variant-numeric: tabular-nums; }
+  nav.toc a:hover .n, nav.toc a:focus-visible .n { color: var(--ember); }
+
+  /* ---------- Summary box ---------- */
+
+  .tldr {
+    grid-column: 2;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 26px;
+    margin-bottom: 16px;
+  }
+  .tldr .eyebrow { margin-bottom: 10px; }
+  .tldr ul { margin: 0; padding-left: 20px; }
+  .tldr li { margin-bottom: 8px; }
+  .tldr li:last-child { margin-bottom: 0; }
+
+  /* ---------- Sections ---------- */
+
+  main { grid-column: 2; min-width: 0; }
+
+  section.doc-section {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 24px;
+  }
+  section.doc-section:last-of-type { border-bottom: none; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .section-num {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+    font-size: 14px;
+    color: var(--mist);
+    font-weight: 500;
+  }
+
+  h2 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    font-size: 23px;
+    letter-spacing: -0.005em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 24px 0 8px;
+  }
+
+  p { margin: 0 0 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+
+  a { color: var(--ember); }
+
+  /* ---------- Data table ---------- */
+
+  .data-table-wrap { overflow-x: auto; margin: 18px 0 22px; }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    min-width: 560px;
+  }
+
+  table.data-table th {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mist);
+    text-align: left;
+    padding: 0 14px 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.data-table td {
+    padding: 12px 14px 12px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  table.data-table td.what {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  table.data-table td.why {
+    color: var(--slate);
+    font-size: 14px;
+  }
+
+  table.data-table tr:last-child td { border-bottom: none; }
+
+  /* ---------- Callouts ---------- */
+
+  .callout {
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin: 18px 0;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+  }
+
+  .callout.accent {
+    border-color: color-mix(in srgb, var(--ember) 35%, var(--border));
+    background: var(--ember-soft);
+  }
+  .callout.accent .callout-label { color: var(--ember); }
+
+  .callout-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  .placeholder {
+    display: inline-block;
+    background: var(--flag-soft);
+    border: 1px dashed var(--flag-border);
+    color: var(--flag);
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+    font-size: 14px;
+    padding: 1px 8px;
+    border-radius: 3px;
+  }
+
+  .flag-box {
+    border: 1px dashed var(--flag-border);
+    background: var(--flag-soft);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 0 0 40px;
+  }
+  .flag-box .callout-label { color: var(--flag); }
+  .flag-box p { color: var(--ink); }
+  .flag-box p:last-child { margin-bottom: 0; }
+
+  /* ---------- Footer ---------- */
+
+  footer.doc-foot {
+    grid-column: 2;
+    margin-top: 24px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--mist);
+  }
+  footer.doc-foot p { max-width: 62ch; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  /* ---------- Mobile layout ----------
+     Deliberately last in the stylesheet: every selector below ties in
+     specificity with the base rule it overrides (.page, nav.toc,
+     header.doc-head, .tldr, main, footer.doc-foot are each matched by an
+     equal-specificity base rule earlier in this file), so cascade order is
+     what decides the winner. Placed anywhere earlier, the later base rules
+     would win regardless of whether this media query matches. */
+  @media (max-width: 860px) {
+    .page {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 32px 20px 72px;
+      gap: 32px;
+    }
+    nav.toc { display: none; }
+    header.doc-head,
+    .tldr,
+    main,
+    footer.doc-foot {
+      grid-column: 1;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="doc-head">
+    <span class="eyebrow sans">Legal · Data Handling</span>
+    <h1>Privacy Policy</h1>
+    <div class="doc-meta sans">
+      <span><strong>App</strong> Citadel Fitness</span>
+      <span><strong>Effective</strong> August 10, 2026</span>
+      <span><strong>Applies to</strong> iOS, Android, and Web versions</span>
+    </div>
+    <p class="lede">This explains what Citadel Fitness collects when you use the app, why, who we share it with (almost no one), and how to see or delete it.</p>
+  </header>
+
+  <nav class="toc sans" aria-label="Sections">
+    <a href="#collect"><span class="n">01</span>What we collect</a>
+    <a href="#use"><span class="n">02</span>How we use it</a>
+    <a href="#storage"><span class="n">03</span>Where it's stored</a>
+    <a href="#notifications"><span class="n">04</span>Notifications</a>
+    <a href="#control"><span class="n">05</span>Your controls</a>
+    <a href="#retention"><span class="n">06</span>Retention</a>
+    <a href="#children"><span class="n">07</span>Children</a>
+    <a href="#sharing"><span class="n">08</span>Sharing &amp; sale</a>
+    <a href="#security"><span class="n">09</span>Security</a>
+    <a href="#international"><span class="n">10</span>International</a>
+    <a href="#changes"><span class="n">11</span>Changes</a>
+    <a href="#contact"><span class="n">12</span>Contact</a>
+  </nav>
+
+  <div class="tldr">
+    <div class="eyebrow sans">In short</div>
+    <ul>
+      <li>We collect your email, an optional name and photo, and the workouts you log; that's what makes the app work.</li>
+      <li>We never sell your data, and we don't use ad networks or trackers of any kind.</li>
+      <li>Data is stored with Supabase, our backend provider, protected by access rules that only let you read or write your own records.</li>
+      <li>A couple of infrastructure providers — Resend and Sentry, both described in Section 8 — see a narrow slice of data strictly to send email or diagnose crashes; neither can use it for anything else.</li>
+      <li>Workout reminders and in-app article alerts are scheduled entirely on your own device; nothing about them is sent to us or anyone else.</li>
+      <li>You can delete your account and everything tied to it, permanently, from <span class="mono">Account → Account management → Delete account</span> in the app. No email required.</li>
+    </ul>
+  </div>
+
+  <main>
+
+    <section class="doc-section" id="collect">
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <h2>What we collect</h2>
+      </div>
+      <p>Citadel Fitness is a workout tracker. Almost everything we store exists because you typed it in, logged it, or uploaded it yourself.</p>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Data</th><th>Why we have it</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="what">Email address</td>
+              <td class="why">Creates and secures your account; used for sign-in and password reset.</td>
+            </tr>
+            <tr>
+              <td class="what">Password</td>
+              <td class="why">Stored as a salted hash by our authentication provider; we never see or store it in plain text.</td>
+            </tr>
+            <tr>
+              <td class="what">Display name &amp; photo</td>
+              <td class="why">Optional. Shown back to you in the app; not shared with other users, since Citadel Fitness has no social features.</td>
+            </tr>
+            <tr>
+              <td class="what">Workout history</td>
+              <td class="why">Exercises, sets, reps, weight, and cardio duration/distance you log: the core of the app's charts and streaks.</td>
+            </tr>
+            <tr>
+              <td class="what">Preferences</td>
+              <td class="why">Unit system, theme, and which newsletter categories you want alerts for.</td>
+            </tr>
+            <tr>
+              <td class="what">Favorited articles</td>
+              <td class="why">Which newsletter posts you've saved, so they show up under Favorites.</td>
+            </tr>
+            <tr>
+              <td class="what">Feedback messages</td>
+              <td class="why">If you submit feedback from Account → Help &amp; feedback, we store your message and the email you're signed in with, so we can read and reply to it.</td>
+            </tr>
+            <tr>
+              <td class="what">Crash &amp; error diagnostics</td>
+              <td class="why">If the app crashes or hits an unexpected error, technical details — device model, OS version, app version, and the error itself — are sent to Sentry, our crash-reporting tool, so we can find and fix the bug. See Section 8 for what's deliberately excluded from that.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>We don't ask for your location, don't integrate with Apple Health or Google Fit, and don't request camera access. Photo uploads use your device's photo library picker only and land in a Supabase Storage bucket scoped to your account, at a path only your account can write to.</p>
+      <p>We don't generate or store a push-notification token for your device — see Section 4 for how reminders actually reach you without one.</p>
+    </section>
+
+    <section class="doc-section" id="use">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <h2>How we use it</h2>
+      </div>
+      <p>In plain terms: to run the app for you, and nothing beyond that.</p>
+      <ul>
+        <li>Signing you in and keeping your session secure across devices.</li>
+        <li>Saving and syncing your workouts, so your history is there the next time you open the app.</li>
+        <li>Calculating streaks, weekly volume, and the progress charts on the Activity tab.</li>
+        <li>Formatting numbers in the units you chose (lb/kg, mi/km).</li>
+        <li>Deciding which newsletter articles to notify you about, based on the categories you've enabled.</li>
+        <li>Sending the emails a normal account needs: confirming your sign-up, a password-reset link if you request one, and a one-time welcome email.</li>
+        <li>Emailing you about new newsletter articles and app news, but only if you've turned that on — it's off by default.</li>
+        <li>Reading and replying to feedback you submit from Account → Help &amp; feedback.</li>
+        <li>Diagnosing crashes and bugs using the technical details described in Section 1, so issues get fixed faster.</li>
+      </ul>
+      <p>We do not use your data for advertising, we do not build behavioral profiles, and we do not use it to train any model.</p>
+    </section>
+
+    <section class="doc-section" id="storage">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <h2>Where it's stored</h2>
+      </div>
+      <p>Your data is stored and served by <strong>Supabase</strong>, our backend infrastructure provider, which handles authentication, our database, and file storage on our behalf. We don't run our own servers for this data; Supabase is a data processor acting under our instructions, not an independent user of your information.</p>
+      <p>Access is enforced with row-level security policies at the database level: every request is scoped to your own account, so there is no path, accidental or otherwise, for one user's app session to read another user's workouts, profile, or preferences.</p>
+      <p>Your profile photo, if you upload one, is stored in a Supabase Storage bucket at a URL scoped to your account folder.</p>
+    </section>
+
+    <section class="doc-section" id="notifications">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <h2>Notifications</h2>
+      </div>
+      <p>Your daily workout reminder and the in-app alerts for new newsletter articles are scheduled <strong>locally, on your own device</strong>, using the operating system's own notification scheduler. There is no push server involved: the app checks for new articles when you open it, and if there's anything new in a category you follow, it asks your device's OS to show a notification right then. Nothing about the content or timing of these is transmitted to us or to any third party. If you deny notification permission, or you're using the web version, this feature simply does nothing; it fails silently rather than nagging you.</p>
+      <p>Separately, if you turn on <span class="mono">Email me about new articles &amp; app news</span> in <span class="mono">Account → Preferences → Notifications</span>, we send you an actual email — through Resend, our transactional email provider — whenever something new is published. This is off by default, is entirely independent of the on-device reminders above, and turning it off stops the emails without touching your other notification settings.</p>
+    </section>
+
+    <section class="doc-section" id="control">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <h2>Your controls</h2>
+      </div>
+      <p>Everything here is available directly in the app; none of it requires emailing us and waiting.</p>
+      <ul>
+        <li><strong>View &amp; edit</strong> your name and photo from <span class="mono">Account → Profile settings</span>.</li>
+        <li><strong>Change</strong> your password from <span class="mono">Account → Account management → Change password</span>.</li>
+        <li><strong>Adjust</strong> weight/distance units from <span class="mono">Account → Preferences → Units</span>, and workout reminders, article alerts, and the newsletter email toggle from <span class="mono">Account → Preferences → Notifications</span>.</li>
+        <li><strong>Send</strong> feedback, which we read and can reply to at the email you're signed in with, from <span class="mono">Account → Help &amp; feedback</span>.</li>
+      </ul>
+
+      <div class="callout accent">
+        <div class="callout-label">Deleting your account</div>
+        <p><span class="mono">Account → Account management → Delete account</span> permanently removes your account and everything tied to it: your profile, every logged workout and set, your saved favorites, and your uploaded photo. This runs immediately, cannot be undone from within the app, and does not require contacting support first.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="retention">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <h2>Retention</h2>
+      </div>
+      <p>We keep your data for as long as your account exists, so your workout history stays available to you. If you delete your account, your data is deleted immediately and permanently as described above; we do not keep a backup copy for any further period.</p>
+    </section>
+
+    <section class="doc-section" id="children">
+      <div class="section-head">
+        <span class="section-num">07</span>
+        <h2>Children's privacy</h2>
+      </div>
+      <p>Citadel Fitness is not directed at children, and we don't knowingly collect information from anyone under 13 (or the minimum age required in your region). If you believe a child has created an account, contact us and we'll delete it.</p>
+    </section>
+
+    <section class="doc-section" id="sharing">
+      <div class="section-head">
+        <span class="section-num">08</span>
+        <h2>Sharing &amp; sale</h2>
+      </div>
+      <p><strong>We do not sell your data.</strong> We don't share it with advertisers, and the app has no ad network, social-media SDK, or analytics-tracking SDK embedded in it. A small, fixed set of infrastructure providers process data strictly on our behalf, only to run the features described above, and none of them are permitted to use it for their own purposes:</p>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Provider</th><th>What they get, and why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="what">Supabase</td>
+              <td class="why">Our database, authentication, and file storage. Holds everything in the Section 1 table — this is the app's backend.</td>
+            </tr>
+            <tr>
+              <td class="what">Resend</td>
+              <td class="why">Our transactional email provider. Sees your email address (and display name, for the welcome email) only when the app needs to send you something you triggered or opted into: sign-up confirmation, a password-reset link, the one-time welcome email, a feedback reply, or a newsletter alert you've turned on.</td>
+            </tr>
+            <tr>
+              <td class="what">Sentry</td>
+              <td class="why">Our crash-reporting tool. Receives the technical crash details from Section 1 when the app hits an unexpected error. It's configured not to attach your IP address, name, or email to those reports.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>We would only disclose information beyond this if legally required to, for example in response to a valid court order, and would limit that disclosure to exactly what's requested.</p>
+    </section>
+
+    <section class="doc-section" id="security">
+      <div class="section-head">
+        <span class="section-num">09</span>
+        <h2>Security</h2>
+      </div>
+      <p>Traffic between the app and our backend is encrypted in transit. Passwords are hashed, never stored as plain text. Database access is governed by row-level security rules scoped to each account, and account deletion runs through a server-side process that verifies your identity before anything is removed.</p>
+      <p>No system is perfectly secure, and we can't guarantee absolute security, but these are the concrete measures in place today, not a generic promise.</p>
+    </section>
+
+    <section class="doc-section" id="international">
+      <div class="section-head">
+        <span class="section-num">10</span>
+        <h2>International users</h2>
+      </div>
+      <p>Your data may be stored or processed in a country other than the one you live in, wherever our infrastructure provider operates its servers. By using Citadel Fitness, you understand your information may be transferred internationally, subject to the protections described in this policy.</p>
+    </section>
+
+    <section class="doc-section" id="changes">
+      <div class="section-head">
+        <span class="section-num">11</span>
+        <h2>Changes to this policy</h2>
+      </div>
+      <p>If we make a material change to how we handle your data, we'll update the effective date at the top of this page, and, for significant changes, notify you in the app before they take effect.</p>
+    </section>
+
+    <section class="doc-section" id="contact">
+      <div class="section-head">
+        <span class="section-num">12</span>
+        <h2>Contact us</h2>
+      </div>
+      <p>Questions about this policy, or a request to access or delete your data outside the app, can go to:</p>
+      <p class="mono">tumi.citadel@gmail.com</p>
+      <p class="sans" style="font-size: 14px; color: var(--mist);">Developed by Tumi Devz.</p>
+    </section>
+
+  </main>
+
+  <footer class="doc-foot sans">
+    <p>This policy describes Citadel Fitness version 1.0.0 as of its effective date above. It was drafted to match the app's actual behavior at that time and should be revisited whenever the app's data handling changes.</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
