@@ -1,5 +1,16 @@
 # Fortress: scope to operational
 
+> **Status note, 2026-08-26.** This document is the plan as written on
+> 2026-08-20 and is kept unedited as the record of the reasoning. Much of it
+> has since been overtaken: the gate is real and verified on both sides, nine
+> of ten features have been walked against real data, offline sync is built,
+> and video demonstrations moved to Valhalla. Two things below are still true
+> exactly as written -- the weekly digest has never been observed firing, and
+> the items under "What only the account owner can do" are all still open.
+> **For current status, read the open ledger on the developer dashboard**
+> (`docs/admin/index.html`), which is compiled against the repo and the live
+> project rather than from memory.
+
 Written 2026-08-20. The question this answers: what is left before every
 Fortress feature genuinely works for a paying member, rather than appearing to.
 

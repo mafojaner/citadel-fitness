@@ -660,6 +660,136 @@
       </section>
 
       <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Still open &mdash; everything not finished, in one place</h3></div>
+
+        <div class="callout bad" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          <span><strong>Compiled 2026-08-26 against the repo and the live project, not from memory.</strong> The plans below each track their own slice of work, so anything blocked in two places was easy to lose between them. This is the single list: <strong>twenty open items, of which nine can only be done by the account owner</strong>, plus the five days of store work they have already cost. One item &mdash; the store enrollments &mdash; is on its own responsible for the entire Aug 21&ndash;31 column never starting. The engineering half is short by comparison, which is the honest shape of the project right now: it is not waiting on code.</span>
+        </div>
+
+        <div class="callout good" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span><strong>What is genuinely finished, so the list below is not read as the whole project.</strong> Ten Fortress features built and nine walked against real data; the server-side tier gate applied and probed on both sides; offline sync; 236 tests, lint and typecheck green in CI; the account centre, plans page and desktop rail rebuilt; the privacy policy served from <code>citadelfitness.app</code>; and billing's database half &mdash; <code>subscriptions</code>, <code>subscription_rank</code>, <code>my_tier()</code> &mdash; applied to production. Confirmed today: all 52 migrations report applied, and <code>backfill-welcome-emails</code> is deployed with <code>verify_jwt: true</code>.</span>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Only the account owner can do these</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Store enrollments &mdash; Apple Developer Program and Google Play.</strong> Status has been &ldquo;unconfirmed&rdquo; since Aug 17 and nothing in the repo can settle it either way. This is the single blocker under the whole last third of the August plan: no enrollment means no build, no build means nothing to submit, nothing to submit means no tester has anything to install. Approval is not instant, so the clock on this started running the day it slipped.</div>
+            <span class="priority critical">Blocks Aug 21&ndash;31</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Fill the four credentials in <code>eas.json</code>.</strong> <code>submit.production</code> still carries <code>REPLACE_WITH_YOUR_APPLE_ID_EMAIL</code>, <code>REPLACE_WITH_YOUR_APP_STORE_CONNECT_APP_ID</code>, <code>REPLACE_WITH_YOUR_APPLE_TEAM_ID</code> and <code>REPLACE_WITH_PATH_TO_YOUR_SERVICE_ACCOUNT_JSON</code>. The build profiles themselves are complete and point at the right projects; only the submit block is placeholders.</div>
+            <span class="priority critical">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Create the PostHog project and set <code>EXPO_PUBLIC_POSTHOG_KEY</code>.</strong> Telemetry has been wired since Aug 19 and has recorded nothing in the week since, because the wrapper is deliberately inert without a key. Every screen view and event from the beta is being dropped on the floor until this exists &mdash; which matters most precisely during a beta.</div>
+            <span class="priority high">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Set <code>SUPABASE_FUNCTIONS_URL</code> and <code>WEBHOOK_SECRET</code> as repo secrets.</strong> The weekly digest workflow reads both. Until they are set the Sunday schedule fires into a failure, and Phase 3 of the Fortress plan cannot begin. The function itself is deployed and live.</div>
+            <span class="priority high">Blocks Phase 3</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Create the RevenueCat account and its four products.</strong> The webhook's <code>PRODUCT_TIERS</code> map is deliberately explicit rather than parsed, so the ids must match exactly: <code>fortress_monthly</code>, <code>fortress_annual</code>, <code>valhalla_monthly</code>, <code>valhalla_annual</code>. Anything else grants nothing. Then set <code>REVENUECAT_WEBHOOK_SECRET</code>. Financial account setup is yours by rule, not by preference.</div>
+            <span class="priority high">Blocks billing</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Sign in on the dev server, or hand over a way to.</strong> Roughly fourteen interface changes from the Aug 26 session have shipped without anyone looking at them: the account centre rebuilt as master-detail, the plans page, the desktop rail, the appearance and units tiles, the newsletter restyle. All pass typecheck, lint and 236 tests. That exact combination has been green over three real bugs in this project already, so it is evidence of nothing about how any of it looks.</div>
+            <span class="priority critical">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Restore the paused staging project.</strong> Every probe run since Aug 20 has therefore been against production. They were written to roll back and each one did, but &ldquo;we tested it in production and were careful&rdquo; is a habit worth ending before billing writes land there.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Decide who delivers Valhalla's human work.</strong> Four of its seven features are a person, not a deploy. This decision sets the capacity cap, and the cap sets the price floor &mdash; so it blocks the tier's pricing as much as its engineering. Fifteen minutes a review and four a month means ten members is an evening a week and fifty is a job.</div>
+            <span class="priority medium">Blocks Valhalla</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>App Privacy questionnaire and Play Data Safety form.</strong> Both need answering against what the app actually collects: the RLS-scoped tables and the PostHog telemetry, whose <code>TrackedEvent</code> union is deliberately the complete reviewable list of what leaves the device. Store-console work, so it cannot be done from the repo.</div>
+            <span class="priority high">Open</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Engineering still to do</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The purchase flow &mdash; billing's whole client half.</strong> What landed on Aug 26 was the part that decides entitlement: the <code>subscriptions</code> table with no client write policy, <code>subscription_rank</code> folded into <code>tier_rank</code>, <code>my_tier()</code> so the interface and the policies read the same source, and a webhook that guards against out-of-order delivery. What does not exist is any way to buy anything: no RevenueCat SDK in the app, no buy button behind the plan cards' buttons, no restore-purchases, no cancellation path. It needs the account and keys above, and a dev build rather than Expo Go.</div>
+            <span class="priority critical">Not started</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Deploy <code>revenuecat-webhook</code>.</strong> Confirmed absent from production today &mdash; eight functions are live and this is not one of them. Until it is deployed, nothing can grant a paid tier, which is also the reason nothing can wrongly grant one. <code>supabase functions deploy revenuecat-webhook --no-verify-jwt</code>, and it needs its secret set first or it fails closed on every call.</div>
+            <span class="priority high">Not deployed</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Watch the weekly digest fire, end to end.</strong> Trigger the workflow by hand, watch the run, confirm an email lands with numbers that match the app, and confirm opting out actually suppresses it. Then leave the schedule alone for one week and check it fired on its own. It is the only one of the ten Fortress features that has never been observed working, and a digest that quietly sends wrong numbers is worse than one that never sends.</div>
+            <span class="priority high">Unproven</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Exercise offline sync on a real device with the radio off.</strong> Fifteen tests cover the queue's decisions and none of them can cover the thing that actually goes wrong: a phone that loses signal mid-save, is backgrounded, and comes back an hour later. This is the code that decides whether someone's training data survives, so it is the one place where passing tests are least reassuring.</div>
+            <span class="priority critical">Unverified</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The Aug 14 performance pass, still unsettled.</strong> A shared fetch hook and memoized list rows were written; no profiling session has ever been run. The Aug 18 suite covers correctness, not render behaviour, so it does not settle this either way. Either profile it or strike it from the plan &mdash; leaving it as an unmeasured claim is the worst of the three options.</div>
+            <span class="priority medium">Unverified</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Screen-reader pass on a real device.</strong> The Aug 20 work was verified in the web accessibility tree, which proves names and states exist and says nothing about how a TalkBack or VoiceOver user moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Around eighteen pressables also still lack an explicit role, so they are announced as content rather than as controls.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Privacy policy content, now that its hosting is done.</strong> It serves from <code>citadelfitness.app/privacy</code> as of Aug 26, but the text still discloses neither the PostHog telemetry added Aug 19 nor subscription billing. For EU users non-essential analytics arguably needs consent rather than disclosure alone, and this stack is EU-oriented throughout (Supabase eu-west-1, Sentry .de, PostHog EU). Whether to add a settings toggle is a product call; the disclosure is not optional.</div>
+            <span class="priority high">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Clear the dependency audit.</strong> <code>npm audit</code> reports 14 high and 9 moderate, all in the build-tooling chain (<code>uuid</code> via Expo config-plugins) with no runtime path into the shipped bundle. Not dangerous, but it should not be carried into a store submission unexplained &mdash; clear it with a planned SDK bump.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Target SDK and permissions review.</strong> Confirm Expo's managed defaults still satisfy Play's current target API requirement. The app requests no extra dangerous Android permissions today; the review is to keep it that way and to have checked rather than assumed.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Valhalla's seven features, none of them started.</strong> Form check is the only one where the app is the bottleneck rather than a person: a submissions table, video upload and a review queue. Priority support is mostly routing. Nutrition coaching needs an intake form and a reply surface. Expert guides and video demonstrations are content budgets, not sprints. AI progressive overload can start as a readable heuristic over logged history rather than a model. Wearable sync means HealthKit and Whoop, native permissions and a fresh Data Safety declaration.</div>
+            <span class="priority medium">After the cap decision</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Refer &amp; earn is half-shipped by design.</strong> Attribution works and is probed &mdash; self-referral, duplicates and bogus codes all refused. The reward cannot exist before billing does, and the catalogue copy says so plainly rather than promising it. Listed here so it is not mistaken for finished when billing lands.</div>
+            <span class="priority medium">Waits on billing</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">The store column that never started</h4>
+        <div class="card-body">
+          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Aug 21 &mdash; first production builds.</strong> <code>eas build</code> for iOS and Android. Never run.</div>
+            <span class="priority slipped">Slipped 5d</span>
+          </div>
+          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Aug 22 &mdash; store listings.</strong> Screenshots, description, icon and feature graphic, alongside the two privacy forms.</div>
+            <span class="priority slipped">Slipped 4d</span>
+          </div>
+          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Aug 24 &mdash; submit to TestFlight and Play Internal Testing.</strong> Nothing to submit.</div>
+            <span class="priority slipped">Slipped 2d</span>
+          </div>
+          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Aug 26 &mdash; invite 5&ndash;10 trusted testers, finish the content pass.</strong> Today, and unreachable: there is no build for a tester to install.</div>
+            <span class="priority slipped">Today</span>
+          </div>
+          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Aug 27&ndash;29 &mdash; triage feedback, fix true blockers, open the public testing links.</strong> All downstream of a build existing.</div>
+            <span class="priority slipped">At risk</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>What was built in that window instead.</strong> Not nothing, but not this: thirty-one commits covering the Fortress gate and its verification, offline sync, billing's database half, the plans page, the account centre, the desktop rail and the privacy policy's move onto the real domain. That is September's plan and the post-launch plan pulled forward. Useful work that bought no ground on the thing the schedule was actually gated on, which is worth naming rather than letting the commit count read as progress against this column.</div>
+            <span class="priority medium">Context</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
         <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
@@ -851,8 +981,8 @@
             <span class="priority medium">Standing</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>backfill-welcome-emails:</strong> confirm it's deployed with the platform's default <code>verify_jwt</code> on (not <code>--no-verify-jwt</code>) — nothing in the function body itself blocks an unauthenticated call otherwise.</div>
-            <span class="priority high">Open</span>
+            <div class="agenda-task"><strong>backfill-welcome-emails &mdash; confirmed 2026-08-26.</strong> The concern was that nothing in the function body blocks an unauthenticated call, so it depended entirely on the platform default being left on. Checked against the live project rather than assumed: it is deployed at version 1 with <code>verify_jwt: true</code>. For contrast, the three functions that legitimately run without a JWT &mdash; the two Resend senders and <code>send-weekly-digest</code> &mdash; report <code>false</code>, which is what makes the true here meaningful rather than a default nobody chose.</div>
+            <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Dependency audit:</strong> <code>npm audit</code> shows 14 high / 9 moderate, all in the build-tooling chain (<code>uuid</code> via <code>expo</code> config-plugins) — no runtime path in the shipped bundle, but clear it with a planned Expo SDK bump before submission.</div>
@@ -867,8 +997,8 @@
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Walk the nine new Fortress screens against real data.</strong> Their maths carries 182 tests and their policies were probed against production &mdash; a non-member genuinely gets zero rows from a group, self-referral is genuinely refused &mdash; but <strong>not one of these screens has been opened by anyone.</strong> Every check so far was made without a signed-in session, so rendering, navigation and the numbers landing where they should are all unconfirmed. This is the largest untested surface on the board and the cheapest to clear: sign in, open the eight screens, sanity-check the figures against lifts you remember.</div>
-            <span class="priority critical">Open</span>
+            <div class="agenda-task"><strong>Walk the Fortress screens against real data &mdash; mostly cleared 2026-08-25.</strong> This row used to read &ldquo;not one of these screens has been opened by anyone&rdquo;, which stopped being true on Aug 25: eight of the nine were walked against a real signed-in account, and offline sync was built the day after. Analytics, goal forecasting, the PR vault, private groups, data export, structured programs, RPE and the referral code all render and read the right rows. <strong>What is left of this row is two things:</strong> the weekly digest has never been seen sending, and offline sync has never been exercised on a device with the radio off. Both are tracked in the open ledger at the top of this page.</div>
+            <span class="priority high">Two left</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Screen-reader pass on a real device:</strong> the Aug 20 work was verified in the web accessibility tree, which proves names and states exist but says nothing about how a TalkBack or VoiceOver user actually moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Roughly 18 pressables also still lack an explicit role — they have names, so they're usable, just announced as content rather than controls.</div>
@@ -1014,7 +1144,7 @@
       </section>
 
       <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>Making the tiers sellable — after launch</h3></div>
+        <div class="block-head"><span class="dot"></span><h3>Making the tiers sellable</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -1023,8 +1153,8 @@
 
         <div class="card-body" style="margin-bottom:16px;">
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Phase 1 — Billing, which gates everything else.</strong> Nothing can be sold until this exists, so no tier work matters before it. RevenueCat (one integration covering Play Billing and StoreKit), the products configured in each console, a <code>subscriptions</code> table carrying status/provider/period rather than today's single <code>membership_tier</code> column, an Edge Function verifying the provider's webhook signature and writing entitlement server-side, then the purchase and restore-purchases flows. Two weeks of real work, and the largest security surface the app will ever add &mdash; which is exactly why it sits after a launch gated on being confident the app is secure, not before it.</div>
-            <span class="priority blocks">Blocks all</span>
+            <div class="agenda-task"><strong>Phase 1 — Billing. Started 2026-08-26, and moved ahead of launch rather than after it.</strong> The original entry argued this belonged after a launch gated on security, because it is the largest security surface the app will ever add. That was reversed deliberately. <strong>Done and applied to production:</strong> the <code>subscriptions</code> table carrying provider, product, status and period, with no client write policy of any kind; <code>subscription_rank</code> composed into <code>tier_rank</code> via <code>greatest</code>, so a paid subscription and a hand-granted column cannot disagree; <code>my_tier()</code> so screens and policies read one source; and the webhook itself, with an explicit product-to-tier map rather than a parsed id, and an ordering guard repeated in its update clause so a cancellation delivered late cannot revoke a renewal. <strong>Not done:</strong> deploying that webhook, the RevenueCat account and its four products, and the entire purchase flow &mdash; SDK, buy button, restore, cancellation, sandbox testing.</div>
+            <span class="priority high">Half built</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 2 — Fortress goes on sale.</strong> It can, the moment billing works: all ten of its features are built, live in production and demonstrable. Nothing else is needed. Entitlement flips from the hand-granted column to whatever the webhook writes, and <code>migration_036</code>'s column allowlist already prevents a client touching it.</div>
@@ -1052,14 +1182,14 @@
       <section class="block">
         <div class="block-head"><span class="dot"></span><h3>Fortress: scope to operational</h3></div>
 
-        <div class="callout bad" style="margin-bottom:16px;">
+        <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-          <span><strong>The gate is not real yet.</strong> <code>membership_tier</code> exists on <code>profiles</code> as a column with a <code>check</code> constraint, and that is the whole of it &mdash; no RLS policy on any table references it. Every Fortress feature is gated by <code>useMembershipTier()</code> in the client, which is a display rule. The Supabase anon key ships inside the app, so a free account can call PostgREST directly and read exactly what a member reads. This is the difference between selling a product and selling a hidden button, and it sits underneath all nine built features at once.</span>
+          <span><strong>The gate was not real &mdash; closed 2026-08-20, kept here as the record of why.</strong> <code>membership_tier</code> existed on <code>profiles</code> as a column with a <code>check</code> constraint and nothing else: no RLS policy on any table referenced it. Every Fortress feature was gated by <code>useMembershipTier()</code> in the client, which is a display rule, and the Supabase anon key ships inside the app &mdash; so a free account could call PostgREST directly and read exactly what a member reads. That was the difference between selling a product and selling a hidden button, and it sat underneath every built feature at once. The fix and its two-sided verification are recorded below.</span>
         </div>
 
         <div class="callout" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-          <span><strong>Seven-point bar for &ldquo;done&rdquo;.</strong> Reachable where you would look for it; reads real rows, not fixtures; <strong>gated server-side</strong>; scheduled infrastructure has actually fired; empty and failure states written; tested at the logic layer; and <strong>verified against a real account by a person</strong>. Nine features have working code. None has been verified by a person, and none is gated server-side &mdash; those two criteria are the bulk of the remaining work. Full detail in <code>docs/fortress-scope.md</code>.</span>
+          <span><strong>Seven-point bar for &ldquo;done&rdquo;.</strong> Reachable where you would look for it; reads real rows, not fixtures; <strong>gated server-side</strong>; scheduled infrastructure has actually fired; empty and failure states written; tested at the logic layer; and <strong>verified against a real account by a person</strong>. Ten features have working code, all ten are gated server-side, and nine have been verified by a person. The bar now fails in exactly one place: criterion four, scheduled infrastructure having actually fired, which the weekly digest has never done. Full detail in <code>docs/fortress-scope.md</code>.</span>
         </div>
 
         <div class="callout good" style="margin-bottom:16px;">
@@ -1076,7 +1206,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           <span><strong>Fortress is ten features, and all ten are built (2026-08-26).</strong> It was eleven: video demonstrations moved to Valhalla rather than being shipped as a permanent teaser, and offline sync &mdash; the last unbuilt one &mdash; is done. Nine of the ten have been walked against real data; the tenth, the weekly digest, is real code on a real schedule that has still never been observed firing.
           <br><br>
-          <strong>What now stands between this and selling it is billing, not features.</strong> There is no RevenueCat, Stripe, StoreKit or Play Billing anywhere in the repo, so Fortress cannot be charged for at any level of completeness. The plan below still places billing after launch, on the reasoning that it is the largest security surface the app will ever add and launch was gated on being confident about security. If Fortress has to be purchasable <em>before</em> launch, that is a deliberate reversal worth making as a decision rather than a drift.
+          <strong>What now stands between this and selling it is billing, and billing is half built (updated 2026-08-26).</strong> The reversal flagged here as a decision worth making deliberately was made: billing moved ahead of launch rather than after it. Its database half is applied to production &mdash; a <code>subscriptions</code> table with no client insert, update or delete policy, <code>subscription_rank</code> folded into <code>tier_rank</code> so a paid row and a hand-granted column agree, and <code>my_tier()</code> so the interface reads entitlement from the same place the policies do. The webhook that grants it is written but <em>not deployed</em>, and the purchase flow does not exist at all: no SDK, no buy button, no restore. So Fortress still cannot be charged for &mdash; but the reason has moved from &ldquo;nothing exists&rdquo; to &ldquo;the client half and the provider account&rdquo;.
           <br><br>
           <strong>Standing caveat:</strong> roughly a dozen interface changes from the 2026-08-26 session have passed typecheck, lint and the full suite without anyone opening them, because the dev server has been on a signed-out session throughout. That combination has been green over three real bugs in this project already. The offline path in particular wants exercising on a device with the radio off, since a bug there means lost training data.</span>
         </div>
