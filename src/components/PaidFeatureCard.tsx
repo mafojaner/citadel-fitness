@@ -28,6 +28,13 @@ interface PaidFeatureCardProps {
    * by the section's overflow: hidden.
    */
   variant?: 'card' | 'row';
+  /**
+   * Replaces the "Coming soon" badge for a feature that is built but has no
+   * screen to open. Offline sync is the case this exists for: it is working
+   * the whole time and there is nowhere to go and look at it, so without
+   * this it would advertise itself as unbuilt forever.
+   */
+  status?: string;
 }
 
 /**
@@ -153,7 +160,7 @@ export function PaidFeatureLink({
  * placements can't drift from the Plans page's own list the way the
  * landing page's chips once did.
  */
-export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFeatureCardProps) {
+export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }: PaidFeatureCardProps) {
   const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
   const openPlans = useOpenPlans();
   const tier = useMembershipTier();
@@ -167,8 +174,18 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen }: PaidFea
   // tier will never include.
   const entitled = tierAllows(tier, feature.tier);
   const unlocked = entitled && Boolean(onOpen);
-  const badgeLabel = unlocked ? 'Open' : entitled ? 'Coming soon' : TIER_LABELS[feature.tier];
-  const badgeIcon = unlocked ? 'sparkles' : entitled ? 'time-outline' : 'lock-closed';
+  const badgeLabel = unlocked
+    ? 'Open'
+    : entitled
+      ? status ?? 'Coming soon'
+      : TIER_LABELS[feature.tier];
+  const badgeIcon = unlocked
+    ? 'sparkles'
+    : entitled
+      ? status
+        ? 'checkmark-circle'
+        : 'time-outline'
+      : 'lock-closed';
   const onPress = unlocked && onOpen ? onOpen : openPlans;
 
   // Only the locked badge is tier-coloured, because only it names a tier —

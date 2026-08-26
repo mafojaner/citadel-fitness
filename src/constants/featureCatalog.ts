@@ -130,7 +130,10 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'cloud-done',
     colors: gradients.calendar,
     title: 'Offline mode & sync',
-    description: 'Log a workout anywhere, no signal required. Everything syncs the moment you are back online.',
+    // Narrowed to what is built. Workout saves queue and retry; water
+    // taps and preference toggles still fail loudly, because they are cheap
+    // to repeat and queueing them would promise more than ships.
+    description: 'Log a workout with no signal. It saves on your phone and uploads itself the moment you are back online.',
     tier: 'fortress',
     showInComparison: false,
   },
@@ -228,7 +231,15 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.volume,
     title: 'Video demonstrations',
     description: 'Professionally shot technique video for every exercise in the catalogue, not just a text description.',
-    tier: 'fortress',
+    // Moved up from Fortress. The old argument for keeping it low was that
+    // video is filmed once and then served for nothing, so holding it higher
+    // would shrink its audience and save nothing. True, but it answered the
+    // wrong question: filming 125 exercises is a production budget nobody has
+    // committed, and Fortress is the tier about to go on sale. A tier that
+    // advertises something with no date attached earns refunds. Valhalla is
+    // where the things that cost real ongoing investment already live, and
+    // it is not being sold yet, so an unfunded promise does less damage here.
+    tier: 'valhalla',
     showInComparison: false,
   },
   {

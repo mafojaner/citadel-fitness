@@ -197,6 +197,39 @@ export async function fetchWorkoutForDate(
  * save_workout, which never rewrites it on an edit. See
  * supabase/migrations/20260101000024_reward_eligibility.sql.
  */
+/**
+ * The exact arguments `save_workout` takes.
+ *
+ * Split out so the offline queue stores what would have been sent rather
+ * than rebuilding it later. p_logged_same_day is the reason that matters:
+ * it is true at the moment of saving, and a workout logged tonight but
+ * synced tomorrow was still logged tonight.
+ */
+export function buildSaveWorkoutParams(
+  date: string,
+  exercises: LoggedExercise[],
+  weightUnit: WeightUnit,
+  distanceUnit: DistanceUnit
+) {
+  return {
+    p_date: date,
+    p_exercises: exercises.map((e) => ({
+      exercise_id: e.exerciseId,
+      sets: e.sets.map((s) => ({
+        set_number: s.setNumber,
+        reps: s.reps,
+        weight: s.weight,
+        duration_seconds: s.durationSeconds || null,
+        distance: s.distance || null,
+        rpe: s.rpe,
+      })),
+    })),
+    p_weight_unit: weightUnit,
+    p_distance_unit: distanceUnit,
+    p_logged_same_day: date === todayISO(),
+  };
+}
+
 export async function saveWorkout(
   date: string,
   exercises: LoggedExercise[],
@@ -205,25 +238,10 @@ export async function saveWorkout(
 ): Promise<void> {
   if (exercises.length === 0) return;
 
-  const payload = exercises.map((e) => ({
-    exercise_id: e.exerciseId,
-    sets: e.sets.map((s) => ({
-      set_number: s.setNumber,
-      reps: s.reps,
-      weight: s.weight,
-      duration_seconds: s.durationSeconds || null,
-      distance: s.distance || null,
-      rpe: s.rpe,
-    })),
-  }));
-
-  const { error } = await supabase.rpc('save_workout', {
-    p_date: date,
-    p_exercises: payload,
-    p_weight_unit: weightUnit,
-    p_distance_unit: distanceUnit,
-    p_logged_same_day: date === todayISO(),
-  });
+  const { error } = await supabase.rpc(
+    'save_workout',
+    buildSaveWorkoutParams(date, exercises, weightUnit, distanceUnit)
+  );
 
   if (error) throw error;
 }

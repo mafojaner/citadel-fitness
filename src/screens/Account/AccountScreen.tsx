@@ -16,6 +16,7 @@ import { TIER_LABELS } from '../../lib/membership';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useThemeStore } from '../../state/themeStore';
+import { stalledCount, useOfflineQueueStore } from '../../state/offlineQueueStore';
 import { useTheme } from '../../theme/useTheme';
 import type { AccountStackParamList } from '../../navigation/stacks/AccountStack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
@@ -208,6 +209,8 @@ export function AccountScreen() {
   // the records it covers. The outcome wording has to match what the
   // platform actually did, so it lives in one place rather than two.
   const { exporting, result: exportResult, run: onExport } = useDataExport();
+  const pendingSaves = useOfflineQueueStore((state) => state.queue.length);
+  const stalledSaves = useOfflineQueueStore((state) => stalledCount(state.queue));
   const [section, setSection] = useState<SettingsSectionId>('profile');
 
   // On desktop Plans is a tab, and pushing this stack's copy would cover the
@@ -254,7 +257,18 @@ export function AccountScreen() {
       <SettingsSection title="Membership perks">
         <PaidFeatureCard featureId="priority-support" variant="row" />
         <PaidFeatureCard featureId="early-access" variant="row" />
-        <PaidFeatureCard featureId="offline-sync" variant="row" />
+        {/* Built, but with no screen of its own: it reports its own state
+            instead. The waiting count is the only visible evidence the
+            feature exists, so it is worth showing rather than a flat "On". */}
+        <PaidFeatureCard
+          featureId="offline-sync"
+          variant="row"
+          status={
+            pendingSaves === 0
+              ? 'On'
+              : `${pendingSaves} waiting${stalledSaves > 0 ? `, ${stalledSaves} stuck` : ''}`
+          }
+        />
         {/* Built: the switch itself lives with the other email settings, so
             members land where they'd expect to turn it off again. */}
         <PaidFeatureCard

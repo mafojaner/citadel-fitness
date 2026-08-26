@@ -80,6 +80,7 @@ describe('the catalogue', () => {
       'form-check',
       'nutrition-coaching',
       'priority-support',
+      'video-guides',
       'wearable-sync',
     ]);
   });
@@ -136,11 +137,13 @@ describe('the catalogue', () => {
     expect(TIER_PITCH.fortress.note).toBeUndefined();
   });
 
-  it('keeps video in Fortress but not the monthly guides', () => {
-    // Video is filmed once and served for nothing thereafter, so holding it
-    // higher would shrink its audience and save nothing. The guide library
-    // is new writing every month, so it costs something every month.
-    expect(APP_FEATURES.find((f) => f.id === 'video-guides')?.tier).toBe('fortress');
+  it('keeps the unfunded content promises out of the tier being sold', () => {
+    // Both need a budget nobody has committed: filming 125 exercises, and
+    // writing new guides every month. Fortress is the tier about to go on
+    // sale, and a tier that advertises something with no date attached earns
+    // refunds. Video moved up for that reason, not because it costs more to
+    // serve -- it is filmed once and then served for nothing.
+    expect(APP_FEATURES.find((f) => f.id === 'video-guides')?.tier).toBe('valhalla');
     expect(APP_FEATURES.find((f) => f.id === 'expert-guides')?.tier).toBe('valhalla');
   });
 });

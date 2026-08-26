@@ -24,7 +24,8 @@ import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
 import { trackEvent } from '../../lib/telemetry';
 import { partsToSeconds, secondsToParts } from '../../lib/units';
-import { fetchWorkoutDatesInRange, monthRange, saveWorkout } from '../../lib/workouts';
+import { fetchWorkoutDatesInRange, monthRange } from '../../lib/workouts';
+import { useSaveWorkout } from '../../hooks/useSaveWorkout';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -106,6 +107,8 @@ export function AddWorkoutScreen() {
   const units = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [saving, setSaving] = useState(false);
+  const [queued, setQueued] = useState(false);
+  const saveWorkout = useSaveWorkout();
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
@@ -173,7 +176,7 @@ export function AddWorkoutScreen() {
     setSaving(true);
     setError(null);
     try {
-      await saveWorkout(date, draftExercises, units, distanceUnit);
+      const outcome = await saveWorkout(date, draftExercises, units, distanceUnit);
       // Count and backdated-ness only — never the exercises themselves, the
       // weights, or the date. Backdated matters because it's the difference
       // between logging as you train and catching up later, which is the
@@ -182,6 +185,10 @@ export function AddWorkoutScreen() {
         name: 'workout_logged',
         properties: { exerciseCount: draftExercises.length, isBackdated: date !== todayISO() },
       });
+      // Queued counts as logged from the person's side: the workout is
+      // recorded and will reach the server on its own, so holding back the
+      // confirmation would imply it might not.
+      setQueued(outcome === 'queued');
       finishedRef.current = false;
       setShowSuccess(true);
     } catch (err) {
@@ -473,7 +480,12 @@ export function AddWorkoutScreen() {
       ) : null}
     </ScreenContainer>
 
-    {showSuccess ? <WorkoutSavedAnimation onDone={finishAndLeave} /> : null}
+    {showSuccess ? (
+      <WorkoutSavedAnimation
+        onDone={finishAndLeave}
+        caption={queued ? 'Saved on this device. It will upload when you are back online.' : undefined}
+      />
+    ) : null}
     </>
   );
 }

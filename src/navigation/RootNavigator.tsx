@@ -23,6 +23,7 @@ import { useWorkoutDraftStore } from '../state/workoutDraftStore';
 import { motion } from '../theme/motion';
 import { useTheme } from '../theme/useTheme';
 import { MainTabs, type MainTabsParamList } from './MainTabs';
+import { useOfflineFlush } from '../hooks/useOfflineFlush';
 import { AccountStack, type AccountStackParamList } from './stacks/AccountStack';
 import { AuthStack } from './stacks/AuthStack';
 
@@ -37,6 +38,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { colors, scheme } = useTheme();
+  // Mounted at the root rather than on a screen: the queue has to drain
+  // whatever the person is looking at, including when they never open the
+  // Workouts tab again after logging.
+  useOfflineFlush();
   // ParamListBase rather than RootStackParamList: getCurrentRoute() resolves
   // to the innermost active route, which lives in the tab and stack param
   // lists nested below this one, so the only honest type for its name is

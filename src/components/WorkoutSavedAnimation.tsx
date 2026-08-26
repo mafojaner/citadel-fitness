@@ -6,6 +6,13 @@ import { gradients } from '../theme/tokens';
 
 interface WorkoutSavedAnimationProps {
   onDone: () => void;
+  /**
+   * Optional line under the badge. Used when the save went to the offline
+   * queue rather than the server: the workout is recorded either way, but
+   * saying so is the difference between "done" and "done, and it will
+   * upload itself".
+   */
+  caption?: string;
 }
 
 interface ConfettiPiece {
@@ -49,7 +56,7 @@ function generateConfetti(): ConfettiPiece[] {
  * runs on a compositor thread. This is ~26 views animating only transform
  * and opacity (both native-driver-safe), so it stays smooth everywhere.
  */
-export function WorkoutSavedAnimation({ onDone }: WorkoutSavedAnimationProps) {
+export function WorkoutSavedAnimation({ onDone, caption }: WorkoutSavedAnimationProps) {
   const [badgeProgress] = useState(() => new Animated.Value(0));
   const [confetti] = useState(() => new Animated.Value(0));
   const [scrim] = useState(() => new Animated.Value(0));
@@ -159,6 +166,21 @@ export function WorkoutSavedAnimation({ onDone }: WorkoutSavedAnimationProps) {
           <Ionicons name="checkmark" size={52} color="#FFFFFF" />
         </LinearGradient>
       </Animated.View>
+
+      {caption ? (
+        <Animated.Text
+          style={{
+            marginTop: 20,
+            color: '#FFFFFF',
+            fontSize: 14,
+            textAlign: 'center',
+            paddingHorizontal: 32,
+            opacity: scrim,
+          }}
+        >
+          {caption}
+        </Animated.Text>
+      ) : null}
     </View>
   );
 }
