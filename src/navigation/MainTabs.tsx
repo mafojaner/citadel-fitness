@@ -3,6 +3,8 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { FloatingTabBar } from './FloatingTabBar';
 import type { NewsletterStackParamList } from './stacks/NewsletterStack';
+import type { ActivityStackParamList } from './stacks/ActivityStack';
+import type { WorkoutsStackParamList } from './stacks/WorkoutsStack';
 import { ActivityStack } from './stacks/ActivityStack';
 import { HomeStack } from './stacks/HomeStack';
 import { NewsletterStack } from './stacks/NewsletterStack';
@@ -12,8 +14,10 @@ import { PlansScreen } from '../screens/Plans/PlansScreen';
 
 export type MainTabsParamList = {
   Home: undefined;
-  Workouts: undefined;
-  Activity: undefined;
+  /** Nested params so the sidebar's shortcuts can open a screen inside this stack directly. */
+  Workouts: NavigatorScreenParams<WorkoutsStackParamList>;
+  /** Nested params for the same reason as Workouts. */
+  Activity: NavigatorScreenParams<ActivityStackParamList>;
   Learn: NavigatorScreenParams<NewsletterStackParamList>;
   Search: undefined;
   /**

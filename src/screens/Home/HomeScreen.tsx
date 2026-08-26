@@ -127,7 +127,7 @@ export function HomeScreen() {
         }}
       >
       <AnimatedPressable
-        onPress={() => navigation.navigate('Activity')}
+        onPress={() => navigation.navigate('Activity', { screen: 'Activity' })}
         accessibilityRole="button"
         accessibilityLabel="Open Activity"
         scaleTo={0.98}
@@ -172,7 +172,7 @@ export function HomeScreen() {
       </AnimatedPressable>
 
       <AnimatedPressable
-        onPress={() => navigation.navigate('Workouts')}
+        onPress={() => navigation.navigate('Workouts', { screen: 'Workouts' })}
         accessibilityRole="button"
         accessibilityLabel="Open Workouts"
         scaleTo={0.98}

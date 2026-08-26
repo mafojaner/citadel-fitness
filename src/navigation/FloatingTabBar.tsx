@@ -4,9 +4,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
-import { Animated, Image, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
+import { useMembershipTier } from '../hooks/useMembership';
+import { useOpenPlans } from '../hooks/useOpenPlans';
+import { APP_FEATURES } from '../constants/featureCatalog';
+import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
@@ -185,7 +189,17 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         <Text style={[typography.subheading, { color: colors.navText, letterSpacing: 0.5 }]}>Citadel</Text>
       </View>
 
-      {state.routes.map((route, index) => {
+      {/* Scrolls, because the shortcuts accordion can add five rows to a rail
+          that was already six deep, and a short window would otherwise push
+          Plans and Profile off the bottom with no way to reach them. The
+          brand above and Plans below stay outside it: one is a header and
+          the other is pinned to the foot, and neither should scroll away. */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ gap: spacing.xs }}
+        showsVerticalScrollIndicator={false}
+      >
+        {state.routes.map((route, index) => {
         if (route.name === 'Plans') return null;
         const isFocused = state.index === index;
         return (
@@ -210,7 +224,8 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         );
       })}
 
-      <SidebarProfile />
+        <SidebarShortcuts />
+      </ScrollView>
 
       {/* Plans is a real tab here, registered by MainTabs on desktop only, so
           it highlights like any other. It used to push the Account stack
@@ -223,7 +238,6 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           separation is now presentational rather than structural. */}
       {plansRoute ? (
         <>
-          <View style={{ flex: 1 }} />
           <View style={{ height: 1, backgroundColor: colors.navBorder, marginVertical: spacing.sm }} />
           <SidebarTabButton
             label="Plans"
@@ -242,8 +256,125 @@ function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             onLongPress={() => navigation.emit({ type: 'tabLongPress', target: plansRoute.route.key })}
             accessibilityLabel="Plans and membership"
           />
+          {/* Last in the rail, under Plans. Both are account-level rather
+              than training, and putting the person at the foot is where a
+              sidebar conventionally keeps them — it also stops the ten
+              shortcuts above from pushing it around as they change. */}
+          <SidebarProfile />
         </>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * Shortcuts to features that live two or three taps down inside a tab.
+ *
+ * Every one of these is a built Fortress feature with a real screen, and
+ * every one of them is currently reached by opening a tab, scrolling, and
+ * finding a link. That is fine on a phone, where the alternative is nothing;
+ * on desktop the rail has the room to skip it.
+ *
+ * Collapsible, and collapsed by default, because this is a shortcut list
+ * rather than navigation: five extra rows always open would push the five
+ * actual tabs into being a minority of the rail.
+ */
+const SHORTCUTS: {
+  /** id in APP_FEATURES, for the paid ones. Absent means free, and always open. */
+  featureId?: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tab: 'Home' | 'Activity' | 'Workouts';
+  screen: string;
+}[] = [
+  { label: 'Log a workout', icon: 'add-circle', tab: 'Workouts', screen: 'AddWorkout' },
+  { label: 'Exercises', icon: 'list', tab: 'Workouts', screen: 'ExerciseCatalogue' },
+  { label: 'Water', icon: 'water', tab: 'Home', screen: 'WaterHistory' },
+  { label: 'Leaderboard', icon: 'podium', tab: 'Activity', screen: 'Leaderboard' },
+  { label: 'Rewards', icon: 'diamond', tab: 'Activity', screen: 'Rewards' },
+  { featureId: 'pr-vault', label: 'Personal records', icon: 'trophy', tab: 'Activity', screen: 'PersonalRecords' },
+  {
+    featureId: 'advanced-analytics',
+    label: 'Advanced analytics',
+    icon: 'trending-up',
+    tab: 'Activity',
+    screen: 'AdvancedAnalytics',
+  },
+  { featureId: 'goal-forecasting', label: 'Goals', icon: 'flag', tab: 'Activity', screen: 'GoalForecast' },
+  { featureId: 'private-groups', label: 'Groups', icon: 'people-circle', tab: 'Activity', screen: 'Groups' },
+  {
+    featureId: 'structured-programs',
+    label: 'Programs',
+    icon: 'calendar-number',
+    tab: 'Workouts',
+    screen: 'Programs',
+  },
+];
+
+function SidebarShortcuts() {
+  const { colors, spacing, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const tier = useMembershipTier();
+  const openPlans = useOpenPlans();
+
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <Text
+        style={[
+          typography.caption,
+          {
+            color: colors.tabInactive,
+            textTransform: 'uppercase',
+            letterSpacing: 0.6,
+            paddingHorizontal: spacing.sm,
+            marginTop: spacing.sm,
+          },
+        ]}
+      >
+        Shortcuts
+      </Text>
+
+      {SHORTCUTS.map((shortcut) => {
+        const feature = shortcut.featureId
+          ? APP_FEATURES.find((f) => f.id === shortcut.featureId)
+          : undefined;
+        // Compared rather than equality-checked, so a Valhalla member is not
+        // locked out of the Fortress features their plan includes. A
+        // shortcut with no featureId is a free screen and always open.
+        const unlocked = feature ? tierAllows(tier, feature.tier) : true;
+
+        return (
+          <SidebarTabButton
+            key={shortcut.label}
+                label={shortcut.label}
+                icon={shortcut.icon}
+                // Never focused: these open a screen inside a tab's stack,
+                // and the rail's highlight tracks which tab is selected, not
+                // how deep into it you are. Showing "Programs" as active
+                // while the Workouts tab is also active would be two
+                // highlights for one location.
+                isFocused={false}
+                // A locked shortcut goes to Plans rather than to a screen the
+                // database would refuse, which is what every other locked
+                // entry point in the app does.
+                onPress={() =>
+                  unlocked
+                    ? navigation.navigate('Main', {
+                        screen: shortcut.tab,
+                        params: { screen: shortcut.screen },
+                      } as never)
+                    : openPlans()
+                }
+                onLongPress={() => {}}
+                trailingIcon={unlocked ? undefined : 'lock-closed'}
+                accessibilityLabel={
+                  unlocked
+                    ? shortcut.label
+                    : `${shortcut.label}, ${feature ? TIER_LABELS[feature.tier] : 'paid'} feature. Opens plans.`
+                }
+              />
+        );
+      })}
     </View>
   );
 }
