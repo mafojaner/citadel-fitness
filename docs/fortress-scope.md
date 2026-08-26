@@ -8,7 +8,7 @@
 > exactly as written -- the weekly digest has never been observed firing, and
 > the items under "What only the account owner can do" are all still open.
 > **For current status, read the open ledger on the developer dashboard**
-> (`docs/admin/index.html`), which is compiled against the repo and the live
+> (`landing/dashboard.html`, served at https://citadelfitness.app/dashboard), which is compiled against the repo and the live
 > project rather than from memory.
 
 Written 2026-08-20. The question this answers: what is left before every

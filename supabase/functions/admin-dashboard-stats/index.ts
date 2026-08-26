@@ -25,7 +25,11 @@ function json(body: unknown, status: number) {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const TREND_DAYS = 14;
+// 30 rather than 14. Two weeks of bars is barely a trend: it cannot show a
+// weekly rhythm twice, so it cannot show whether a quiet Sunday is the
+// pattern or the story. Thirty days covers four full weeks and is still
+// inside the 30-day activity fetch below, so it costs no extra query.
+const TREND_DAYS = 30;
 
 function pctChange(current: number, previous: number): number {
   if (previous === 0) return current > 0 ? 100 : 0;
@@ -109,6 +113,29 @@ Deno.serve(async (req) => {
       return trendDates.map((date) => ({ date, count: byDay.get(date) ?? 0 }));
     })();
 
+    // Total registered users as of the end of each day in the window.
+    //
+    // Counted from every user's created_at rather than by accumulating
+    // dailySignups, so the line starts at the real total on day one instead
+    // of at zero. A growth curve that begins at zero every month is not a
+    // growth curve, it is the last month's signups drawn a second time.
+    const cumulativeUsers = (() => {
+      const sorted = allUsers.map((u) => u.created_at).sort();
+      return trendDates.map((date) => {
+        const endOfDay = `${date}T23:59:59.999Z`;
+        // Binary search for the first signup after this day; its index is
+        // the count of everyone who existed by then.
+        let lo = 0;
+        let hi = sorted.length;
+        while (lo < hi) {
+          const mid = (lo + hi) >> 1;
+          if (sorted[mid] <= endOfDay) lo = mid + 1;
+          else hi = mid;
+        }
+        return { date, count: lo };
+      });
+    })();
+
     // --- Activity: one 30-day fetch backs every active-user + behavior stat
     // Uses logged_exercises.created_at rather than workouts.created_at —
     // save_workout deletes and re-inserts every logged_exercise on every
@@ -160,7 +187,57 @@ Deno.serve(async (req) => {
       categoryBreakdown[category] = (categoryBreakdown[category] ?? 0) + 1;
     }
 
+    // Which weekday people actually train on, over the last 30 days.
+    //
+    // Monday-first rather than JS's Sunday-first: the training week is the
+    // thing being described, and it does not start on Sunday for anyone
+    // using this app. Distinct users per weekday, not raw rows, so one
+    // person logging a twelve-exercise session does not read as a busy
+    // Tuesday.
+    const dayOfWeek = (() => {
+      const byDay: Set<string>[] = Array.from({ length: 7 }, () => new Set<string>());
+      for (const row of rows) {
+        const userId = row.workouts?.user_id;
+        if (!userId) continue;
+        // Monday = 0 … Sunday = 6.
+        const jsDay = new Date(row.created_at).getUTCDay();
+        byDay[(jsDay + 6) % 7].add(userId);
+      }
+      const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return labels.map((label, i) => ({ label, count: byDay[i].size }));
+    })();
+
     const engagementRate7d = totalUsers > 0 ? Math.round((active7d / totalUsers) * 100) : 0;
+
+    // --- Activation funnel ------------------------------------------------
+    // Counted in the database rather than here: a PostgREST select caps at
+    // 1000 rows, so counting distinct users over all workouts client-side
+    // would start under-reporting silently. See 20260827100000.
+    const { data: activation, error: activationError } = await admin.rpc('admin_activation_stats');
+    if (activationError) throw activationError;
+    const act = (activation ?? {}) as {
+      everLogged?: number;
+      activeLast7d?: number;
+      activeLast30d?: number;
+      workoutsLast30d?: number;
+      setsLast30d?: number;
+    };
+
+    // Registered → ever logged anything → still here this month → this week.
+    // Every stage is a subset of the one before it, so the drop between two
+    // bars is the number of people lost at that step. This is the single
+    // most useful thing on the page before launch: a signup count says how
+    // well the store listing works, and this says whether the app does.
+    const funnel = [
+      { stage: 'Registered', count: totalUsers },
+      { stage: 'Logged a workout', count: act.everLogged ?? 0 },
+      { stage: 'Active in 30 days', count: act.activeLast30d ?? 0 },
+      { stage: 'Active in 7 days', count: act.activeLast7d ?? 0 },
+    ];
+
+    const activationRate = totalUsers > 0
+      ? Math.round(((act.everLogged ?? 0) / totalUsers) * 100)
+      : 0;
 
     // --- Fortress waitlist total -----------------------------------------
     const { count: waitlistCount, error: waitlistError } = await admin
@@ -204,9 +281,21 @@ Deno.serve(async (req) => {
           last30d: active30d,
         },
         engagementRate7d,
+        activationRate,
+        funnel,
         trends: {
           dailySignups,
           dailyActiveUsers,
+          cumulativeUsers,
+          dayOfWeek,
+        },
+        volume30d: {
+          workouts: act.workoutsLast30d ?? 0,
+          sets: act.setsLast30d ?? 0,
+          // Per active person, which is the number that means something.
+          // "410 sets" is a vanity metric; "18 sets each" is a behaviour.
+          workoutsPerActiveUser:
+            active30d > 0 ? Math.round(((act.workoutsLast30d ?? 0) / active30d) * 10) / 10 : 0,
         },
         behavior: {
           categoryBreakdown30d: categoryBreakdown,

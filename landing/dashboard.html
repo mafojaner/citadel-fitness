@@ -346,6 +346,67 @@
     margin-top: 6px;
   }
 
+  /* Ordinal ramp for the funnel: one hue, monotone lightness, light end
+     still 2.15:1 on white so the first stage is a mark and not a tint.
+     Dark mode is stepped against the raised surface rather than flipped --
+     an inverted light ramp lands the pale end at 1.2:1 on #1B212E. */
+  :root {
+    --seq-1: #F49A7D;
+    --seq-2: #F4805C;
+    --seq-3: #EE5A32;
+    --seq-4: #C6401F;
+    --grid: #EDEFF3;
+    --weekend-band: #F7F8FA;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --seq-1: #8A3D25;
+      --seq-2: #C25334;
+      --seq-3: #F0714A;
+      --seq-4: #FF9C7B;
+      --grid: #232B3A;
+      --weekend-band: #171D28;
+    }
+  }
+
+  .chart-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 760px) { .chart-grid-2 { grid-template-columns: 1fr; } }
+
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 2px; }
+  .chart-note { font-size: 11.5px; color: var(--mist); margin: 0 0 12px; line-height: 1.45; }
+  .chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 11.5px; color: var(--slate); }
+  .chart-legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-legend .swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .chart-legend .swatch.line { height: 2px; border-radius: 1px; width: 14px; }
+
+  /* Funnel rows are HTML rather than SVG: the labels are long, they must
+     wrap on a phone, and a bar whose width is a percentage needs no
+     coordinate system to do that correctly. */
+  .funnel { display: flex; flex-direction: column; gap: 10px; }
+  .funnel-row { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  .funnel-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12.5px; }
+  .funnel-stage { color: var(--ink); font-weight: 600; }
+  .funnel-value { color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .funnel-value .pct { color: var(--mist); margin-left: 6px; }
+  .funnel-track { height: 12px; border-radius: 3px; background: var(--grid); overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 3px; min-width: 2px; transition: width .3s ease; }
+  .funnel-drop { font-size: 11px; color: var(--bad); margin-top: 1px; }
+  .funnel-drop.none { color: var(--mist); }
+
+  .chart-empty {
+    font-size: 12px;
+    color: var(--mist);
+    padding: 18px 0;
+    text-align: center;
+  }
+
   .data-table-wrap { overflow-x: auto; }
 
   table.data-table {
@@ -564,25 +625,70 @@
       </div>
 
       <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>14-day trends</h3></div>
-        <div class="trend-grid">
-          <div class="chart-card">
-            <div class="chart-title">Daily active users</div>
-            <div id="chart-active"></div>
+        <div class="block-head"><span class="dot"></span><h3>Does anyone actually use it</h3></div>
+        <div class="chart-grid-2">
+
+          <div class="chart-card wide">
+            <div class="chart-head">
+              <div class="chart-title">Activation funnel</div>
+              <div class="chart-title" id="funnel-headline">&nbsp;</div>
+            </div>
+            <p class="chart-note">Each stage is a subset of the one above it, so the gap between two bars is the people lost at that step. A signup count tells you the store listing works; only this tells you the app does.</p>
+            <div class="funnel" id="chart-funnel"></div>
           </div>
+
+          <div class="chart-card wide">
+            <div class="chart-head">
+              <div class="chart-title">Daily active users</div>
+              <div class="chart-title" id="active-peak">&nbsp;</div>
+            </div>
+            <p class="chart-note">Distinct people who logged something, over 30 days. The line is a 7-day mean, which is what to read: single days swing between one and zero on this few users and mean nothing on their own.</p>
+            <div id="chart-active"></div>
+            <div class="chart-legend">
+              <span class="key"><span class="swatch" style="background:var(--seq-3)"></span>Active that day</span>
+              <span class="key"><span class="swatch line" style="background:var(--slate)"></span>7-day mean</span>
+              <span class="key"><span class="swatch" style="background:var(--weekend-band);border:1px solid var(--border)"></span>Weekend</span>
+            </div>
+          </div>
+
           <div class="chart-card">
-            <div class="chart-title">Daily signups</div>
+            <div class="chart-head">
+              <div class="chart-title">Registered users</div>
+              <div class="chart-title" id="growth-headline">&nbsp;</div>
+            </div>
+            <p class="chart-note">Cumulative total, so the line only ever rises. Flat means nobody joined that day.</p>
+            <div id="chart-growth"></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-head">
+              <div class="chart-title">Which day people train</div>
+              <div class="chart-title" id="dow-headline">&nbsp;</div>
+            </div>
+            <p class="chart-note">Distinct people per weekday over 30 days, so one long session isn't a busy Tuesday.</p>
+            <div id="chart-dow"></div>
+          </div>
+
+          <div class="chart-card wide">
+            <div class="chart-head">
+              <div class="chart-title">Daily signups</div>
+              <div class="chart-title" id="signup-headline">&nbsp;</div>
+            </div>
+            <p class="chart-note">The same 30 days as above, so the two can be read against each other: signups without a matching rise in actives is a leak at activation, not at acquisition.</p>
             <div id="chart-signups"></div>
           </div>
+
         </div>
       </section>
 
       <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>Exercise category usage (30d)</h3></div>
+        <div class="block-head"><span class="dot"></span><h3>What people train (30d)</h3></div>
         <div class="card-body">
-          <div class="data-table-wrap">
+          <p class="chart-note" style="margin-top:0;">Share of everything logged in the last 30 days. The table below carries the same numbers, so the chart is never the only way to read them.</p>
+          <div id="chart-category"></div>
+          <div class="data-table-wrap" style="margin-top:14px;">
             <table class="data-table">
-              <thead><tr><th>Category</th><th>Logged</th></tr></thead>
+              <thead><tr><th>Category</th><th>Logged</th><th>Share</th></tr></thead>
               <tbody id="category-rows"></tbody>
             </table>
           </div>
@@ -1295,29 +1401,308 @@
       return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 
-    function renderBarChart(containerId, points, color) {
-      const max = Math.max(1, ...points.map((p) => p.count));
+    // ---- Chart primitives ---------------------------------------------
+    //
+    // Everything below draws into a real viewBox (600x160 user units) and
+    // scales with `width:100%;height:auto`. The previous charts used a
+    // 0-100 box with preserveAspectRatio="none" and percentage coordinates,
+    // which stretches the whole coordinate system horizontally -- so a
+    // rounded corner came out as an ellipse and a 2px line was 2px tall and
+    // some other width entirely. Real units cost nothing and stop that.
+
+    const W = 600, H = 160, PAD_L = 34, PAD_R = 6, PAD_T = 12, PAD_B = 20;
+    const PLOT_W = W - PAD_L - PAD_R;
+    const PLOT_H = H - PAD_T - PAD_B;
+
+    function niceMax(value) {
+      // A y-axis that ends on a round number, so the top gridline is a
+      // number a person can hold in their head.
+      if (value <= 4) return Math.max(1, value);
+      const mag = Math.pow(10, Math.floor(Math.log10(value)));
+      return Math.ceil(value / (mag / 2)) * (mag / 2);
+    }
+
+    function isWeekend(iso) {
+      const d = new Date(iso + 'T00:00:00Z').getUTCDay();
+      return d === 0 || d === 6;
+    }
+
+    function yAxis(max, ticks) {
+      // Recessive: hairline rules, muted numerals, no axis line. The grid is
+      // there to let someone read a height, not to be looked at.
+      const n = ticks || 2;
+      let out = '';
+      for (let t = 0; t <= n; t++) {
+        const v = (max / n) * t;
+        const y = PAD_T + PLOT_H - (v / max) * PLOT_H;
+        out += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (W - PAD_R) + '" y2="' + y + '" stroke="var(--grid)" stroke-width="1"/>';
+        out += '<text x="' + (PAD_L - 6) + '" y="' + (y + 3.5) + '" text-anchor="end" font-size="9" fill="var(--mist)">' + Math.round(v) + '</text>';
+      }
+      return out;
+    }
+
+    function movingAverage(values, window) {
+      return values.map((_, i) => {
+        const from = Math.max(0, i - window + 1);
+        const slice = values.slice(from, i + 1);
+        return slice.reduce((a, b) => a + b, 0) / slice.length;
+      });
+    }
+
+    /**
+     * Daily bars, optional 7-day mean line, weekend banding.
+     * `points` is [{date, count}], oldest first.
+     */
+    function renderDailyChart(containerId, points, opts) {
+      const o = opts || {};
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (!points || points.length === 0) {
+        el.innerHTML = '<p class="chart-empty">No data yet.</p>';
+        return;
+      }
+      const counts = points.map((p) => p.count);
+      const max = niceMax(Math.max(1, ...counts));
       const n = points.length;
-      const gapPct = 26 / n;
-      const barWPct = 100 / n - gapPct;
-      const bars = points
-        .map((p, i) => {
-          const h = (p.count / max) * 100;
-          const x = i * (100 / n) + gapPct / 2;
-          const y = 100 - Math.max(h, p.count > 0 ? 3 : 0);
-          const barH = Math.max(h, p.count > 0 ? 3 : 0);
-          return `<rect x="${x}%" y="${y}%" width="${barWPct}%" height="${barH}%" rx="1.5" style="fill:${color}"><title>${p.date}: ${p.count}</title></rect>`;
+      const slot = PLOT_W / n;
+      // 2px surface gap between adjacent bars, per the mark spec.
+      const barW = Math.max(2, slot - 2);
+      const color = o.color || 'var(--seq-3)';
+
+      let bands = '';
+      for (let i = 0; i < n; i++) {
+        if (!isWeekend(points[i].date)) continue;
+        bands += '<rect x="' + (PAD_L + i * slot) + '" y="' + PAD_T + '" width="' + slot + '" height="' + PLOT_H + '" fill="var(--weekend-band)"/>';
+      }
+
+      let bars = '';
+      for (let i = 0; i < n; i++) {
+        const c = counts[i];
+        // A zero day draws nothing rather than a 1px stub: a stub reads as
+        // "a little" when the truth is "none".
+        if (c === 0) continue;
+        const h = Math.max(2, (c / max) * PLOT_H);
+        const x = PAD_L + i * slot + (slot - barW) / 2;
+        const y = PAD_T + PLOT_H - h;
+        bars += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + h + '" rx="2" fill="' + color + '"><title>' + formatShortDate(points[i].date) + ': ' + c + '</title></rect>';
+      }
+
+      let line = '';
+      if (o.mean !== false && n >= 7) {
+        const avg = movingAverage(counts, 7);
+        const d = avg
+          .map((v, i) => {
+            const x = PAD_L + i * slot + slot / 2;
+            const y = PAD_T + PLOT_H - (v / max) * PLOT_H;
+            return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+          })
+          .join(' ');
+        line = '<path d="' + d + '" fill="none" stroke="var(--slate)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+      }
+
+      // Hit targets wider than the marks, so a 4px bar is still hoverable.
+      let hits = '';
+      for (let i = 0; i < n; i++) {
+        hits += '<rect x="' + (PAD_L + i * slot) + '" y="' + PAD_T + '" width="' + slot + '" height="' + PLOT_H + '" fill="transparent"><title>' + formatShortDate(points[i].date) + ': ' + counts[i] + '</title></rect>';
+      }
+
+      el.innerHTML =
+        '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (o.label || 'Daily chart') + '">' +
+        bands + yAxis(max) + bars + line + hits +
+        '</svg>' +
+        '<div class="chart-labels"><span>' + formatShortDate(points[0].date) + '</span><span>' + formatShortDate(points[n - 1].date) + '</span></div>';
+    }
+
+    /** Cumulative total as an area + line. Single series, so no legend. */
+    function renderGrowthChart(containerId, points) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (!points || points.length === 0) {
+        el.innerHTML = '<p class="chart-empty">No data yet.</p>';
+        return;
+      }
+      const counts = points.map((p) => p.count);
+      const max = niceMax(Math.max(1, ...counts));
+      const n = points.length;
+      const xAt = (i) => PAD_L + (n === 1 ? PLOT_W / 2 : (i / (n - 1)) * PLOT_W);
+      const yAt = (v) => PAD_T + PLOT_H - (v / max) * PLOT_H;
+
+      const path = counts.map((v, i) => (i === 0 ? 'M' : 'L') + xAt(i).toFixed(1) + ',' + yAt(v).toFixed(1)).join(' ');
+      const area = path + ' L' + xAt(n - 1).toFixed(1) + ',' + (PAD_T + PLOT_H) + ' L' + xAt(0).toFixed(1) + ',' + (PAD_T + PLOT_H) + ' Z';
+
+      let hits = '';
+      const slot = PLOT_W / n;
+      for (let i = 0; i < n; i++) {
+        hits += '<rect x="' + (PAD_L + i * slot) + '" y="' + PAD_T + '" width="' + slot + '" height="' + PLOT_H + '" fill="transparent"><title>' + formatShortDate(points[i].date) + ': ' + counts[i] + ' registered</title></rect>';
+      }
+
+      el.innerHTML =
+        '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Registered users over time">' +
+        yAxis(max) +
+        '<path d="' + area + '" fill="var(--seq-3)" opacity="0.14"/>' +
+        '<path d="' + path + '" fill="none" stroke="var(--seq-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<circle cx="' + xAt(n - 1) + '" cy="' + yAt(counts[n - 1]) + '" r="4" fill="var(--seq-3)" stroke="var(--surface-raised)" stroke-width="2"/>' +
+        hits +
+        '</svg>' +
+        '<div class="chart-labels"><span>' + formatShortDate(points[0].date) + '</span><span>' + formatShortDate(points[n - 1].date) + '</span></div>';
+    }
+
+    /**
+     * Weekday columns. One hue for every bar on purpose -- the bar's height
+     * already encodes magnitude, and colouring by value would spend the
+     * identity channel saying the same thing twice.
+     */
+    function renderDayOfWeek(containerId, days) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (!days || days.every((d) => d.count === 0)) {
+        el.innerHTML = '<p class="chart-empty">Nothing logged in the last 30 days.</p>';
+        return;
+      }
+      const max = niceMax(Math.max(1, ...days.map((d) => d.count)));
+      const n = days.length;
+      const slot = PLOT_W / n;
+      const barW = slot - 8;
+      const peak = Math.max(...days.map((d) => d.count));
+
+      let bars = '';
+      days.forEach((d, i) => {
+        const x = PAD_L + i * slot + (slot - barW) / 2;
+        const h = d.count === 0 ? 0 : Math.max(2, (d.count / max) * PLOT_H);
+        const yTop = PAD_T + PLOT_H - h;
+        if (h > 0) {
+          bars += '<rect x="' + x + '" y="' + yTop + '" width="' + barW + '" height="' + h + '" rx="3" fill="var(--seq-3)"><title>' + d.label + ': ' + d.count + '</title></rect>';
+        }
+        // Direct-label the peak only. A number over every bar is noise; the
+        // one that matters is which day wins.
+        if (d.count === peak && peak > 0) {
+          bars += '<text x="' + (x + barW / 2) + '" y="' + (yTop - 4) + '" text-anchor="middle" font-size="10" font-weight="700" fill="var(--slate)">' + d.count + '</text>';
+        }
+        bars += '<text x="' + (x + barW / 2) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="9.5" fill="var(--mist)">' + d.label + '</text>';
+      });
+
+      el.innerHTML = '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Active people by weekday">' + yAxis(max) + bars + '</svg>';
+    }
+
+    /** Ranked horizontal bars for a part-to-whole split, plus percentages. */
+    function renderCategoryChart(containerId, breakdown) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const rows = Object.entries(breakdown || {}).sort((a, b) => b[1] - a[1]);
+      const total = rows.reduce((sum, entry) => sum + entry[1], 0);
+      if (rows.length === 0 || total === 0) {
+        el.innerHTML = '';
+        return;
+      }
+      const max = Math.max(...rows.map((entry) => entry[1]));
+      el.innerHTML =
+        '<div class="funnel">' +
+        rows
+          .map((entry) => {
+            const category = entry[0];
+            const count = entry[1];
+            const pct = Math.round((count / total) * 100);
+            return '<div class="funnel-row">' +
+              '<div class="funnel-line">' +
+              '<span class="funnel-stage">' + escapeHtml(category) + '</span>' +
+              '<span class="funnel-value">' + count + '<span class="pct">' + pct + '%</span></span>' +
+              '</div>' +
+              '<div class="funnel-track"><div class="funnel-bar" style="width:' + (count / max) * 100 + '%;background:var(--seq-3)"></div></div>' +
+              '</div>';
+          })
+          .join('') +
+        '</div>';
+    }
+
+    // ---- Headline helpers ----------------------------------------------
+    // Each returns a short sentence or '' -- never a partial one. A headline
+    // that reads "busiest day:" with nothing after it is worse than no
+    // headline, so an empty series produces nothing at all.
+
+    function setHeadline(id, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text || '';
+      el.style.color = 'var(--slate)';
+    }
+
+    function peakLabel(points, noun) {
+      if (!points || points.length === 0) return '';
+      let best = points[0];
+      for (const p of points) if (p.count > best.count) best = p;
+      if (best.count === 0) return 'nobody active in 30 days';
+      return noun + ': ' + formatShortDate(best.date) + ' (' + best.count + ')';
+    }
+
+    function totalLabel(points, suffix) {
+      if (!points || points.length === 0) return '';
+      const sum = points.reduce((a, p) => a + p.count, 0);
+      return sum + ' ' + suffix;
+    }
+
+    function growthLabel(points) {
+      if (!points || points.length < 2) return '';
+      const gained = points[points.length - 1].count - points[0].count;
+      if (gained === 0) return 'no change in 30 days';
+      return '+' + gained + ' in 30 days';
+    }
+
+    function busiestWeekday(days) {
+      if (!days || days.length === 0) return '';
+      let best = days[0];
+      for (const d of days) if (d.count > best.count) best = d;
+      if (best.count === 0) return '';
+      // A tie is reported as a tie rather than picking whichever came first
+      // in the array, which would be an arbitrary claim about behaviour.
+      const tied = days.filter((d) => d.count === best.count);
+      if (tied.length > 1) return 'no clear favourite';
+      return 'busiest: ' + best.label;
+    }
+
+    /**
+     * The funnel. Ordinal ramp: the stages have an order, and the colour
+     * carries it so the shape reads as a sequence rather than four
+     * unrelated bars. Width is share of the first stage, so the bars nest
+     * visually the way the sets nest logically.
+     */
+    function renderFunnel(containerId, stages) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (!stages || stages.length === 0 || stages[0].count === 0) {
+        el.innerHTML = '<p class="chart-empty">No registered users yet.</p>';
+        return;
+      }
+      const top = stages[0].count;
+      const ramp = ['var(--seq-1)', 'var(--seq-2)', 'var(--seq-3)', 'var(--seq-4)'];
+      el.innerHTML = stages
+        .map((s, i) => {
+          const pct = Math.round((s.count / top) * 100);
+          const prev = i === 0 ? null : stages[i - 1].count;
+          const lost = prev === null ? 0 : prev - s.count;
+          let drop = '';
+          if (prev !== null) {
+            drop = lost === 0
+              ? '<div class="funnel-drop none">no one lost at this step</div>'
+              : '<div class="funnel-drop">&minus;' + lost + ' from &ldquo;' + escapeHtml(stages[i - 1].stage) + '&rdquo;</div>';
+          }
+          return '<div class="funnel-row">' +
+            '<div class="funnel-line">' +
+            '<span class="funnel-stage">' + escapeHtml(s.stage) + '</span>' +
+            '<span class="funnel-value">' + s.count + '<span class="pct">' + pct + '% of registered</span></span>' +
+            '</div>' +
+            '<div class="funnel-track"><div class="funnel-bar" style="width:' + pct + '%;background:' + ramp[Math.min(i, ramp.length - 1)] + '"></div></div>' +
+            drop +
+            '</div>';
         })
         .join('');
-      document.getElementById(containerId).innerHTML = `
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:64px;display:block;overflow:visible;">${bars}</svg>
-        <div class="chart-labels"><span>${formatShortDate(points[0].date)}</span><span>${formatShortDate(points[n - 1].date)}</span></div>
-      `;
     }
 
     function renderCategoryRows(breakdown) {
       const rows = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
       const max = Math.max(1, ...rows.map(([, count]) => count));
+      const total = rows.reduce((sum, entry) => sum + entry[1], 0) || 1;
+      // The table view the accessibility pass requires: the same numbers as
+      // the chart above it, reachable without reading a bar length.
       document.getElementById('category-rows').innerHTML = rows
         .map(
           ([category, count]) => `<tr>
@@ -1328,6 +1713,7 @@
                 <span class="count">${count}</span>
               </div>
             </td>
+            <td>${Math.round((count / total) * 100)}%</td>
           </tr>`
         )
         .join('');
@@ -1442,9 +1828,38 @@
       document.getElementById('stat-engagement').textContent = data.engagementRate7d + '%';
       document.getElementById('stat-waitlist').textContent = data.behavior.fortressWaitlistCount;
 
-      renderBarChart('chart-active', data.trends.dailyActiveUsers, 'var(--good)');
-      renderBarChart('chart-signups', data.trends.dailySignups, 'var(--ember)');
+      // Headlines beside each chart title. A chart says "this shape"; the
+      // headline says what the shape means, so the two are read together
+      // rather than the number being inferred off an axis.
+      const trends = data.trends || {};
+      const funnel = data.funnel || [];
 
+      renderFunnel('chart-funnel', funnel);
+      setHeadline(
+        'funnel-headline',
+        typeof data.activationRate === 'number' ? data.activationRate + '% ever logged a workout' : ''
+      );
+
+      renderDailyChart('chart-active', trends.dailyActiveUsers, {
+        color: 'var(--seq-3)',
+        label: 'Daily active users over the last 30 days',
+      });
+      setHeadline('active-peak', peakLabel(trends.dailyActiveUsers, 'busiest day'));
+
+      renderGrowthChart('chart-growth', trends.cumulativeUsers);
+      setHeadline('growth-headline', growthLabel(trends.cumulativeUsers));
+
+      renderDayOfWeek('chart-dow', trends.dayOfWeek);
+      setHeadline('dow-headline', busiestWeekday(trends.dayOfWeek));
+
+      renderDailyChart('chart-signups', trends.dailySignups, {
+        color: 'var(--seq-2)',
+        mean: false,
+        label: 'Daily signups over the last 30 days',
+      });
+      setHeadline('signup-headline', totalLabel(trends.dailySignups, 'in 30 days'));
+
+      renderCategoryChart('chart-category', data.behavior.categoryBreakdown30d);
       renderCategoryRows(data.behavior.categoryBreakdown30d);
       renderArticleRows(data.behavior.topFavoritedArticles);
       renderFeedbackRows(data.recentFeedback);
