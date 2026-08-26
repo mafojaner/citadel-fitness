@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
-import { Card } from '../../components/Card';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { SegmentedControl } from '../../components/SegmentedControl';
+import { OptionTiles } from '../../components/OptionTiles';
 import { mlToOz, ozToMl } from '../../lib/water';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
@@ -25,7 +24,7 @@ const WATER_UNIT_OPTIONS: { label: string; value: 'oz' | 'ml' }[] = [
 ];
 
 export function UnitsScreen() {
-  const { colors, spacing, radius } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const userId = useAuthStore((s) => s.session?.user.id);
   const preferences = useProfileStore((s) => s.preferences);
   const savePreferences = useProfileStore((s) => s.savePreferences);
@@ -97,25 +96,30 @@ export function UnitsScreen() {
 
   return (
     <ScreenContainer>
-      <Card title="Weight">
-        <SegmentedControl options={UNIT_OPTIONS} value={preferences.units} onChange={onChangeUnits} tone="ink" />
-      </Card>
+      {/* Headings and tiles rather than titled cards, matching Appearance.
+          No icons: kilograms against pounds have no glyph that distinguishes
+          them, and inventing one would be decoration pretending to be
+          information. The tile is shorter without it. */}
+      <View style={{ gap: spacing.md }}>
+        <Text style={[typography.subheading, { color: colors.textPrimary }]}>Weight</Text>
+        <OptionTiles options={UNIT_OPTIONS} value={preferences.units} onChange={onChangeUnits} />
+      </View>
 
-      <Card title="Distance">
-        <SegmentedControl
+      <View style={{ gap: spacing.md }}>
+        <Text style={[typography.subheading, { color: colors.textPrimary }]}>Distance</Text>
+        <OptionTiles
           options={DISTANCE_UNIT_OPTIONS}
           value={preferences.distanceUnit}
           onChange={onChangeDistanceUnit}
-          tone="ink"
         />
-      </Card>
+      </View>
 
-      <Card title="Water">
-        <SegmentedControl
+      <View style={{ gap: spacing.md }}>
+        <Text style={[typography.subheading, { color: colors.textPrimary }]}>Water</Text>
+        <OptionTiles
           options={WATER_UNIT_OPTIONS}
           value={preferences.waterUnit}
           onChange={onChangeWaterUnit}
-          tone="ink"
         />
 
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>Daily goal</Text>
@@ -146,7 +150,7 @@ export function UnitsScreen() {
             onPress={onSaveGoal}
           />
         ) : null}
-      </Card>
+      </View>
 
       {error ? <Text style={{ color: colors.danger }}>{error}</Text> : null}
     </ScreenContainer>

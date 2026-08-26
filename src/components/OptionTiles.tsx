@@ -5,7 +5,16 @@ import { useTheme } from '../theme/useTheme';
 export interface OptionTile<T extends string> {
   label: string;
   value: T;
-  icon: keyof typeof Ionicons.glyphMap;
+  /**
+   * Optional, and left off on purpose more often than not.
+   *
+   * A theme picker earns icons because the options differ in how the app
+   * looks. Kilograms versus pounds do not: any glyph put on those would be
+   * the same barbell twice, which is decoration pretending to be
+   * information. Without an icon the tile is shorter, and the row still
+   * reads as the same control.
+   */
+  icon?: keyof typeof Ionicons.glyphMap;
 }
 
 /**
@@ -55,7 +64,10 @@ export function OptionTiles<T extends string>({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing.sm,
-                paddingVertical: spacing.lg,
+                // Shorter without an icon: the tall tile exists to give the
+                // glyph room, and keeping that height for a lone word would
+                // leave a band of empty space above and below it.
+                paddingVertical: option.icon ? spacing.lg : spacing.md,
                 paddingHorizontal: spacing.sm,
                 borderRadius: radius.md,
                 borderWidth: 1,
@@ -70,7 +82,7 @@ export function OptionTiles<T extends string>({
               };
             }}
           >
-            <Ionicons name={option.icon} size={22} color={colors.textPrimary} />
+            {option.icon ? <Ionicons name={option.icon} size={22} color={colors.textPrimary} /> : null}
             <Text
               style={[typography.body, { color: colors.textPrimary, fontWeight: selected ? '700' : '500' }]}
               numberOfLines={1}
