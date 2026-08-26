@@ -62,19 +62,38 @@ export interface RawProfile {
 }
 
 export async function fetchProfile(userId: string): Promise<RawProfile> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('name, preferences, avatar_url, fortress_since, membership_tier')
-    .eq('id', userId)
-    .single();
+  // The tier comes from my_tier() rather than from the row, because the row
+  // is only half the answer now: profiles.membership_tier is the hand-grant,
+  // and a paid subscription lives in `subscriptions`. Reading the column
+  // alone would gate a new subscriber correctly at every policy and still
+  // tell them, on every screen, that they were on the free plan.
+  //
+  // Both come back in one round trip. my_tier() derives from the same
+  // tier_rank the policies use, so what someone is shown and what they can
+  // reach cannot disagree.
+  const [profileResult, tierResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('name, preferences, avatar_url, fortress_since, membership_tier')
+      .eq('id', userId)
+      .single(),
+    supabase.rpc('my_tier'),
+  ]);
 
-  if (error) throw error;
+  if (profileResult.error) throw profileResult.error;
+  const data = profileResult.data;
+
   return {
     name: data.name,
     preferences: data.preferences,
     avatarUrl: data.avatar_url,
     fortressSince: data.fortress_since,
-    membershipTier: parseTier(data.membership_tier),
+    // Falls back to the column if the RPC failed. parseTier already defaults
+    // anything unrecognised to 'free', so a failure here can only ever show
+    // less than someone is entitled to, never more.
+    membershipTier: parseTier(
+      tierResult.error ? (data.membership_tier as string | null) : (tierResult.data as string | null)
+    ),
   };
 }
 
