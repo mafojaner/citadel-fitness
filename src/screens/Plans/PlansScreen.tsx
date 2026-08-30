@@ -2,14 +2,24 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
+import { BillingPeriodToggle, type BillingPeriod } from '../../components/BillingPeriodToggle';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { PlainButton } from '../../components/PlainButton';
+import { PlanPrice } from '../../components/PlanPrice';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { APP_FEATURES, TIER_ORDER, TIER_PITCH, type TierPitch } from '../../constants/featureCatalog';
+import {
+  annualSavingPct,
+  APP_FEATURES,
+  isPriced,
+  TIER_ORDER,
+  TIER_PITCH,
+  TIER_PRICING,
+  type TierPitch,
+} from '../../constants/featureCatalog';
 import { TIER_LABELS, tierAllows, type MembershipTier } from '../../lib/membership';
 import { useMembershipTier } from '../../hooks/useMembership';
 import { useIsDesktop } from '../../hooks/useResponsiveLayout';
@@ -124,6 +134,9 @@ function PlanCard({
   currentTier,
   action,
   fill = false,
+  recommended = false,
+  period,
+  onPeriodChange,
 }: {
   pitch: TierPitch;
   currentTier: MembershipTier;
@@ -131,10 +144,16 @@ function PlanCard({
   fill?: boolean;
   /** The plan's own call to action, rendered under the price. */
   action?: React.ReactNode;
+  /** Draws the chip and the tinted surface. At most one card per screen. */
+  recommended?: boolean;
+  period: BillingPeriod;
+  /** Omitted on cards that should show the period but not let you change it. */
+  onPeriodChange?: (value: BillingPeriod) => void;
 }) {
   const { colors, spacing, radius, typography } = useTheme();
   const included = FEATURES_BY_TIER[pitch.tier];
   const isCurrent = currentTier === pitch.tier;
+  const pricing = TIER_PRICING[pitch.tier];
   const addsLabel =
     pitch.tier === 'free'
       ? 'Includes'
@@ -155,22 +174,55 @@ function PlanCard({
         minWidth: 0,
         borderRadius: radius.lg,
         borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
+        // The recommended card is tinted rather than outlined or shadowed.
+        // A heavier border reads as selected-and-locked, and a shadow was
+        // just removed from every other premium element for looking like an
+        // advert; a faint wash lifts the card while keeping its silhouette.
+        borderColor: recommended ? colors.primaryMuted : colors.border,
+        backgroundColor: recommended ? colors.primaryMuted : colors.surface,
         overflow: 'hidden',
       }}
     >
       <View style={{ padding: spacing.lg, gap: spacing.sm }}>
-        <TierIcon icon={pitch.icon} color={colors.textPrimary} size={34} />
+        {/* Icon left, status right. The chip and the toggle both belong up
+            here rather than above the card: they qualify this plan, and a
+            control that floats above three cards leaves you guessing which
+            one it changes. */}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+          <TierIcon icon={pitch.icon} color={colors.textPrimary} size={34} />
+          <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end', gap: spacing.xs }}>
+            {recommended ? (
+              <View
+                style={{
+                  backgroundColor: colors.primaryMuted,
+                  borderRadius: radius.pill,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>
+                  Recommended for you
+                </Text>
+              </View>
+            ) : null}
+            {onPeriodChange && isPriced(pricing) && pricing.monthly ? (
+              <BillingPeriodToggle
+                value={period}
+                onChange={onPeriodChange}
+                savingPct={annualSavingPct(pricing)}
+              />
+            ) : null}
+          </View>
+        </View>
 
         <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: '800' }}>
           {TIER_LABELS[pitch.tier]}
         </Text>
         <Text style={[typography.body, { color: colors.textSecondary }]}>{pitch.tagline}</Text>
 
-        <Text style={{ color: colors.textPrimary, fontSize: 20, fontWeight: '700', marginTop: spacing.xs }}>
-          {pitch.price}
-        </Text>
+        <View style={{ marginTop: spacing.xs }}>
+          <PlanPrice pricing={pricing} period={period} fallback={pitch.price} />
+        </View>
 
         {isCurrent ? (
           <View
@@ -206,6 +258,16 @@ function PlanCard({
         {pitch.note ? (
           <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
             {pitch.note}
+          </Text>
+        ) : null}
+
+        {/* The reassurance line every subscription page carries under its
+            button, and only once there is something to actually commit to.
+            Printing "cancel anytime" beside a waitlist form would be
+            answering a question nobody has been asked yet. */}
+        {isPriced(pricing) && pricing.monthly && !isCurrent ? (
+          <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
+            No commitment · Cancel anytime
           </Text>
         ) : null}
       </View>
@@ -391,6 +453,18 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
   // button opens the form inside that card, so the email field appears
   // under the plan it belongs to rather than in a shared box elsewhere.
   const [openTier, setOpenTier] = useState<WaitlistTier | null>(null);
+  // Opens condensed on a phone. Once expanded it stays expanded for the
+  // visit: someone who asked to see everything is comparing, and collapsing
+  // the list back under them mid-comparison would be the page arguing.
+  const [showAll, setShowAll] = useState(false);
+  const [period, setPeriod] = useState<BillingPeriod>('monthly');
+
+  // The next plan up from the one they hold, which is the only plan there is
+  // anything to say about. A Valhalla member has nothing above them, so they
+  // see the full list rather than a card recommending what they already pay
+  // for -- the same mistake planAction exists to prevent on the buttons.
+  const recommendedTier: MembershipTier = currentTier === 'free' ? 'fortress' : 'valhalla';
+  const nothingToRecommend = currentTier === 'valhalla';
 
   const renderAction = (tier: MembershipTier) => {
     // The decision lives in planAction so it can be tested without a screen;
@@ -456,31 +530,83 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
         {TIER_LABELS[currentTier]}.
       </Text>
 
-      {/* Side by side on desktop, stacked on a phone. Three plans read as a
-          comparison when they sit in a row — the eye scans across the
-          feature lists — where stacked they read as three separate offers
-          you meet one at a time and have to hold in memory. `alignItems:
-          stretch` is what makes that work: without it each card is only as
-          tall as its own content, so the three headers no longer line up
-          and the shortest plan looks truncated rather than shorter. */}
-      <View
-        style={{
-          flexDirection: isDesktop ? 'row' : 'column',
-          alignItems: isDesktop ? 'stretch' : undefined,
-          gap: spacing.md,
-        }}
-      >
-        {TIER_ORDER.map((tier) => (
-          <PlanCard
-            key={tier}
-            pitch={TIER_PITCH[tier]}
-            currentTier={currentTier}
-            action={renderAction(tier)}
-            fill={isDesktop}
-          />
-        ))}
-      </View>
+      {/* One plan first, all of them on request.
 
+          Three cards at once is a comparison, and a comparison is work. Most
+          people arriving here are on Free and the honest answer for them is
+          the next plan up, so that is what the page opens with — the one
+          card, in full, with everything needed to decide. "View all plans"
+          is for the reader who wants to do the comparing, and it is one tap
+          away rather than the price of admission.
+
+          Desktop keeps the row, because there the three cards fit side by
+          side and scanning across them costs nothing. The condensed step
+          exists for the phone, where the same three cards are a scroll. */}
+      {showAll || isDesktop || nothingToRecommend ? (
+        <View
+          style={{
+            flexDirection: isDesktop ? 'row' : 'column',
+            alignItems: isDesktop ? 'stretch' : undefined,
+            gap: spacing.md,
+          }}
+        >
+          {TIER_ORDER.map((tier) => (
+            <PlanCard
+              key={tier}
+              pitch={TIER_PITCH[tier]}
+              currentTier={currentTier}
+              action={renderAction(tier)}
+              fill={isDesktop}
+              // Never chip the plan someone is already on. recommendedTier
+              // falls through to 'valhalla' for a Valhalla member, so
+              // without this guard the top tier is sold its own plan --
+              // which is the mistake planAction exists to stop on the
+              // buttons, reappearing on the chip.
+              recommended={!nothingToRecommend && tier === recommendedTier}
+              period={period}
+              onPeriodChange={setPeriod}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={{ gap: spacing.md }}>
+          <PlanCard
+            pitch={TIER_PITCH[recommendedTier]}
+            currentTier={currentTier}
+            action={renderAction(recommendedTier)}
+            recommended
+            period={period}
+            onPeriodChange={setPeriod}
+          />
+
+          <PlainButton
+            label="View all plans"
+            onPress={() => setShowAll(true)}
+            palette={{
+              background: 'transparent',
+              ink: colors.textPrimary,
+              border: colors.border,
+            }}
+          />
+
+          {/* The way out, in plain text rather than as a third button. It is
+              a real option and it should not be hidden, but it is also not
+              the thing this page is asking you to do, and three buttons of
+              equal weight would say otherwise. */}
+          {currentTier === 'free' ? (
+            <Text style={[typography.body, { color: colors.textPrimary, textAlign: 'center', fontWeight: '600' }]}>
+              Keep using Citadel Fitness for free
+            </Text>
+          ) : null}
+        </View>
+      )}
+
+      {/* Everything below is comparison material, and the condensed view
+          exists precisely to not show comparison material. Someone who
+          tapped "View all plans" wants it; someone who has not, does not.
+          Desktop always shows it, where there is room. */}
+      {showAll || isDesktop || nothingToRecommend ? (
+      <>
       <Card title="Compare plans">
         {/* Horizontal room is tight on a phone, so each column is headed by
             the tier's key colour as well as its name — the same swatch the
@@ -544,10 +670,14 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
         </View>
       </Card>
 
+      </>
+      ) : null}
+
       {/* The closing call to action is gone: every plan carries its own now,
           and a second generic button underneath could only repeat whichever
           one you had already scrolled past. The note stays, because it is
-          the honest framing for all three. */}
+          the honest framing for all three, and it is the one line that
+          belongs on the condensed view too. */}
       <Text style={[typography.caption, { color: colors.textMuted, textAlign: 'center' }]}>
         Nothing is on sale yet. Joining a waitlist just means you hear first.
       </Text>

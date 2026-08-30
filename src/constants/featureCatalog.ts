@@ -317,3 +317,46 @@ export const TIER_PITCH: Record<FeatureTier, TierPitch> = {
 export function featureInk(feature: AppFeature): string {
   return feature.colors[feature.colors.length - 1];
 }
+
+/**
+ * What each plan costs, and on which billing period.
+ *
+ * Deliberately null for the paid tiers. Nothing is on sale yet, the store
+ * products do not exist, and a placeholder number on a pricing page is the
+ * one kind of placeholder that gets screenshotted and quoted back at you.
+ * The screen renders the whole flow around whatever is here, so filling
+ * these two pairs in is all that stands between this and a real pricing
+ * page -- no layout work follows.
+ *
+ * `annualPerMonth` is the per-month figure shown when the yearly period is
+ * selected, not the annual total. Pricing pages compare like with like:
+ * "$16/month billed yearly" against "$20/month billed monthly" is a
+ * comparison someone can make in their head, where "$192/year" is not.
+ */
+export interface TierPricing {
+  monthly: number | null;
+  annualPerMonth: number | null;
+  currency: string;
+}
+
+export const TIER_PRICING: Record<FeatureTier, TierPricing> = {
+  free: { monthly: 0, annualPerMonth: 0, currency: 'USD' },
+  fortress: { monthly: null, annualPerMonth: null, currency: 'USD' },
+  valhalla: { monthly: null, annualPerMonth: null, currency: 'USD' },
+};
+
+/** Whether this plan has enough set to show a price at all. */
+export function isPriced(pricing: TierPricing): boolean {
+  return pricing.monthly !== null;
+}
+
+/**
+ * The saving from paying yearly, as a whole percent, or null when there is
+ * nothing to compare. Rounded down so the badge can never overstate it.
+ */
+export function annualSavingPct(pricing: TierPricing): number | null {
+  const { monthly, annualPerMonth } = pricing;
+  if (monthly === null || annualPerMonth === null || monthly <= 0) return null;
+  if (annualPerMonth >= monthly) return null;
+  return Math.floor(((monthly - annualPerMonth) / monthly) * 100);
+}
