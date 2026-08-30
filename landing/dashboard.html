@@ -787,6 +787,16 @@
       </section>
 
       <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Nutrition queue</h3></div>
+        <div class="card-body">
+          <p class="chart-note" style="margin-top:0;">Oldest first, unanswered above answered. One open intake per member is enforced by the database, so this list is people waiting rather than questions stacked up. <span id="nutrition-summary"></span></p>
+          <div id="nutrition-rows"></div>
+          <p id="nutrition-empty" class="empty-note" style="display:none;">Nothing submitted yet.</p>
+          <p id="nutrition-error" class="empty-note" style="display:none;color:var(--bad);"></p>
+        </div>
+      </section>
+
+      <section class="block">
         <div class="block-head"><span class="dot"></span><h3>Form check queue</h3></div>
         <div class="card-body">
           <p class="chart-note" style="margin-top:0;">Oldest first, unanswered above answered. Video links are signed and expire in thirty minutes &mdash; the bucket is private because these are videos of someone training at home, so a link that worked forever would be the same as a public bucket the moment it is pasted anywhere. <span id="formcheck-summary"></span></p>
@@ -1958,6 +1968,121 @@
       });
     }
 
+    /**
+     * The nutrition queue. Same two actions as form check -- claim, then
+     * answer -- against a different table with a different rule, which is
+     * why it is a separate function rather than a mode flag on that one.
+     */
+    async function loadNutrition() {
+      const rowsEl = document.getElementById('nutrition-rows');
+      const emptyEl = document.getElementById('nutrition-empty');
+      const errEl = document.getElementById('nutrition-error');
+      if (!rowsEl) return;
+
+      let payload;
+      try {
+        const { data, error } = await supabase.functions.invoke('admin-nutrition-review', {
+          method: 'GET',
+        });
+        if (error) throw error;
+        payload = data;
+      } catch (err) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not load the nutrition queue: ' + (err?.message ?? 'unknown error');
+        return;
+      }
+
+      const queue = payload?.queue ?? [];
+      emptyEl.style.display = queue.length ? 'none' : 'block';
+      const open = queue.filter((q) => q.status !== 'answered');
+      const summary = document.getElementById('nutrition-summary');
+      if (summary) {
+        summary.textContent = open.length ? open.length + ' waiting for a plan.' : 'Nothing waiting.';
+        summary.style.color = open.length ? 'var(--bad)' : 'var(--good)';
+      }
+
+      rowsEl.innerHTML = queue
+        .map((q) => {
+          const done = q.status === 'answered';
+          const overdue = !done && (q.waiting_hours ?? 0) >= 72;
+          // The optional fields, printed only when they were given. Blank
+          // labels for things nobody filled in would make every intake look
+          // half-finished.
+          const facts = [
+            q.body_weight_kg ? q.body_weight_kg + ' kg' : null,
+            q.height_cm ? q.height_cm + ' cm' : null,
+            q.activity_level,
+            q.restrictions ? 'avoids: ' + q.restrictions : null,
+          ]
+            .filter(Boolean)
+            .map((f) => escapeHtml(String(f)))
+            .join(' &middot; ');
+
+          return `<div class="review-row" data-id="${escapeHtml(q.id)}">
+            <div class="review-head">
+              <span class="priority ${done ? 'done' : overdue ? 'critical' : 'high'}">${
+                done ? 'answered' : q.status === 'in_review' ? 'being written' : 'waiting'
+              }</span>
+              <span class="review-who">${escapeHtml(q.email ?? '')}</span>
+              <span class="review-status">${waitedFor(q.waiting_hours)}</span>
+            </div>
+            <div class="review-note"><strong>Goal:</strong> ${escapeHtml(q.goal ?? '')}</div>
+            ${facts ? `<div class="review-status">${facts}</div>` : ''}
+            ${q.typical_day ? `<div class="review-note">&ldquo;${escapeHtml(q.typical_day)}&rdquo;</div>` : ''}
+            ${q.coach_plan ? `<div class="review-note"><strong>Plan sent:</strong> ${escapeHtml(q.coach_plan)}</div>` : ''}
+            ${
+              done
+                ? ''
+                : `<div class="review-actions">
+                     ${
+                       q.status === 'submitted'
+                         ? '<button class="btn" data-naction="claim">Start writing</button>'
+                         : ''
+                     }
+                     <textarea placeholder="Targets and the reasoning. This is what they read."></textarea>
+                     <button class="btn primary" data-naction="reply">Send plan</button>
+                   </div>`
+            }
+          </div>`;
+        })
+        .join('');
+
+      rowsEl.querySelectorAll('button[data-naction]').forEach((btn) => {
+        btn.addEventListener('click', () => sendPlan(btn));
+      });
+    }
+
+    async function sendPlan(btn) {
+      const row = btn.closest('.review-row');
+      const id = row?.dataset.id;
+      if (!id) return;
+      const claim = btn.dataset.naction === 'claim';
+      const plan = claim ? '' : (row.querySelector('textarea')?.value ?? '').trim();
+
+      if (!claim && plan.length === 0) {
+        row.querySelector('textarea')?.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = claim ? 'Starting...' : 'Sending...';
+      try {
+        const { error } = await supabase.functions.invoke('admin-nutrition-review', {
+          method: 'POST',
+          body: claim ? { id, claim: true } : { id, plan },
+        });
+        if (error) throw error;
+        await loadNutrition();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = original;
+        const errEl = document.getElementById('nutrition-error');
+        errEl.style.display = 'block';
+        errEl.textContent = 'Could not save that: ' + (err?.message ?? 'unknown error');
+      }
+    }
+
     async function sendReview(btn) {
       const row = btn.closest('.review-row');
       const id = row?.dataset.id;
@@ -2139,6 +2264,7 @@
       // Its own request: it needs signed video URLs, which the read-only
       // stats function has no business minting.
       loadFormChecks();
+      loadNutrition();
       document.getElementById('generated').textContent =
         'Updated ' + new Date(data.generatedAt).toLocaleString();
 

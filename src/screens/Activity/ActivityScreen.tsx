@@ -569,6 +569,13 @@ export function ActivityScreen() {
           label="Get a lift reviewed"
           onOpen={() => navigation.navigate('FormCheck')}
         />
+        {/* The third thing a person answers rather than an algorithm, and
+            the last of the coached features to get an entry point. */}
+        <PaidFeatureLink
+          featureId="nutrition-coaching"
+          label="Get macro targets set"
+          onOpen={() => navigation.navigate('NutritionCoaching')}
+        />
       </Card>
       </ScreenContainer>
     </View>

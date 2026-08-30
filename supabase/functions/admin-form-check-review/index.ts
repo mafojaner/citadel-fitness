@@ -1,55 +1,23 @@
 // Citadel Fitness — form check review queue (read + reply)
 // Deploy with: supabase functions deploy admin-form-check-review
 //
-// The reviewer's end of form check. Same two-step auth as
-// admin-dashboard-stats: verify the caller's own JWT with an anon-key
-// client first, and only if their verified email matches ADMIN_EMAIL open a
-// service-role client. Nothing about the page URL matters.
+// The reviewer's end of form check. Auth is the shared admin gate; it was
+// inlined here first and moved to _shared/admin-auth.ts once a third
+// function needed the same check, because a security block copied three
+// times is one that gets fixed in one file and not the others.
 //
-// Split from admin-dashboard-stats rather than folded into it because this
-// one writes. The stats function is read-only and safe to call on every
-// dashboard load; a function that can mark someone's submission reviewed
-// should not share that path.
+// Split from admin-dashboard-stats because this one writes. That function
+// is read-only and safe to call on every dashboard load; a function that
+// can mark someone's submission reviewed should not share that path.
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
+import { corsHeaders, json, requireAdmin } from '../_shared/admin-auth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return json({ error: 'Missing Authorization header' }, 401);
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const adminEmail = Deno.env.get('ADMIN_EMAIL');
-
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const {
-    data: { user },
-    error: userError,
-  } = await callerClient.auth.getUser();
-
-  if (userError || !user) return json({ error: 'Invalid or expired session' }, 401);
-  if (!adminEmail || user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
-    return json({ error: 'Not authorized' }, 403);
-  }
-
-  const admin = createClient(supabaseUrl, serviceRoleKey);
+  const gate = await requireAdmin(req);
+  if ('refusal' in gate) return gate.refusal;
+  const { admin } = gate;
 
   // ---- Read the queue -----------------------------------------------------
   if (req.method === 'GET') {

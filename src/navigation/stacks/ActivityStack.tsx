@@ -4,6 +4,7 @@ import { AdvancedAnalyticsScreen } from '../../screens/Activity/AdvancedAnalytic
 import { GoalForecastScreen } from '../../screens/Activity/GoalForecastScreen';
 import { FormCheckScreen } from '../../screens/Activity/FormCheckScreen';
 import { GroupsScreen } from '../../screens/Activity/GroupsScreen';
+import { NutritionCoachingScreen } from '../../screens/Activity/NutritionCoachingScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
 import { OverloadScreen } from '../../screens/Activity/OverloadScreen';
 import { PersonalRecordsScreen } from '../../screens/Activity/PersonalRecordsScreen';
@@ -20,6 +21,7 @@ export type ActivityStackParamList = {
   GoalForecast: undefined;
   Overload: undefined;
   FormCheck: undefined;
+  NutritionCoaching: undefined;
   Groups: undefined;
 };
 
@@ -57,6 +59,11 @@ export function ActivityStack() {
         name="FormCheck"
         component={FormCheckScreen}
         options={{ title: 'Form Check' }}
+      />
+      <Stack.Screen
+        name="NutritionCoaching"
+        component={NutritionCoachingScreen}
+        options={{ title: 'Nutrition Coaching' }}
       />
       <Stack.Screen name="Groups" component={GroupsScreen} options={{ title: 'Private Groups' }} />
     </Stack.Navigator>
