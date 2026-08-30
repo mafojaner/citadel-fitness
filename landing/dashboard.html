@@ -549,6 +549,29 @@
   .priority.ready { background: var(--good-soft); color: var(--good); }
   .agenda-day.slipped .agenda-task { color: var(--mist); }
   .agenda-day.slipped .agenda-task strong { color: var(--slate); }
+
+  /* Below ~460px the badge column and the task text together exceed the
+     card, and because the badge is nowrap the overflow becomes a horizontal
+     scroll on the whole page rather than a wrap. Stacking the badge under
+     the text is the honest fix -- shrinking it would just make the status
+     unreadable at the width where it is most needed. The inline
+     grid-template-columns on individual rows has to be overridden too,
+     which is why !important is here rather than in the base rule. */
+  /* A long shell command or project ref is one unbreakable token, so on a
+     phone it pushes the whole page sideways. Breaking mid-token is ugly and
+     is still better than a page that scrolls horizontally to read a line of
+     prose. */
+  code, .mono { overflow-wrap: anywhere; word-break: break-word; }
+
+  @media (max-width: 460px) {
+    .agenda-day,
+    .agenda-day[style] {
+      grid-template-columns: 1fr !important;
+      gap: 8px;
+    }
+    .agenda-date { display: flex; gap: 6px; align-items: baseline; }
+    .priority { justify-self: start; }
+  }
 </style>
 </head>
 <body>
@@ -770,7 +793,7 @@
 
         <div class="callout bad" style="margin-bottom:16px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-          <span><strong>Compiled 2026-08-26 against the repo and the live project, not from memory.</strong> The plans below each track their own slice of work, so anything blocked in two places was easy to lose between them. This is the single list: <strong>twenty open items, of which nine can only be done by the account owner</strong>, plus the five days of store work they have already cost. One item &mdash; the store enrollments &mdash; is on its own responsible for the entire Aug 21&ndash;31 column never starting. The engineering half is short by comparison, which is the honest shape of the project right now: it is not waiting on code.</span>
+          <span><strong>Compiled 2026-08-26 against the repo and the live project, not from memory.</strong> The plans below each track their own slice of work, so anything blocked in two places was easy to lose between them. This is the single list. It was twenty items when compiled; <strong>five were closed on 27 August</strong> (the privacy policy, the dependency audit's one real finding, the target-SDK review, the pressable roles, and the <code>save_workout</code> outage), leaving <strong>fifteen &mdash; nine of which only the account owner can do</strong>, plus the six days of store work they have already cost. One item &mdash; the store enrollments &mdash; is on its own responsible for the entire Aug 21&ndash;31 column never starting. The engineering half is short by comparison, which is the honest shape of the project right now: it is not waiting on code.</span>
         </div>
 
         <div class="callout good" style="margin-bottom:16px;">
@@ -841,20 +864,23 @@
             <span class="priority medium">Unverified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Screen-reader pass on a real device.</strong> The Aug 20 work was verified in the web accessibility tree, which proves names and states exist and says nothing about how a TalkBack or VoiceOver user moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Around eighteen pressables also still lack an explicit role, so they are announced as content rather than as controls.</div>
-            <span class="priority medium">Open</span>
+            <div class="agenda-task"><strong>Screen-reader pass &mdash; the roles half is done (27 August), the listening half is not.</strong> Fifteen pressables had no <code>accessibilityRole</code>, which React Native does not infer: a date-range calendar read as thirty bare numbers, the category filter gave no hint it was a pick-one list, and both modal scrims &mdash; the thing you tap to escape &mdash; announced nothing at all. Roles now match what each control is rather than defaulting to button, the calendar cells carry the full date, and two wrappers that only swallow taps are explicitly <code>accessible={false}</code> so the real controls inside them stay focusable. A test enforces it rather than another one-off audit.
+            <br><br><strong>What is still open is the part that needs a device.</strong> Reading order, where focus lands after navigation, and whether the tab bar can be escaped cannot be settled from a source file &mdash; only by listening with TalkBack or VoiceOver.</div>
+            <span class="priority medium">Needs a device</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Privacy policy content, now that its hosting is done.</strong> It serves from <code>citadelfitness.app/privacy</code> as of Aug 26, but the text still discloses neither the PostHog telemetry added Aug 19 nor subscription billing. For EU users non-essential analytics arguably needs consent rather than disclosure alone, and this stack is EU-oriented throughout (Supabase eu-west-1, Sentry .de, PostHog EU). Whether to add a settings toggle is a product call; the disclosure is not optional.</div>
-            <span class="priority high">Open</span>
+            <div class="agenda-task"><strong>Privacy policy content &mdash; rewritten 27 August.</strong> This was filed as two missing disclosures. Reading it against the app found something worse: two statements had become <em>false</em>. It said the app has &ldquo;no analytics-tracking SDK embedded in it&rdquo; (PostHog went in 19 August) and that a display name and photo are &ldquo;not shared with other users, since Citadel Fitness has no social features&rdquo; &mdash; while <code>get_activity_leaderboard</code> shows the display name, photo and days-trained of the top fifty accounts to <strong>every signed-in user</strong>, and private groups do the same within a group. Both features are on by default. Section 8 now separates processors from other users and gives the second its own table. Billing is deliberately still absent: nothing can be bought, so describing a payment flow would be inventing behaviour.
+            <br><br><strong>Still a product call for you:</strong> whether an app-wide leaderboard showing real names should be opt-in rather than on by default, and whether to add an in-app analytics toggle. Disclosure is now correct either way.</div>
+            <span class="priority done">Done</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Clear the dependency audit.</strong> <code>npm audit</code> reports 14 high and 9 moderate, all in the build-tooling chain (<code>uuid</code> via Expo config-plugins) with no runtime path into the shipped bundle. Not dangerous, but it should not be carried into a store submission unexplained &mdash; clear it with a planned SDK bump.</div>
-            <span class="priority medium">Open</span>
+            <div class="agenda-task"><strong>Dependency audit &mdash; the one runtime finding is fixed (27 August).</strong> The previous entry here said these were &ldquo;all in the build-tooling chain, no runtime path in the shipped bundle&rdquo;. That was wrong. <code>nanoid</code> reaches the app through <code>@react-navigation/native</code>, which uses it for route keys at runtime, so it shipped in every bundle. The advisory needs a custom generator called with size zero and React Navigation calls <code>nanoid()</code> bare, so exposure was low &mdash; but &ldquo;the vulnerable path is unreachable&rdquo; and &ldquo;it isn't in the bundle&rdquo; are different claims and only one was true. Bumped to 3.3.18 in the lockfile; React Navigation's range already allowed it. Verified by exporting the web bundle, not just by re-running audit.
+            <br><br>Seven high advisories remain and this time it is traced rather than assumed: every one reaches the tree only through <code>eslint</code>, <code>jest</code>, or the Metro bundler inside <code>expo</code>/<code>react-native</code>. They want the planned SDK bump, which is its own work.</div>
+            <span class="priority medium">7 build-time left</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Target SDK and permissions review.</strong> Confirm Expo's managed defaults still satisfy Play's current target API requirement. The app requests no extra dangerous Android permissions today; the review is to keep it that way and to have checked rather than assumed.</div>
-            <span class="priority medium">Open</span>
+            <div class="agenda-task"><strong>Target SDK and permissions review &mdash; checked 27 August.</strong> Expo SDK 57 compiles and targets Android API 36, which clears Play's current requirement with room. The app declares no dangerous permissions of its own: <code>expo-image-picker</code> is configured <code>cameraPermission: false</code> and <code>microphonePermission: false</code>, which per the SDK 57 docs blocks <code>CAMERA</code> and <code>RECORD_AUDIO</code> in the manifest rather than merely changing the prompt text &mdash; and no code path calls the camera, so the privacy policy's claim that the app never requests it holds.</div>
+            <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Valhalla's seven features, none of them started.</strong> Form check is the only one where the app is the bottleneck rather than a person: a submissions table, video upload and a review queue. Priority support is mostly routing. Nutrition coaching needs an intake form and a reply surface. Expert guides and video demonstrations are content budgets, not sprints. AI progressive overload can start as a readable heuristic over logged history rather than a model. Wearable sync means HealthKit and Whoop, native permissions and a fresh Data Safety declaration.</div>
@@ -863,6 +889,16 @@
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Refer &amp; earn is half-shipped by design.</strong> Attribution works and is probed &mdash; self-referral, duplicates and bogus codes all refused. The reward cannot exist before billing does, and the catalogue copy says so plainly rather than promising it. Listed here so it is not mistaken for finished when billing lands.</div>
             <span class="priority medium">Waits on billing</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Incident &mdash; logging was broken for six days</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Every workout save failed, on every tier, from 20 to 27 August.</strong> <code>20260820020000</code> added <code>rpe</code> to <code>save_workout</code>'s <code>set_entries</code> insert: the column went into the target list, no expression went into the VALUES list. Nine targets, eight expressions, with rpe's expression sitting in <code>distance_unit</code>'s slot. Postgres refuses the statement with <code>42601</code>, which aborts the function and fails the save. Nothing was written, so no data was lost or corrupted &mdash; saves people believed had worked simply never landed, and anything from those six days needs re-entering.
+            <br><br><strong>Three gates were green over it.</strong> <code>db push</code> reported success, because Postgres does not validate an INSERT's shape against its table at <code>CREATE FUNCTION</code> time. The suite is all pure functions and cannot see inside a <code>.sql</code> file. And the 25 August walk recorded RPE as verified &mdash; but what was checked was that the input <em>renders</em> in the logging flow, not that a save carrying one succeeds. A field can render perfectly and still be unsaveable, and that distinction is the whole lesson.
+            <br><br>Fixed and confirmed against production before and after by calling the deployed function as a free account in a transaction that rolled back. The migration now ends by running itself for real and checking the row. A jest guard counts insert columns against values across every migration, and a smoke test since run against all eleven client-called RPCs found no other broken one.</div>
+            <span class="priority done">Resolved 27 Aug</span>
           </div>
         </div>
 
@@ -1091,7 +1127,7 @@
             <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Dependency audit:</strong> <code>npm audit</code> shows 14 high / 9 moderate, all in the build-tooling chain (<code>uuid</code> via <code>expo</code> config-plugins) — no runtime path in the shipped bundle, but clear it with a planned Expo SDK bump before submission.</div>
+            <div class="agenda-task"><strong>Dependency audit &mdash; corrected 27 August.</strong> The &ldquo;no runtime path in the shipped bundle&rdquo; claim here was wrong: <code>nanoid</code> reached the app through React Navigation and is now patched to 3.3.18. Seven high advisories remain, all traced to <code>eslint</code>, <code>jest</code> or the Metro bundler, and they want the planned Expo SDK bump before submission. See the ledger at the top of this page.</div>
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
@@ -1099,7 +1135,7 @@
             <span class="priority high">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Target SDK / permissions review:</strong> confirm Expo's managed defaults still satisfy Play's current target API requirement; the app requests no extra dangerous Android permissions today — keep it that way.</div>
+            <div class="agenda-task"><strong>Target SDK / permissions review &mdash; checked 27 August.</strong> SDK 57 targets Android API 36, clearing Play's current requirement. <code>CAMERA</code> and <code>RECORD_AUDIO</code> are blocked in the manifest by the image-picker plugin config, and no code path calls the camera.</div>
             <span class="priority medium">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
@@ -1115,7 +1151,7 @@
             <span class="priority medium">Deferred</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Privacy policy:</strong> discloses neither the analytics added Aug 19 nor subscription billing. Telemetry is the nearer one — for EU users, non-essential analytics arguably needs consent rather than disclosure alone, and this stack is EU-oriented throughout (Supabase eu-west-1, Sentry .de, PostHog EU). The wrapper exposes opt-in/opt-out; whether to add a settings toggle is a product call, not plumbing.</div>
+            <div class="agenda-task"><strong>Privacy policy &mdash; rewritten 27 August.</strong> Two statements in it had become false, not merely incomplete: &ldquo;no analytics-tracking SDK&rdquo; and name/photo &ldquo;not shared with other users&rdquo;. PostHog and the app-wide activity leaderboard are both now described, the latter in its own table saying exactly who sees what. Whether the leaderboard should be opt-in, and whether to add an in-app analytics toggle, remain product calls.</div>
             <span class="priority high">Open</span>
           </div>
         </div>
