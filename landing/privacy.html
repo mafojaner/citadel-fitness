@@ -344,7 +344,7 @@
     <h1>Privacy Policy</h1>
     <div class="doc-meta sans">
       <span><strong>App</strong> Citadel Fitness</span>
-      <span><strong>Effective</strong> August 10, 2026</span>
+      <span><strong>Effective</strong> August 27, 2026</span>
       <span><strong>Applies to</strong> iOS, Android, and Web versions</span>
     </div>
     <p class="lede">This explains what Citadel Fitness collects when you use the app, why, who we share it with (almost no one), and how to see or delete it.</p>
@@ -369,7 +369,9 @@
     <div class="eyebrow sans">In short</div>
     <ul>
       <li>We collect your email, an optional name and photo, and the workouts you log; that's what makes the app work.</li>
-      <li>We never sell your data, and we don't use ad networks or trackers of any kind.</li>
+      <li>We never sell your data, and there are no advertisers or ad networks involved at any point.</li>
+      <li>We do collect product analytics &mdash; which screens get opened and whether key flows finish. It carries no name, email, or anything you typed; see Section 8.</li>
+      <li><strong>Other people using the app can see your display name, photo, and how many days you trained this week</strong> if you appear on the activity leaderboard or share a private group. Section 8 explains exactly what is visible and to whom.</li>
       <li>Data is stored with Supabase, our backend provider, protected by access rules that only let you read or write your own records.</li>
       <li>A couple of infrastructure providers — Resend and Sentry, both described in Section 8 — see a narrow slice of data strictly to send email or diagnose crashes; neither can use it for anything else.</li>
       <li>Workout reminders and in-app article alerts are scheduled entirely on your own device; nothing about them is sent to us or anyone else.</li>
@@ -402,7 +404,7 @@
             </tr>
             <tr>
               <td class="what">Display name &amp; photo</td>
-              <td class="why">Optional. Shown back to you in the app; not shared with other users, since Citadel Fitness has no social features.</td>
+              <td class="why">Optional. Shown back to you in the app, and shown to other users where a leaderboard applies &mdash; the app-wide activity leaderboard and any private group you join. See Section 8 for the full list of what those show.</td>
             </tr>
             <tr>
               <td class="what">Workout history</td>
@@ -419,6 +421,14 @@
             <tr>
               <td class="what">Feedback messages</td>
               <td class="why">If you submit feedback from Account → Help &amp; feedback, we store your message and the email you're signed in with, so we can read and reply to it.</td>
+            </tr>
+            <tr>
+              <td class="what">Product analytics</td>
+              <td class="why">Which screens you open and whether a few key flows finish &mdash; signing up, logging a workout, joining a plan. Sent to PostHog against your account's random identifier only. No name, email, photo, workout contents, or anything else you typed is included, and nothing is captured automatically: every event is one the app was written to send. Section 8 has the provider detail.</td>
+            </tr>
+            <tr>
+              <td class="what">Membership tier</td>
+              <td class="why">Which plan your account is on (free, Fortress, or Valhalla), so the app knows which features to give you. Today this is set by us directly; if and when paid plans go on sale, this section will be updated before any payment feature ships.</td>
             </tr>
             <tr>
               <td class="what">Crash &amp; error diagnostics</td>
@@ -511,7 +521,7 @@
         <span class="section-num">08</span>
         <h2>Sharing &amp; sale</h2>
       </div>
-      <p><strong>We do not sell your data.</strong> We don't share it with advertisers, and the app has no ad network, social-media SDK, or analytics-tracking SDK embedded in it. A small, fixed set of infrastructure providers process data strictly on our behalf, only to run the features described above, and none of them are permitted to use it for their own purposes:</p>
+      <p><strong>We do not sell your data.</strong> We don't share it with advertisers, and the app contains no ad network and no social-media SDK. It does contain one product-analytics SDK, PostHog, described in the table below &mdash; an earlier version of this policy said otherwise, which stopped being accurate when analytics were added on 19 August 2026. A small, fixed set of infrastructure providers process data strictly on our behalf, only to run the features described above, and none of them are permitted to use it for their own purposes:</p>
 
       <div class="data-table-wrap">
         <table class="data-table">
@@ -531,9 +541,36 @@
               <td class="what">Sentry</td>
               <td class="why">Our crash-reporting tool. Receives the technical crash details from Section 1 when the app hits an unexpected error. It's configured not to attach your IP address, name, or email to those reports.</td>
             </tr>
+            <tr>
+              <td class="what">PostHog</td>
+              <td class="why">Our product-analytics tool, added 19 August 2026, hosted in the EU. Receives the events in Section 1 tied to your account's random identifier. Autocapture and session replay are both switched off, so no screen you look at is ever recorded, and the app sends only a fixed, closed list of events rather than anything it happens to observe. There is currently no in-app switch to turn this off; if you would rather we did not collect it, email us and we will exclude your account.</td>
+            </tr>
           </tbody>
         </table>
       </div>
+
+      <h3 style="margin-top:28px;">What other people using the app can see</h3>
+      <p>This is separate from the providers above: it is other Citadel Fitness users, not companies. Two features show your information to other people, and both are on by default rather than something you switch on.</p>
+
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Where</th><th>Who sees it, and what</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="what">Activity leaderboard</td>
+              <td class="why"><strong>Every signed-in user.</strong> If you logged a workout on the day you did it within the last seven days, you can appear in a top-50 list showing your display name, your photo, and the number of days you trained. It does not show what you lifted, only how many days. If you have not set a display name you appear as &ldquo;Member&rdquo;, and if you have logged nothing in that window you do not appear at all.</td>
+            </tr>
+            <tr>
+              <td class="what">Private groups</td>
+              <td class="why"><strong>Only the other members of a group you joined.</strong> The same three things &mdash; display name, photo, days trained in the period shown. Nobody outside the group can read it, and you can leave a group at any time, which removes you from it.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Neither shows your workout contents: no exercise, weight, rep, or note you have written is visible to anyone else. If you would rather not appear at all, clearing your display name and photo reduces you to &ldquo;Member&rdquo; with no picture, and not logging on the same day keeps you off the activity leaderboard entirely.</p>
 
       <p>We would only disclose information beyond this if legally required to, for example in response to a valid court order, and would limit that disclosure to exactly what's requested.</p>
     </section>
@@ -576,7 +613,7 @@
   </main>
 
   <footer class="doc-foot sans">
-    <p>This policy describes Citadel Fitness version 1.0.0 as of its effective date above. It was drafted to match the app's actual behavior at that time and should be revisited whenever the app's data handling changes.</p>
+    <p>This policy describes Citadel Fitness version 1.0.0 as of its effective date above. It was drafted to match the app's actual behavior at that time and should be revisited whenever the app's data handling changes. The 27 August 2026 revision added the product analytics introduced on 19 August and the leaderboard visibility introduced on 20 August, both of which this policy had not caught up with.</p>
   </footer>
 
 </div>
