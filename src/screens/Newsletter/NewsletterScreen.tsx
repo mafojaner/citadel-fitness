@@ -94,9 +94,21 @@ export function NewsletterScreen() {
             style={{ width: 24, textAlign: 'center' }}
           />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={[typography.caption, { color: colors.textMuted }]}>
-              {ARTICLE_CATEGORY_LABELS[article.category]}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Text style={[typography.caption, { color: colors.textMuted }]}>
+                {ARTICLE_CATEGORY_LABELS[article.category]}
+              </Text>
+              {/* Only ever seen by someone entitled to read it -- the policy
+                  means a gated article never reaches an account below its
+                  tier, so this is not a lock. It is the opposite: without it
+                  a guide is indistinguishable from ordinary content and the
+                  tier quietly delivers something nobody notices. */}
+              {article.minTier !== 'free' ? (
+                <Text style={[typography.caption, { color: colors.textSecondary, fontWeight: '700' }]}>
+                  · Guide
+                </Text>
+              ) : null}
+            </View>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{article.title}</Text>
           </View>
           <FavoriteButton articleId={article.id} />

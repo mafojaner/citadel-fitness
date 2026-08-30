@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { parseTier } from './membership';
 import type { Article, ArticleCategory } from '../types/models';
 
 interface DbArticle {
@@ -9,6 +10,7 @@ interface DbArticle {
   category: ArticleCategory;
   read_minutes: number;
   published_at: string;
+  min_tier: string | null;
 }
 
 function toArticle(row: DbArticle): Article {
@@ -20,6 +22,10 @@ function toArticle(row: DbArticle): Article {
     category: row.category,
     readMinutes: row.read_minutes,
     publishedAt: row.published_at,
+    // Defaults to free rather than throwing on an unknown value: an
+    // article predating this column, or one whose tier is misspelt, must
+    // read as ordinary content and not as a locked guide.
+    minTier: parseTier(row.min_tier),
   };
 }
 
@@ -35,7 +41,7 @@ export function formatPublished(iso: string) {
 export async function fetchArticles(): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, summary, body, category, read_minutes, published_at')
+    .select('id, title, summary, body, category, read_minutes, published_at, min_tier')
     .order('published_at', { ascending: false })
     .returns<DbArticle[]>();
 
@@ -46,7 +52,7 @@ export async function fetchArticles(): Promise<Article[]> {
 export async function fetchArticleById(id: string): Promise<Article | null> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, summary, body, category, read_minutes, published_at')
+    .select('id, title, summary, body, category, read_minutes, published_at, min_tier')
     .eq('id', id)
     .maybeSingle<DbArticle>();
 
@@ -61,7 +67,7 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
 export async function fetchArticlesSince(since: string): Promise<Article[]> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, title, summary, body, category, read_minutes, published_at')
+    .select('id, title, summary, body, category, read_minutes, published_at, min_tier')
     .gt('published_at', since)
     .order('published_at', { ascending: true })
     .returns<DbArticle[]>();

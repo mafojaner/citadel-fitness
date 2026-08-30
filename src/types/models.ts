@@ -1,3 +1,4 @@
+import type { MembershipTier } from '../lib/membership';
 export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'core' | 'cardio' | 'boxing' | 'glutes' | string;
 
 export type ExerciseType = 'strength' | 'cardio';
@@ -64,4 +65,15 @@ export interface Article {
   category: ArticleCategory;
   readMinutes: number;
   publishedAt: string;
+  /**
+   * Lowest tier that may read this. Almost always 'free'; an expert guide
+   * sets 'valhalla'.
+   *
+   * The gate is the RLS policy, not this field -- an article above the
+   * reader's tier never arrives at all, so nothing in the app has to decide
+   * whether to hide it. What this is for is the opposite: telling a member
+   * who *can* read it that it is one of the guides they pay for, which is
+   * otherwise invisible.
+   */
+  minTier: MembershipTier;
 }
