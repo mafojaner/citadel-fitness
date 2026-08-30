@@ -884,8 +884,11 @@
             <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Valhalla's seven features, none of them started.</strong> Form check is the only one where the app is the bottleneck rather than a person: a submissions table, video upload and a review queue. Priority support is mostly routing. Nutrition coaching needs an intake form and a reply surface. Expert guides and video demonstrations are content budgets, not sprints. AI progressive overload can start as a readable heuristic over logged history rather than a model. Wearable sync means HealthKit and Whoop, native permissions and a fresh Data Safety declaration.</div>
-            <span class="priority medium">After the cap decision</span>
+            <div class="agenda-task"><strong>Valhalla: two of seven built, five to go (27 August).</strong> The two that landed are the two that needed no person.
+            <br><br><strong>AI progressive overload</strong> is done: double progression with an RPE brake and a stall deload, computed in <code>get_overload_suggestions</code> behind a Valhalla check, with every row carrying the sentence explaining it. It is called AI and it is a readable heuristic, which the code says out loud &mdash; a suggestion about what to put over your own chest should be one you can argue with.
+            <br><br><strong>Priority support</strong> has its app half: <code>feedback.answered_at</code>, and a queue ordered by entitlement then oldest-first with outstanding above answered. A person still writes the reply and always will; what the app owed was a queue that could actually be skipped.
+            <br><br><strong>Still unbuilt:</strong> form check (a submissions table, video upload and a review queue &mdash; the only remaining one where the app is the bottleneck rather than the coach), nutrition coaching (intake form and a reply surface), expert guides and video demonstrations (content budgets, not sprints), and wearable sync (HealthKit and Whoop, native permissions, a fresh Data Safety declaration).</div>
+            <span class="priority medium">2 of 7 built</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Refer &amp; earn is half-shipped by design.</strong> Attribution works and is probed &mdash; self-referral, duplicates and bogus codes all refused. The reward cannot exist before billing does, and the catalogue copy says so plainly rather than promising it. Listed here so it is not mistaken for finished when billing lands.</div>
@@ -1304,7 +1307,7 @@
             <span class="priority ready">Ready</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Phase 3 — Valhalla cannot go on sale yet, and not for a code reason.</strong> All seven of its features are unbuilt, and four of them (form check, nutrition coaching, priority support, and the guides written monthly) need a person, not a deploy. <strong>Selling it before a coach exists would be taking money for nothing.</strong> The gate is: decide who delivers the human work, set a hard cap on reviews per member per month, and close enrollment when that cap is reached &mdash; a waitlist here is the feature, not the failure. At fifteen minutes a review and four a month, ten members is an evening a week and fifty is a job.</div>
+            <div class="agenda-task"><strong>Phase 3 — Valhalla cannot go on sale yet, and still not for a code reason.</strong> Two of its seven features are now built (progressive overload, and priority support's app half). The remaining reason is unchanged and is not engineering: form check, nutrition coaching, the reply behind priority support, and the guides written monthly all need a person, not a deploy. <strong>Selling it before a coach exists would be taking money for nothing.</strong> The gate is: decide who delivers the human work, set a hard cap on reviews per member per month, and close enrollment when that cap is reached &mdash; a waitlist here is the feature, not the failure. At fifteen minutes a review and four a month, ten members is an evening a week and fifty is a job.</div>
             <span class="priority blocks">Blocked on people</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
