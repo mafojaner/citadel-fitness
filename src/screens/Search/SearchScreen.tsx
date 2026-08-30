@@ -121,7 +121,13 @@ export function SearchScreen() {
               <View style={{ gap: spacing.sm }}>
                 <Text style={[typography.subheading, { color: colors.textPrimary }]}>Exercises</Text>
                 {exerciseResults.map((exercise) => (
-                  <AnimatedPressable key={exercise.id} onPress={() => onSelectExercise(exercise)} scaleTo={0.98}>
+                  <AnimatedPressable
+                    key={exercise.id}
+                    onPress={() => onSelectExercise(exercise)}
+                    accessibilityRole="button"
+                    accessibilityLabel={exercise.name}
+                    scaleTo={0.98}
+                  >
                     <Card>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                         <GradientIconBadge

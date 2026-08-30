@@ -124,7 +124,14 @@ export function NewsletterScreen() {
           {CATEGORY_ORDER.map((cat) => {
             const count = categoryCounts.get(cat) ?? 0;
             return (
-              <AnimatedPressable key={cat} onPress={() => setActiveFilter(cat)} scaleTo={0.96} style={categoryTile}>
+              <AnimatedPressable
+                key={cat}
+                onPress={() => setActiveFilter(cat)}
+                accessibilityRole="button"
+                accessibilityLabel={`${ARTICLE_CATEGORY_LABELS[cat]}, ${count} article${count === 1 ? '' : 's'}`}
+                scaleTo={0.96}
+                style={categoryTile}
+              >
                 <View
                   style={{
                     borderRadius: radius.lg,
@@ -150,7 +157,13 @@ export function NewsletterScreen() {
             );
           })}
 
-          <AnimatedPressable onPress={() => setActiveFilter('favorites')} scaleTo={0.96} style={categoryTile}>
+          <AnimatedPressable
+            onPress={() => setActiveFilter('favorites')}
+            accessibilityRole="button"
+            accessibilityLabel={`Favorites, ${favoritesCount} article${favoritesCount === 1 ? '' : 's'}`}
+            scaleTo={0.96}
+            style={categoryTile}
+          >
             <View
               style={{
                 borderRadius: radius.lg,
@@ -186,6 +199,8 @@ export function NewsletterScreen() {
         <>
           <AnimatedPressable
             onPress={() => setActiveFilter(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Back to all categories"
             scaleTo={0.92}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
           >

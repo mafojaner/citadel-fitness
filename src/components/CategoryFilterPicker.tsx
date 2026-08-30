@@ -60,8 +60,13 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
       </AnimatedPressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        {/* The scrim is a real control -- tapping it closes the sheet -- so it
+            says so. Without a role a screen reader reaches a full-screen
+            unlabelled element and has no way to know it dismisses. */}
         <Pressable
           onPress={() => setOpen(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Close filter menu"
           style={{
             flex: 1,
             backgroundColor: 'rgba(0,0,0,0.5)',
@@ -70,7 +75,15 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
             padding: spacing.lg,
           }}
         >
-          <Pressable onPress={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 320 }}>
+          {/* Not a control at all: it exists only to stop a tap on the sheet
+              reaching the scrim behind it. accessible={false} keeps it out of
+              the accessibility tree so its children stay individually
+              focusable, rather than being collapsed into one "button". */}
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            accessible={false}
+            style={{ width: '100%', maxWidth: 320 }}
+          >
             <PopInView>
               <View
                 style={{
@@ -102,6 +115,12 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                           onChange(option.value);
                           setOpen(false);
                         }}
+                        // radio, not button: this is a pick-one list, and the
+                        // selected state is currently carried by a colour and
+                        // a checkmark that a screen reader cannot see.
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: isActive }}
+                        accessibilityLabel={option.label}
                         scaleTo={0.98}
                         style={{
                           flexDirection: 'row',

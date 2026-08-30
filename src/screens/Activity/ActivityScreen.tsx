@@ -145,7 +145,12 @@ function RewardsCard() {
   const { weeklyStreak, rewardsEarned, loading } = useRewards();
 
   return (
-    <AnimatedPressable onPress={() => navigation.navigate('Rewards')} scaleTo={0.98}>
+    <AnimatedPressable
+      onPress={() => navigation.navigate('Rewards')}
+      accessibilityRole="button"
+      accessibilityLabel="Rewards and streak"
+      scaleTo={0.98}
+    >
       <View
         style={{
           backgroundColor: '#FF5A36',

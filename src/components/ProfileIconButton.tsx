@@ -19,6 +19,7 @@ export function ProfileIconButton() {
 
   return (
     <AnimatedPressable
+      accessibilityRole="button"
       accessibilityLabel="Open account"
       hitSlop={8}
       onPress={() => navigation.navigate('Account')}

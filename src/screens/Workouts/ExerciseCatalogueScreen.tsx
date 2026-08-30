@@ -145,7 +145,12 @@ export function ExerciseCatalogueScreen() {
           ) : null
         }
         renderItem={({ item: exercise }) => (
-          <AnimatedPressable onPress={() => onSelect(exercise)} scaleTo={0.98}>
+          <AnimatedPressable
+            onPress={() => onSelect(exercise)}
+            accessibilityRole="button"
+            accessibilityLabel={exercise.name}
+            scaleTo={0.98}
+          >
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <GradientIconBadge
@@ -187,8 +192,13 @@ export function ExerciseCatalogueScreen() {
         animationType="fade"
         onRequestClose={() => setInfoExercise(null)}
       >
+        {/* Same pair as CategoryFilterPicker: the scrim dismisses and says so,
+            the inner wrapper only swallows taps and stays out of the
+            accessibility tree so the card's contents remain focusable. */}
         <Pressable
           onPress={() => setInfoExercise(null)}
+          accessibilityRole="button"
+          accessibilityLabel="Close exercise details"
           style={{
             flex: 1,
             backgroundColor: 'rgba(0,0,0,0.5)',
@@ -196,7 +206,7 @@ export function ExerciseCatalogueScreen() {
             padding: spacing.lg,
           }}
         >
-          <Pressable onPress={() => {}}>
+          <Pressable onPress={() => {}} accessible={false}>
             <PopInView key={infoExercise?.id} style={{ gap: spacing.md }}>
               <Card>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

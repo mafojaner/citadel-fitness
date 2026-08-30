@@ -19,6 +19,25 @@ interface RangeDayProps {
 }
 
 /**
+ * "12 March 2026" rather than "12", which is all the cell shows visually.
+ *
+ * A screen reader moving across a month otherwise announces thirty bare
+ * numbers with no month or weekday, which is unusable for choosing a date.
+ * Parsed as UTC to match the YYYY-MM-DD the calendar deals in; a local-time
+ * parse shifts the label by a day for anyone west of Greenwich.
+ */
+function formatDayLabel(dateString: string): string {
+  const [y, m, d] = dateString.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+/**
  * Two-tap range picker: first tap sets the start (and a zero-length end),
  * second tap (on/after start) sets the end. Tapping before the current
  * start restarts the selection rather than erroring, so there's no way to
@@ -50,7 +69,25 @@ export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarPro
       const isOtherMonth = state === 'disabled' || state === 'inactive';
 
       return (
-        <Pressable onPress={() => onPress?.(date)} style={{ alignItems: 'center', paddingVertical: 4 }}>
+        // The range state lives entirely in colour -- a gradient badge for an
+        // endpoint, a tinted circle for a day inside it -- so without this a
+        // screen reader reads the whole calendar as a run of bare numbers
+        // with no way to tell what is selected. Same fix the Aug 20 pass made
+        // to the workouts calendar; this one was missed.
+        <Pressable
+          onPress={() => onPress?.(date)}
+          accessibilityRole="button"
+          accessibilityLabel={formatDayLabel(date.dateString)}
+          accessibilityState={{ selected: isEndpoint || inRange, disabled: isOtherMonth }}
+          accessibilityHint={
+            isEndpoint
+              ? 'Start or end of the selected range'
+              : inRange
+                ? 'Inside the selected range'
+                : undefined
+          }
+          style={{ alignItems: 'center', paddingVertical: 4 }}
+        >
           {isEndpoint ? (
             <GradientNumberBadge value={date.day} colors={gradients.calendar} size={30} fontSize={13} />
           ) : (

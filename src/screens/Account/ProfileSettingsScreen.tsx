@@ -127,7 +127,13 @@ export function ProfileSettingsScreen() {
     <ScreenContainer>
       <Card>
         <View style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <Pressable onPress={onPickAvatar} disabled={avatarBusy}>
+          <Pressable
+            onPress={onPickAvatar}
+            disabled={avatarBusy}
+            accessibilityRole="button"
+            accessibilityLabel={avatarUrl ? 'Change profile photo' : 'Add a profile photo'}
+            accessibilityState={{ disabled: avatarBusy }}
+          >
             <View style={{ width: 72, height: 72 }}>
               {avatarUrl ? (
                 <Image

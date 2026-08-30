@@ -81,7 +81,14 @@ export function OnboardingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: 'flex-end', padding: spacing.lg }}>
-        <AnimatedPressable onPress={finish} disabled={finishing} scaleTo={0.92}>
+        <AnimatedPressable
+          onPress={finish}
+          disabled={finishing}
+          accessibilityRole="button"
+          accessibilityLabel="Skip onboarding"
+          accessibilityState={{ disabled: finishing }}
+          scaleTo={0.92}
+        >
           <Text style={[typography.body, { color: colors.textMuted }]}>Skip</Text>
         </AnimatedPressable>
       </View>
