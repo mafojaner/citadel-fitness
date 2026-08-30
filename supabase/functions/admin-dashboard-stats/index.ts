@@ -259,13 +259,20 @@ Deno.serve(async (req) => {
     }
     const topArticles = [...favCounts.values()].sort((a, b) => b.count - a.count).slice(0, 5);
 
-    // --- Recent feedback (service role bypasses RLS; no new policy needed)
-    const { data: recentFeedback, error: feedbackError } = await admin
-      .from('feedback')
-      .select('id, email, message, created_at')
-      .order('created_at', { ascending: false })
-      .limit(20);
+    // --- Support queue -----------------------------------------------------
+    // Ordered in the database rather than here, and by entitlement rather
+    // than by recency. Priority support is sold as "skip the queue", which
+    // requires a queue that is actually ordered -- a reverse-chronological
+    // list is the one sort that lets a paying member's message sink under
+    // newer free-tier ones every day. See 20260827130000.
+    const { data: recentFeedback, error: feedbackError } = await admin.rpc('admin_support_queue', {
+      p_limit: 30,
+    });
     if (feedbackError) throw feedbackError;
+
+    type QueueRow = { answered_at: string | null; tier_rank: number };
+    const queue = (recentFeedback ?? []) as QueueRow[];
+    const outstanding = queue.filter((f) => f.answered_at === null);
 
     return json(
       {
@@ -303,6 +310,13 @@ Deno.serve(async (req) => {
           topFavoritedArticles: topArticles,
         },
         recentFeedback: recentFeedback ?? [],
+        support: {
+          outstanding: outstanding.length,
+          // The number the tier's promise is actually measured on. Everything
+          // else on this page describes the product; this describes whether
+          // someone is being kept waiting for something they paid for.
+          outstandingPaid: outstanding.filter((f) => f.tier_rank >= 1).length,
+        },
         generatedAt: new Date().toISOString(),
       },
       200

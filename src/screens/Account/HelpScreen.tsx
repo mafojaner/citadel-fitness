@@ -7,6 +7,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { submitFeedback } from '../../lib/feedback';
+import { useHasTier } from '../../hooks/useMembership';
 import { useAuthStore } from '../../state/authStore';
 import { useTheme } from '../../theme/useTheme';
 
@@ -92,6 +93,9 @@ export function HelpScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Priority support is a Valhalla feature, so this is the tier that
+  // decides whether the promise below is true for this account.
+  const hasPrioritySupport = useHasTier('valhalla');
 
   const canSubmit = message.trim().length > 0;
 
@@ -149,7 +153,24 @@ export function HelpScreen() {
           }}
         />
         {error ? <ErrorNotice message={error} onRetry={onSubmit} /> : null}
-        {sent ? <Text style={{ color: colors.success }}>Thanks, your feedback was sent.</Text> : null}
+        {sent ? (
+          <Text style={{ color: colors.success }}>
+            {hasPrioritySupport
+              ? 'Thanks, your feedback was sent. It goes to the front of the queue.'
+              : 'Thanks, your feedback was sent.'}
+          </Text>
+        ) : null}
+
+        {/* Said before sending, not only after. A member who paid for
+            priority support should know it applies while deciding whether
+            to bother writing, which is the moment the tier is worth
+            anything to them. Shown only to accounts that actually have it:
+            telling everyone would make it a slogan rather than a fact. */}
+        {hasPrioritySupport && !sent ? (
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            Your plan includes priority support, so this is answered ahead of other messages.
+          </Text>
+        ) : null}
         <PlainButton
           label={submitting ? 'Sending...' : 'Send feedback'}
           loading={submitting}

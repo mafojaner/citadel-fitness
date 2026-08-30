@@ -733,11 +733,12 @@
       </section>
 
       <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>Recent feedback</h3></div>
+        <div class="block-head"><span class="dot"></span><h3>Support queue</h3></div>
         <div class="card-body">
+          <p class="chart-note" style="margin-top:0;">Ordered by entitlement, then oldest first, outstanding above answered &mdash; not by recency. Priority support is sold as &ldquo;skip the queue&rdquo;, and a reverse-chronological list is the one sort that lets a paying member's message sink under newer free-tier ones every day. <span id="support-summary"></span></p>
           <div class="data-table-wrap">
             <table class="data-table">
-              <thead><tr><th>When</th><th>From</th><th>Message</th></tr></thead>
+              <thead><tr><th>Plan</th><th>Waiting</th><th>From</th><th>Message</th></tr></thead>
               <tbody id="feedback-rows"></tbody>
             </table>
           </div>
@@ -1763,16 +1764,60 @@
       document.getElementById('article-empty').style.display = articles.length ? 'none' : 'block';
     }
 
+    /**
+     * How long someone has been waiting, in the coarsest unit that is still
+     * honest. "31.4h" is a measurement; "1d 7h" is how long somebody has
+     * actually been ignored, which is the thing being looked at.
+     */
+    function waitedFor(hours) {
+      if (hours == null) return '';
+      if (hours < 1) return 'under an hour';
+      if (hours < 24) return Math.round(hours) + 'h';
+      const days = Math.floor(hours / 24);
+      const rem = Math.round(hours - days * 24);
+      return rem === 0 ? days + 'd' : days + 'd ' + rem + 'h';
+    }
+
     function renderFeedbackRows(feedback) {
-      document.getElementById('feedback-rows').innerHTML = feedback
-        .map(
-          (f) =>
-            `<tr><td class="mono">${new Date(f.created_at).toLocaleDateString()}</td><td>${escapeHtml(
-              f.email ?? ''
-            )}</td><td class="msg">${escapeHtml(f.message)}</td></tr>`
-        )
+      const rows = feedback ?? [];
+      document.getElementById('feedback-rows').innerHTML = rows
+        .map((f) => {
+          const answered = f.answered_at != null;
+          const paid = (f.tier_rank ?? 0) >= 1;
+          // Only one thing on this row gets colour, and it is the case that
+          // needs acting on: a paying member who is still waiting. An
+          // answered row, however entitled, is history.
+          const overdue = !answered && paid && (f.waiting_hours ?? 0) >= 24;
+          const planClass = answered ? 'medium' : paid ? 'high' : 'medium';
+          const label = (f.tier ?? 'free');
+          return `<tr${answered ? ' style="opacity:.55"' : ''}>
+            <td><span class="priority ${overdue ? 'critical' : planClass}">${escapeHtml(label)}</span></td>
+            <td class="mono">${answered ? 'answered in ' : ''}${waitedFor(f.waiting_hours)}</td>
+            <td>${escapeHtml(f.email ?? '')}</td>
+            <td class="msg">${escapeHtml(f.message)}</td>
+          </tr>`;
+        })
         .join('');
-      document.getElementById('feedback-empty').style.display = feedback.length ? 'none' : 'block';
+      document.getElementById('feedback-empty').style.display = rows.length ? 'none' : 'block';
+    }
+
+    function renderSupportSummary(support) {
+      const el = document.getElementById('support-summary');
+      if (!el || !support) return;
+      if (support.outstanding === 0) {
+        el.textContent = 'Nothing outstanding.';
+        el.style.color = 'var(--good)';
+        return;
+      }
+      const paid = support.outstandingPaid ?? 0;
+      el.textContent =
+        support.outstanding +
+        ' outstanding' +
+        (paid > 0 ? ', ' + paid + ' from a paying member' : '') +
+        '.';
+      // The paid count is the only one that breaks a promise, so it is the
+      // only one that turns the line red.
+      el.style.color = paid > 0 ? 'var(--bad)' : 'var(--slate)';
     }
 
     function timeAgo(iso) {
@@ -1899,6 +1944,7 @@
       renderCategoryRows(data.behavior.categoryBreakdown30d);
       renderArticleRows(data.behavior.topFavoritedArticles);
       renderFeedbackRows(data.recentFeedback);
+      renderSupportSummary(data.support);
       document.getElementById('generated').textContent =
         'Updated ' + new Date(data.generatedAt).toLocaleString();
 
