@@ -4,6 +4,7 @@ import { AdvancedAnalyticsScreen } from '../../screens/Activity/AdvancedAnalytic
 import { GoalForecastScreen } from '../../screens/Activity/GoalForecastScreen';
 import { GroupsScreen } from '../../screens/Activity/GroupsScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
+import { OverloadScreen } from '../../screens/Activity/OverloadScreen';
 import { PersonalRecordsScreen } from '../../screens/Activity/PersonalRecordsScreen';
 import { RewardsScreen } from '../../screens/Activity/RewardsScreen';
 import { useTheme } from '../../theme/useTheme';
@@ -16,6 +17,7 @@ export type ActivityStackParamList = {
   PersonalRecords: undefined;
   AdvancedAnalytics: undefined;
   GoalForecast: undefined;
+  Overload: undefined;
   Groups: undefined;
 };
 
@@ -43,6 +45,11 @@ export function ActivityStack() {
         name="GoalForecast"
         component={GoalForecastScreen}
         options={{ title: 'Goal Forecast' }}
+      />
+      <Stack.Screen
+        name="Overload"
+        component={OverloadScreen}
+        options={{ title: 'Progressive Overload' }}
       />
       <Stack.Screen name="Groups" component={GroupsScreen} options={{ title: 'Private Groups' }} />
     </Stack.Navigator>

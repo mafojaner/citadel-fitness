@@ -2,9 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
-import { GradientIconBadge } from './GradientIconBadge';
 import { SettingsRow } from './SettingsRow';
-import { APP_FEATURES } from '../constants/featureCatalog';
+import { APP_FEATURES, featureInk } from '../constants/featureCatalog';
 import { useMembershipTier } from '../hooks/useMembership';
 import { useOpenPlans } from '../hooks/useOpenPlans';
 import { TIER_LABELS, tierAllows } from '../lib/membership';
@@ -111,12 +110,18 @@ export function PaidFeatureLink({
           borderBottomColor: colors.border,
         }}
       >
-        {/* The feature's own gradient badge, small. A plain tier-coloured
-            dot was tried and read as an unselected radio button — an empty
-            white circle beside a label is a control you tick, not a link
-            you follow. The badge says which feature this is, and the pill
-            beside the label carries the tier. */}
-        <GradientIconBadge icon={feature.icon} colors={feature.colors} size={26} />
+        {/* The feature's icon in the feature's colour, rather than a
+            gradient disc behind it. A plain tier-coloured dot was tried
+            first and read as an unselected radio button — an empty circle
+            beside a label is a control you tick, not a link you follow. The
+            glyph says which feature this is, its ink distinguishes one from
+            another, and the pill beside the label carries the tier. */}
+        <Ionicons
+          name={feature.icon}
+          size={20}
+          color={featureInk(feature)}
+          style={{ width: 26, textAlign: 'center' }}
+        />
         <Text
           style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '600' }]}
           numberOfLines={1}
@@ -161,7 +166,7 @@ export function PaidFeatureLink({
  * landing page's chips once did.
  */
 export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }: PaidFeatureCardProps) {
-  const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
+  const { colors, tiers, spacing, radius, typography } = useTheme();
   const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
@@ -218,28 +223,17 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
     </View>
   );
 
-  /**
-   * The tier reads as a soft glow in its own colour, not as an outline.
-   *
-   * An outlined card and a grey sheen were both tried and both looked like a
-   * boxed-off advert sitting on a page of clean cards. This follows the
-   * language the app already uses to make something feel like more —
-   * RankingCard lifts itself with a gold-tinted shadow and no border at all —
-   * so a paid feature keeps the exact silhouette of every other card and only
-   * the light around it changes.
-   *
-   * The glow is `accent.border` rather than `accent.accent` because those are
-   * the same colour wherever the accent is already visible, and the accent is
-   * only overridden where it would not be: a white glow in light mode is not
-   * a glow, so Fortress warms to silver there and stays white on dark.
-   */
-  const glow = {
-    shadowColor: accent.border,
-    shadowOpacity: scheme === 'dark' ? 0.5 : 0.22,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 5,
-  } as const;
+  // The glow is gone.
+  //
+  // A tier-tinted shadow was the third attempt at making a paid feature feel
+  // like more (after an outline and a chrome sheen), and it was the best of
+  // the three. It stopped being right when the account centre and the
+  // newsletter went flat: a card that lights up among cards that do not is
+  // the loudest thing on the screen, which is the definition of an advert.
+  //
+  // What is left carries the same information with less: the feature's own
+  // ink on its glyph, and the tier on the badge. Those two were always doing
+  // the work; the glow was saying it a third time.
 
   if (variant === 'row') {
     return (
@@ -273,13 +267,18 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
       }`}
       scaleTo={0.98}
     >
-      <Card style={glow}>
+      <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          {/* Full colour rather than greyed out: this is advertising what the
-              feature will be, not showing a disabled control. The gradients
-              stay — the glow and the badge carry the tier, so the icons
-              don't have to go monochrome to say which plan this belongs to. */}
-          <GradientIconBadge icon={feature.icon} colors={feature.colors} size={40} />
+          {/* In colour rather than greyed out: this is advertising what the
+              feature will be, not showing a disabled control. On the glyph
+              rather than behind it, so it sits at the same weight as the
+              icons on every other flat row in the app. */}
+          <Ionicons
+            name={feature.icon}
+            size={26}
+            color={featureInk(feature)}
+            style={{ width: 32, textAlign: 'center' }}
+          />
 
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>

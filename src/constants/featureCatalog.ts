@@ -298,3 +298,22 @@ export const TIER_PITCH: Record<FeatureTier, TierPitch> = {
     note: 'Limited places, because a coach reviews every submission',
   },
 };
+
+/**
+ * The one spot of colour a feature gets: the saturated end of its gradient.
+ *
+ * Paid features used to announce themselves with a gradient badge and a
+ * tier-tinted glow around the card. That made every premium element the
+ * loudest thing on whatever screen it sat on, and it stopped matching the
+ * app once the account centre and the newsletter went flat -- a gradient
+ * disc beside a row of monochrome ones reads as an advert someone dropped
+ * into the page.
+ *
+ * Colour still identifies the feature, but on the icon rather than behind
+ * it, which is the same move the newsletter made with its categories. See
+ * articleCategoryInk in constants/articles.ts; these two should stay in
+ * step, because they are the same decision applied twice.
+ */
+export function featureInk(feature: AppFeature): string {
+  return feature.colors[feature.colors.length - 1];
+}

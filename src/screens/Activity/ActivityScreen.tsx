@@ -551,6 +551,15 @@ export function ActivityScreen() {
           label="Set a target and track it"
           onOpen={() => navigation.navigate('GoalForecast')}
         />
+        {/* Last of the three, and the only one that tells you what to do
+            rather than what you did — which is the line the catalogue draws
+            between Fortress and Valhalla, so it reads correctly as the step
+            beyond the two above it. */}
+        <PaidFeatureLink
+          featureId="ai-progressive-overload"
+          label="What to lift next"
+          onOpen={() => navigation.navigate('Overload')}
+        />
       </Card>
       </ScreenContainer>
     </View>
