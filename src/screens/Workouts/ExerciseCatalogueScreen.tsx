@@ -2,12 +2,12 @@ import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Pressable, Text, View } from 'react-native';
-import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
+import { ExerciseRow } from '../../components/ExerciseRow';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { PopInView } from '../../components/PopInView';
@@ -65,14 +65,29 @@ export function ExerciseCatalogueScreen() {
     });
   }, [exercises, activeCategory, query]);
 
-  const onSelect = (exercise: Exercise) => {
-    addExercise(exercise);
-    if (route.params?.standalone) {
-      navigation.replace('AddWorkout');
-    } else {
-      navigation.goBack();
-    }
-  };
+  // useCallback, not because this function is expensive, but because
+  // ExerciseRow is memoised and an unstable callback would make that memo
+  // do nothing while still looking correct.
+  const onSelect = useCallback(
+    (exercise: Exercise) => {
+      addExercise(exercise);
+      if (route.params?.standalone) {
+        navigation.replace('AddWorkout');
+      } else {
+        navigation.goBack();
+      }
+    },
+    [addExercise, navigation, route.params?.standalone]
+  );
+
+  const onShowInfo = useCallback((exercise: Exercise) => setInfoExercise(exercise), []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Exercise }) => (
+      <ExerciseRow exercise={item} onSelect={onSelect} onShowInfo={onShowInfo} />
+    ),
+    [onSelect, onShowInfo]
+  );
 
   // Only the filtered exercise list (up to ~90 rows with icons) needs
   // virtualizing — the category grid is a handful of fixed tiles, so it
@@ -144,46 +159,7 @@ export function ExerciseCatalogueScreen() {
             </Card>
           ) : null
         }
-        renderItem={({ item: exercise }) => (
-          <AnimatedPressable
-            onPress={() => onSelect(exercise)}
-            accessibilityRole="button"
-            accessibilityLabel={exercise.name}
-            scaleTo={0.98}
-          >
-            <Card>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <GradientIconBadge
-                  icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-                  colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                  size={36}
-                />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                    {exercise.name}
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.textMuted, textTransform: 'capitalize' }]}>
-                    {exercise.category}
-                  </Text>
-                </View>
-                <Pressable
-                  onPress={() => setInfoExercise(exercise)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`About ${exercise.name}`}
-                >
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={24}
-                    color={colors.textMuted}
-                    style={{ opacity: 0.55 }}
-                  />
-                </Pressable>
-                <Ionicons name="add-circle" size={26} color={colors.primary} />
-              </View>
-            </Card>
-          </AnimatedPressable>
-        )}
+        renderItem={renderItem}
       />
 
       <Modal

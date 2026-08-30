@@ -911,8 +911,10 @@
             <span class="priority critical">Unverified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>The Aug 14 performance pass, still unsettled.</strong> A shared fetch hook and memoized list rows were written; no profiling session has ever been run. The Aug 18 suite covers correctness, not render behaviour, so it does not settle this either way. Either profile it or strike it from the plan &mdash; leaving it as an unmeasured claim is the worst of the three options.</div>
-            <span class="priority medium">Unverified</span>
+            <div class="agenda-task"><strong>The Aug 14 performance pass &mdash; half of it had never been done (27 August).</strong> The entry said &ldquo;a shared fetch hook and memoized list rows were written&rdquo;. The fetch hook was; the memoized rows were not. There was no <code>React.memo</code> anywhere in the codebase, and the exercise catalogue's rows were inline JSX inside <code>FlatList</code>'s <code>renderItem</code> &mdash; so every keystroke in the search field rebuilt every visible row, each one drawing a <code>LinearGradient</code>. The data was memoised, which is what made the claim look true.
+            <br><br>Rows are now a memoised component with <code>useCallback</code>'d handlers that take the exercise as an argument &mdash; passing <code>() =&gt; onSelect(exercise)</code> would have defeated the memo while looking identical. <strong>And it is measured rather than asserted:</strong> a test counts renders through the badge and fails if the memo is removed, which was confirmed by removing it. Three keystrokes now rebuild zero rows where they rebuilt every visible one.
+            <br><br><strong>What a profiler would still add:</strong> how many milliseconds any of this costs on a real phone, and whether anything else on the board is slow. This closes the specific claim, not the general question.</div>
+            <span class="priority done">Measured</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Screen-reader pass &mdash; the roles half is done (27 August), the listening half is not.</strong> Fifteen pressables had no <code>accessibilityRole</code>, which React Native does not infer: a date-range calendar read as thirty bare numbers, the category filter gave no hint it was a pick-one list, and both modal scrims &mdash; the thing you tap to escape &mdash; announced nothing at all. Roles now match what each control is rather than defaulting to button, the calendar cells carry the full date, and two wrappers that only swallow taps are explicitly <code>accessible={false}</code> so the real controls inside them stay focusable. A test enforces it rather than another one-off audit.
@@ -1065,7 +1067,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
-            <div class="agenda-task"><strong>Performance pass:</strong> shared data-fetch hook, memoize re-rendering list rows. Still unverified &mdash; the Aug 18 suite covers correctness, not render behaviour, so it doesn't settle this either way. Only a profiling session will.</div>
+            <div class="agenda-task"><strong>Performance pass &mdash; the memoization half landed 27 August.</strong> It had never actually been done: no <code>React.memo</code> existed anywhere, and the catalogue rebuilt every visible row on every keystroke. Now memoised, and covered by a render-counting test that fails without it. A profiling session is still the only thing that can price it in milliseconds on a device.</div>
             <span class="priority medium">Unverified</span>
           </div>
           <div class="agenda-day weekend">
