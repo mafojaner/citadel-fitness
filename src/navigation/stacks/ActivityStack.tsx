@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityScreen } from '../../screens/Activity/ActivityScreen';
 import { AdvancedAnalyticsScreen } from '../../screens/Activity/AdvancedAnalyticsScreen';
 import { GoalForecastScreen } from '../../screens/Activity/GoalForecastScreen';
+import { FormCheckScreen } from '../../screens/Activity/FormCheckScreen';
 import { GroupsScreen } from '../../screens/Activity/GroupsScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
 import { OverloadScreen } from '../../screens/Activity/OverloadScreen';
@@ -18,6 +19,7 @@ export type ActivityStackParamList = {
   AdvancedAnalytics: undefined;
   GoalForecast: undefined;
   Overload: undefined;
+  FormCheck: undefined;
   Groups: undefined;
 };
 
@@ -50,6 +52,11 @@ export function ActivityStack() {
         name="Overload"
         component={OverloadScreen}
         options={{ title: 'Progressive Overload' }}
+      />
+      <Stack.Screen
+        name="FormCheck"
+        component={FormCheckScreen}
+        options={{ title: 'Form Check' }}
       />
       <Stack.Screen name="Groups" component={GroupsScreen} options={{ title: 'Private Groups' }} />
     </Stack.Navigator>

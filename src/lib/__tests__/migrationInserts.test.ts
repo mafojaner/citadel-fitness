@@ -48,6 +48,74 @@ const MIGRATIONS = join(__dirname, '..', '..', '..', 'supabase', 'migrations');
  */
 const KNOWN_HISTORICAL_MISMATCH = '20260820020000_set_entry_rpe.sql';
 
+/**
+ * Blanks out SQL comments, preserving length and newlines.
+ *
+ * Without this a `-- comment, like this one` inside a VALUES list has its
+ * commas counted as separators, and a correct insert is reported as having
+ * more values than columns. That is exactly what happened the first time a
+ * migration explained a magic number in place: the guard cried wolf on a
+ * statement that was fine, which is the failure mode most likely to get a
+ * guard deleted.
+ *
+ * Replaced with spaces rather than removed so every offset into the string
+ * still points where it did, and newlines are kept so reported line numbers
+ * stay correct.
+ */
+function stripComments(sql: string): string {
+  let out = '';
+  let i = 0;
+  let quote: "'" | '"' | null = null;
+
+  while (i < sql.length) {
+    const ch = sql[i];
+    const next = sql[i + 1];
+
+    if (quote) {
+      out += ch;
+      if (ch === quote && next === quote) {
+        out += next;
+        i += 2;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      i += 1;
+      continue;
+    }
+
+    if (ch === "'" || ch === '"') {
+      quote = ch;
+      out += ch;
+      i += 1;
+      continue;
+    }
+
+    // A comment only starts outside a string, which is why this sits here
+    // rather than being a regex over the whole file.
+    if (ch === '-' && next === '-') {
+      while (i < sql.length && sql[i] !== '\n') {
+        out += ' ';
+        i += 1;
+      }
+      continue;
+    }
+
+    if (ch === '/' && next === '*') {
+      while (i < sql.length && !(sql[i] === '*' && sql[i + 1] === '/')) {
+        out += sql[i] === '\n' ? '\n' : ' ';
+        i += 1;
+      }
+      out += '  ';
+      i += 2;
+      continue;
+    }
+
+    out += ch;
+    i += 1;
+  }
+  return out;
+}
+
 /** Split on commas that are not inside brackets, quotes or a dollar-quote. */
 function splitTopLevel(input: string): string[] {
   const parts: string[] = [];
@@ -119,7 +187,8 @@ interface Mismatch {
   missing: string[];
 }
 
-function findMismatches(file: string, sql: string): Mismatch[] {
+function findMismatches(file: string, rawSql: string): Mismatch[] {
+  const sql = stripComments(rawSql);
   const out: Mismatch[] = [];
   // Only the column-list form. `insert ... select` and `insert ... values`
   // without a column list have nothing to compare.
@@ -228,6 +297,27 @@ describe('migration INSERT statements', () => {
     expect(found).toHaveLength(1);
     expect(found[0]).toMatchObject({ table: 'public.set_entries', columns: 9, values: 8 });
     expect(found[0].missing).toEqual(['rpe']);
+  });
+
+  it('ignores commas inside a SQL comment', () => {
+    // The false positive this guard produced on 20260827140000: a comment
+    // explaining a magic number sat inside the VALUES list, and its own
+    // commas were counted as separators.
+    const commented = `
+      insert into storage.buckets (id, name, public)
+      values (
+        'form-checks',
+        'form-checks',
+        -- private, unlike avatars, because these are videos of someone
+        -- training at home
+        false
+      );`;
+    expect(findMismatches('synthetic.sql', commented)).toEqual([]);
+  });
+
+  it('does not mistake a -- inside a string for a comment', () => {
+    const stringy = `insert into public.t (a, b) values ('a -- not, a comment', 2);`;
+    expect(findMismatches('synthetic.sql', stringy)).toEqual([]);
   });
 
   it('does not flag inserts that are actually fine', () => {

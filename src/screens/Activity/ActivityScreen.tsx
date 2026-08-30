@@ -560,6 +560,15 @@ export function ActivityScreen() {
           label="What to lift next"
           onOpen={() => navigation.navigate('Overload')}
         />
+        {/* The other half of "what to do next", and the one a person answers
+            rather than an algorithm. It belongs beside the suggestions
+            because they answer the same question from opposite ends: the
+            heuristic reads your numbers, the coach watches the rep. */}
+        <PaidFeatureLink
+          featureId="form-check"
+          label="Get a lift reviewed"
+          onOpen={() => navigation.navigate('FormCheck')}
+        />
       </Card>
       </ScreenContainer>
     </View>
