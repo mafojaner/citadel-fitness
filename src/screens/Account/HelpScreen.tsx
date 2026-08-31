@@ -44,7 +44,12 @@ const FAQS: FaqItem[] = [
   {
     question: 'What are Fortress and Valhalla?',
     answer:
-      "They're Citadel Fitness's two upcoming paid plans, on top of the free tier everyone has. Fortress covers what you did: records, analytics, export, programs and groups. Valhalla adds what to do next, including coached nutrition and form-check reviews by a real person. Neither is on sale yet. Open Account, then Plans, to compare them and join the waitlist.",
+      "They're Citadel Fitness's two paid plans, on top of the free tier everyone has. Fortress covers what you did: records, analytics, export, programs and groups. Valhalla covers what to do next — weight and rep suggestions worked out from your own logged sessions, plus form check and nutrition coaching, which a real person answers. Neither is on sale yet: open Account, then Plans, to compare them and join a waitlist.",
+  },
+  {
+    question: 'Is anything actually charged for right now?',
+    answer:
+      "No. Nothing in the app can be bought, and no payment details are asked for anywhere. The plan pages exist so you can see what's coming and put your name down; if a plan is ever switched on for your account it's because we did it by hand, not because you paid.",
   },
   {
     question: 'Is my data private?',

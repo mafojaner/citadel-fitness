@@ -372,7 +372,17 @@ export function AccountScreen() {
           Learn is any more "theirs" than here. offline-sync joins them for
           the same reason, being a background capability rather than a screen. */}
       <SettingsSection title="Membership perks">
-        <PaidFeatureCard featureId="priority-support" variant="row" />
+        {/* Opens Help & feedback, which is where the feature actually is.
+            Priority support is not a screen — it is a property of the
+            queue behind that form, and the member's message going to the
+            front of it. Without this it read "Coming soon" to someone whose
+            messages were already being answered first, which is the same
+            mistake offline sync made until it was given a status. */}
+        <PaidFeatureCard
+          featureId="priority-support"
+          variant="row"
+          onOpen={() => navigation.navigate('Help')}
+        />
         <PaidFeatureCard featureId="early-access" variant="row" />
         {/* Built, but with no screen of its own: it reports its own state
             instead. The waiting count is the only visible evidence the

@@ -85,6 +85,30 @@ describe('the catalogue', () => {
     ]);
   });
 
+  it('promises no turnaround time nobody is staffed to keep', () => {
+    // Form check said "within 48 hours" until 27 August. The app's half of
+    // that feature is real -- upload, queue, reply, and a cap of four a
+    // month that is enforced in the database -- but the turnaround depends
+    // on a coach who does not exist yet, and a number in the catalogue is a
+    // promise the product cannot keep.
+    //
+    // This is the same guard as the no-automation one below, for the same
+    // reason: the catalogue is the contract, and a specific figure is the
+    // hardest kind of claim to walk back once someone has read it.
+    // Word boundaries are written as character classes rather than \b on
+    // purpose. The first draft of this line was generated through a shell
+    // pipeline that lost an escaping level and wrote a literal 0x08
+    // backspace where the boundary was meant, so the regex looked for a
+    // control character, matched nothing, and reported the catalogue
+    // clean while it still said "within 48 hours". The CI guard caught
+    // the stray byte; nothing would have caught the silently-passing
+    // test.
+    const timePromise =
+      /(^|[^A-Za-z])(within|in under|in less than|guaranteed)([^.]*)(hour|day|minute)s?([^A-Za-z]|$)/i;
+    const offenders = APP_FEATURES.filter((f) => timePromise.test(f.description)).map((f) => f.id);
+    expect(offenders).toEqual([]);
+  });
+
   it('leaves every shipped feature in Fortress', () => {
     // Promoting a built feature would take something Fortress can
     // demonstrate today and put it behind a tier that ships nothing yet.

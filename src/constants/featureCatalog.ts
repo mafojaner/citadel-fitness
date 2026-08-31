@@ -72,7 +72,10 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'sparkles',
     colors: gradients.identity,
     title: 'AI progressive overload',
-    description: 'A smarter weight and rep suggestion for every set, tuned to how your last session actually went.',
+    // Per lift, decided on the top set of the last session -- not per set,
+    // which is what this said before the feature existed to check it
+    // against.
+    description: 'A weight and rep target for each lift, worked out from how your last sessions actually went.',
     tier: 'valhalla',
     showInComparison: true,
   },
@@ -121,7 +124,13 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'videocam',
     colors: gradients.action,
     title: 'Form check reviews',
-    description: 'Submit a set on video and get feedback from a real coach within 48 hours.',
+    // "within 48 hours" until 27 August, which was a service-level promise
+    // with a number on it for something nobody is staffed to answer yet.
+    // The app's half is built -- upload, queue, reply -- and the cap of four
+    // a month is real and enforced; the turnaround is not, so it is not
+    // claimed. Put a number back here when someone is actually answering,
+    // and not before.
+    description: 'Send a set on video and a coach writes back on it. Four reviews a month.',
     tier: 'valhalla',
     showInComparison: true,
   },
