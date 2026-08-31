@@ -1,5 +1,15 @@
 import type { MembershipTier } from '../lib/membership';
-export type Category = 'chest' | 'back' | 'legs' | 'arms' | 'core' | 'cardio' | 'boxing' | 'glutes' | string;
+export type Category =
+  | 'chest'
+  | 'back'
+  | 'legs'
+  | 'shoulders'
+  | 'arms'
+  | 'core'
+  | 'cardio'
+  | 'boxing'
+  | 'glutes'
+  | string;
 
 export type ExerciseType = 'strength' | 'cardio';
 

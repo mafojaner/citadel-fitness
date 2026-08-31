@@ -169,7 +169,12 @@ export const APP_FEATURES: AppFeature[] = [
     icon: 'headset',
     colors: gradients.pulse,
     title: 'Priority support',
-    description: 'Skip the queue with a same-day reply from a real person, every time.',
+    // "a same-day reply from a real person, every time" until 28 August.
+    // Two promises, both unkeepable: a turnaround nobody is staffed for, and
+    // "every time", which converts a best effort into a guarantee. What is
+    // actually built is the ordering -- the queue really does put a member's
+    // message above everyone else's -- so that is what it says.
+    description: 'Your message goes to the front of the queue, ahead of everyone on a free plan.',
     tier: 'valhalla',
     showInComparison: true,
   },
@@ -294,6 +299,9 @@ export const TIER_PITCH: Record<FeatureTier, TierPitch> = {
     tier: 'fortress',
     icon: { family: 'material-community', name: 'chess-rook' },
     tagline: 'Everything you did, measured and explained.',
+    // Fallback only. PlanPrice renders TIER_PRICING when a number is
+    // set, which it now is, so this shows only if pricing is ever
+    // cleared again.
     price: 'Pricing at launch',
   },
   valhalla: {
@@ -350,8 +358,26 @@ export interface TierPricing {
 
 export const TIER_PRICING: Record<FeatureTier, TierPricing> = {
   free: { monthly: 0, annualPerMonth: 0, currency: 'USD' },
-  fortress: { monthly: null, annualPerMonth: null, currency: 'USD' },
-  valhalla: { monthly: null, annualPerMonth: null, currency: 'USD' },
+
+  // Fortress is software, so it is priced against software. Strong and Hevy
+  // sit at $4.99-$5.99 a month for a comparable feature set, and undercutting
+  // them says "worth less" rather than "better value" -- there is no third
+  // reading of a lower price for the same thing. The annual works out at two
+  // months free, which is the convention people already recognise.
+  fortress: { monthly: 4.99, annualPerMonth: 3.99, currency: 'USD' },
+
+  // Valhalla is somebody's hours, and the number has to pay them.
+  //
+  // The plan's own sizing is four form checks a month at fifteen minutes
+  // each, plus a nutrition plan and priority replies -- call it ninety
+  // minutes of skilled time per member per month. The stores take 15-30% of
+  // this, so $79.99 nets roughly $56 and works out near $37 an hour for
+  // whoever is doing the reviewing. At $49.99 the same maths lands around
+  // $23 an hour after the store's cut, which is not a rate a decent coach
+  // works for, and a tier that cannot pay its coach stops having one.
+  //
+  // This is the number most worth arguing with, and it is one line.
+  valhalla: { monthly: 79.99, annualPerMonth: 66.99, currency: 'USD' },
 };
 
 /** Whether this plan has enough set to show a price at all. */

@@ -31,7 +31,7 @@ not on this list is not collected.
 | `feedback` | message text, email | Plus `answered_at` since 27 Aug. |
 | `referral_codes`, `referrals` | code, who referred whom | |
 | `fortress_waitlist` | email, which tier | |
-| `subscriptions` | provider, product, status, period end | **Nothing is purchasable yet**, so this is currently empty. |
+| `subscriptions` | provider, product, status, period end | **Nothing is purchasable yet**, so this is currently empty. Prices are displayed from 28 August, but every plan button still opens a waitlist. |
 | `form_check_submissions` | video path, a note, the coach's reply | **Video of the member training.** Valhalla only. |
 | `nutrition_intakes` | goal, body weight, height, activity level, dietary restrictions, a typical day of eating, the coach's plan | **Health data.** Every field except the goal is optional. Valhalla only. |
 | Storage `avatars` | profile photos | **Bucket is public.** A known URL is fetchable without signing in; listing was closed off in `20260101000015`. |
@@ -175,6 +175,39 @@ privacy policy as of 27 August.
 > anyone.
 >
 > Paid plans are coming and are not on sale yet.
+
+### Prices
+
+Set 28 August, displayed in the app, and **not yet chargeable** — every plan
+button still opens a waitlist. These are the numbers to create in App Store
+Connect and Play Console when billing goes in; the product ids the webhook
+already expects are `fortress_monthly`, `fortress_annual`,
+`valhalla_monthly` and `valhalla_annual`.
+
+| Plan | Monthly | Yearly | Yearly total | Saving |
+|---|---|---|---|---|
+| Free | — | — | — | — |
+| Fortress | $4.99 | $3.99/mo | $47.88 | 20% |
+| Valhalla | $79.99 | $66.99/mo | $803.88 | 16% |
+
+**Fortress is priced against software.** Strong and Hevy sit at $4.99–$5.99
+for a comparable feature set; undercutting them reads as "worth less" rather
+than "better value".
+
+**Valhalla is priced against somebody's hours**, which is the number worth
+arguing with. The plan's own sizing is four form checks a month at fifteen
+minutes each, plus a nutrition plan and priority replies — roughly ninety
+minutes of skilled time per member per month. The stores take 15–30%, so
+$79.99 nets about $56 and works out near $37 an hour for whoever reviews.
+At $49.99 the same maths lands around $23 an hour after the store's cut,
+which is not a rate a good coach works for, and a tier that cannot pay its
+coach stops having one.
+
+> **Before publishing the annual Valhalla product:** it commits someone to
+> twelve months of a coach who is not contracted yet. Consider leaving that
+> one SKU unpublished until the human side is staffed, and selling Valhalla
+> monthly only at launch. The monthly SKU can be paused; a year already paid
+> for cannot.
 
 ### Keywords (Apple, 100 chars, comma-separated, no spaces)
 

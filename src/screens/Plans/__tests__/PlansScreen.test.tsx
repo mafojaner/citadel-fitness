@@ -109,12 +109,32 @@ describe('PlansScreen flow', () => {
     expect(view.getByText('Compare plans')).toBeTruthy();
   });
 
-  it('does not print a price it does not have', () => {
-    // Paid pricing is deliberately unset. Until it is filled in the card must
-    // say so rather than showing a placeholder number, which is the one kind
-    // of placeholder that gets screenshotted.
+  it('shows the price now that there is one', () => {
+    // Until 28 August this asserted the opposite: that no number appeared,
+    // because none was set. Prices landed in preparation for launch, so the
+    // test follows the product rather than pinning it in the past.
     const view = render(<PlansScreen variant="screen" />);
-    expect(view.getByText('Pricing at launch')).toBeTruthy();
-    expect(view.queryByText('No commitment · Cancel anytime')).toBeNull();
+    expect(view.getByText('$4.99')).toBeTruthy();
+    expect(view.getByText('USD / month')).toBeTruthy();
+    expect(view.getByText('billed monthly')).toBeTruthy();
+  });
+
+  it('switches the figure when the billing period changes', () => {
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('Yearly, · Save 20%'));
+    expect(view.getByText('$3.99')).toBeTruthy();
+    expect(view.getByText('billed yearly')).toBeTruthy();
+  });
+
+  it('still sells nothing, whatever the price says', () => {
+    // The thing a price makes easy to get wrong. Billing does not exist:
+    // there is no purchase flow, no RevenueCat SDK and no store product, so
+    // every plan action must still be a waitlist. A button reading "Get
+    // Fortress" beside a real number would be taking an order the app cannot
+    // fill.
+    const view = render(<PlansScreen variant="screen" />);
+    expect(view.getByLabelText('Join the waitlist')).toBeTruthy();
+    expect(view.queryByText(/^Get /)).toBeNull();
+    expect(view.getByText(/Nothing is on sale yet/)).toBeTruthy();
   });
 });

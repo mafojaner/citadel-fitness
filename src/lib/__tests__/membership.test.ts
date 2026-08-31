@@ -1,4 +1,10 @@
-import { APP_FEATURES, TIER_ORDER, TIER_PITCH } from '../../constants/featureCatalog';
+import {
+  annualSavingPct,
+  APP_FEATURES,
+  TIER_ORDER,
+  TIER_PITCH,
+  TIER_PRICING,
+} from '../../constants/featureCatalog';
 import { TIER_LABELS, parseTier, tierAllows, tierRank } from '../membership';
 
 describe('tierRank', () => {
@@ -105,7 +111,14 @@ describe('the catalogue', () => {
     // test.
     const timePromise =
       /(^|[^A-Za-z])(within|in under|in less than|guaranteed)([^.]*)(hour|day|minute)s?([^A-Za-z]|$)/i;
-    const offenders = APP_FEATURES.filter((f) => timePromise.test(f.description)).map((f) => f.id);
+    // "same-day" says a turnaround without using any of the words above,
+    // which is exactly how priority support kept its promise through the
+    // first version of this guard. So does "every time", which turns a best
+    // effort into a guarantee without naming a duration at all.
+    const impliedPromise = /(same[- ]day|same[- ]hour|every time|always within)/i;
+    const offenders = APP_FEATURES.filter(
+      (f) => timePromise.test(f.description) || impliedPromise.test(f.description)
+    ).map((f) => f.id);
     expect(offenders).toEqual([]);
   });
 
@@ -143,13 +156,49 @@ describe('the catalogue', () => {
     }
   });
 
-  it('quotes no price while there is no way to charge one', () => {
-    // Billing isn't built. A number on the Plans page before then is a
-    // promise the app cannot keep, and the kind of copy that gets pasted in
-    // "just as a placeholder" and then ships.
+  it('prices every paid tier coherently, or not at all', () => {
+    // This used to assert that no tier quoted a price, because billing did
+    // not exist and a number was a promise the app could not keep. Prices
+    // were set on 28 August in preparation for launch, so the rule changes
+    // rather than disappears: a tier may carry a price, but the numbers have
+    // to make sense together.
+    //
+    // What has NOT changed is that nothing is purchasable. The plan buttons
+    // still open a waitlist, which PlansScreen's own tests pin.
     for (const tier of TIER_ORDER) {
-      expect(TIER_PITCH[tier].price).not.toMatch(/[0-9]|\$|£|€|R\s?\d/);
+      const p = TIER_PRICING[tier];
+      expect(p.currency).toBeTruthy();
+
+      if (tier === 'free') {
+        expect(p.monthly).toBe(0);
+        continue;
+      }
+
+      // Either both are set or neither is. A monthly price with no annual
+      // would render a billing toggle whose other side is blank.
+      expect(p.monthly).not.toBeNull();
+      expect(p.annualPerMonth).not.toBeNull();
+      expect(p.monthly as number).toBeGreaterThan(0);
+
+      // Paying for a year up front must never cost more per month than
+      // paying monthly, which is the one way this pair can be actively
+      // wrong rather than merely debatable.
+      expect(p.annualPerMonth as number).toBeLessThan(p.monthly as number);
+
+      // And the saving has to be worth a badge. Under about 10% reads as an
+      // insult rather than an offer.
+      const saving = annualSavingPct(p);
+      expect(saving).not.toBeNull();
+      expect(saving as number).toBeGreaterThanOrEqual(10);
     }
+
+    // Valhalla costs somebody's hours and Fortress does not, so it must be
+    // the dearer of the two by a distance that reflects that. Pinned because
+    // a well-meaning discount on the coached tier is how it stops paying its
+    // coach.
+    expect(TIER_PRICING.valhalla.monthly as number).toBeGreaterThan(
+      (TIER_PRICING.fortress.monthly as number) * 5
+    );
   });
 
   it('caps the tier a person has to deliver, and only that one', () => {

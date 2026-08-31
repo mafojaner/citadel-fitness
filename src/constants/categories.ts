@@ -7,6 +7,10 @@ export const CATEGORY_FILTERS: { label: string; value: Category | 'all' }[] = [
   { label: 'Chest', value: 'chest' },
   { label: 'Back', value: 'back' },
   { label: 'Legs', value: 'legs' },
+  // Between legs and arms rather than appended to the end: the list
+  // reads top-down through the body, and a category bolted on after
+  // Glutes would look like the afterthought it was.
+  { label: 'Shoulders', value: 'shoulders' },
   { label: 'Arms', value: 'arms' },
   { label: 'Core', value: 'core' },
   { label: 'Cardio', value: 'cardio' },
@@ -18,6 +22,7 @@ export const CATEGORY_ICONS: Partial<Record<Category, keyof typeof Ionicons.glyp
   chest: 'barbell-outline',
   back: 'body-outline',
   legs: 'walk-outline',
+  shoulders: 'barbell-outline',
   arms: 'accessibility-outline',
   core: 'sync-outline',
   cardio: 'heart-outline',
@@ -31,6 +36,7 @@ export const CATEGORY_GRADIENTS: Partial<Record<Category, readonly [string, stri
   chest: gradients.volume,
   back: gradients.calendar,
   legs: gradients.flame,
+  shoulders: gradients.rankGold,
   arms: gradients.arms,
   core: gradients.identity,
   cardio: gradients.pulse,
