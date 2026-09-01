@@ -70,6 +70,40 @@ export interface TrendLine {
  * Returns null when the fit is undefined — fewer than two points, or every
  * point on the same day, which would divide by zero.
  */
+/**
+ * How far out a training goal is actually set, as a date.
+ *
+ * The form used to ask for `YYYY-MM-DD` typed by hand, which is the wrong
+ * question twice over: nobody types dates on a phone, and nobody thinks
+ * about a lift in calendar terms either. A block is six weeks, a season is
+ * three months. This turns the way people think into the date that gets
+ * stored.
+ */
+export function isoInWeeks(weeks: number, from: Date = new Date()): string {
+  const d = new Date(from);
+  d.setDate(d.getDate() + weeks * 7);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Suggested targets, as a step up from what you already lift.
+ *
+ * A target weight means nothing without knowing what you currently lift,
+ * and the form was asking for one blind. Rounded to the nearest 2.5 because
+ * that is the smallest plate pair on a barbell, so an unrounded 3.7% of
+ * 82.5 is a number you cannot actually load.
+ *
+ * Anything that rounds back onto the current best is dropped rather than
+ * offered as a goal already met -- at low weights 5% and 10% can both round
+ * to the same rung, and a duplicate suggestion reads as a broken button.
+ */
+export function suggestedTargets(best: number): number[] {
+  if (!Number.isFinite(best) || best <= 0) return [];
+  return [1.05, 1.1, 1.2]
+    .map((factor) => Math.round((best * factor) / 2.5) * 2.5)
+    .filter((value, index, all) => value > best && all.indexOf(value) === index);
+}
+
 export function fitTrend(points: { day: number; value: number }[]): TrendLine | null {
   if (points.length < MIN_SESSIONS_FOR_TREND) return null;
 

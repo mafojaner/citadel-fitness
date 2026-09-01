@@ -1,4 +1,11 @@
-import { fitTrend, projectGoal, projectGoals, type LiftGoal } from '../goals';
+import {
+  fitTrend,
+  isoInWeeks,
+  projectGoal,
+  projectGoals,
+  suggestedTargets,
+  type LiftGoal,
+} from '../goals';
 import type { ExerciseHistory, RecordSet } from '../workoutHistory';
 
 const goal = (over: Partial<LiftGoal> = {}): LiftGoal => ({
@@ -174,5 +181,74 @@ describe('projectGoals', () => {
   it('leaves a goal for a never-logged lift as no-trend', () => {
     const [result] = projectGoals([goal({ exerciseId: 'bench' })], [history([set('2026-08-01', 100)])], 'kg', '2026-08-20');
     expect(result.status).toBe('no-trend');
+  });
+});
+
+describe('isoInWeeks', () => {
+  // Fixed origin, because "6 weeks from now" is not a testable claim.
+  const from = new Date('2026-09-01T12:00:00Z');
+
+  it('turns a training horizon into a stored date', () => {
+    expect(isoInWeeks(6, from)).toBe('2026-10-13');
+    expect(isoInWeeks(13, from)).toBe('2026-12-01');
+    expect(isoInWeeks(52, from)).toBe('2027-08-31');
+  });
+
+  it('crosses a month and a year boundary rather than clamping', () => {
+    expect(isoInWeeks(26, new Date('2026-12-20T12:00:00Z'))).toBe('2027-06-20');
+  });
+
+  it('does not mutate the date it was given', () => {
+    const origin = new Date('2026-09-01T12:00:00Z');
+    isoInWeeks(52, origin);
+    expect(origin.toISOString()).toBe('2026-09-01T12:00:00.000Z');
+  });
+
+  it('always lands in the future, which is what the form validates on', () => {
+    const today = from.toISOString().slice(0, 10);
+    for (const weeks of [6, 13, 26, 52]) {
+      expect(isoInWeeks(weeks, from) > today).toBe(true);
+    }
+  });
+});
+
+describe('suggestedTargets', () => {
+  it('offers steps up, rounded to a loadable 2.5', () => {
+    // 100 -> 105, 110, 120 exactly.
+    expect(suggestedTargets(100)).toEqual([105, 110, 120]);
+  });
+
+  it('rounds to the plate rather than to the percentage', () => {
+    // 82.5 * 1.05 = 86.625, which is not a weight anyone can load.
+    expect(suggestedTargets(82.5)).toEqual([87.5, 90, 100]);
+    for (const value of suggestedTargets(82.5)) {
+      expect(value % 2.5).toBeCloseTo(0);
+    }
+  });
+
+  it('never suggests a target at or below the current best', () => {
+    // At 20kg, 5% is 1kg and rounds straight back onto 20 -- offering it
+    // would be a goal already met, and a button that does nothing.
+    for (const best of [5, 10, 20, 47.5, 200]) {
+      for (const value of suggestedTargets(best)) {
+        expect(value).toBeGreaterThan(best);
+      }
+    }
+  });
+
+  it('does not offer the same weight twice', () => {
+    for (const best of [5, 10, 12.5, 20, 30, 100]) {
+      const values = suggestedTargets(best);
+      expect(new Set(values).size).toBe(values.length);
+    }
+  });
+
+  it('suggests nothing without a usable best', () => {
+    // The picker only offers lifts with history, but a strength exercise
+    // logged as bodyweight has a best of 0 and there is nothing to step up
+    // from -- the form falls back to the plain input.
+    expect(suggestedTargets(0)).toEqual([]);
+    expect(suggestedTargets(-10)).toEqual([]);
+    expect(suggestedTargets(Number.NaN)).toEqual([]);
   });
 });

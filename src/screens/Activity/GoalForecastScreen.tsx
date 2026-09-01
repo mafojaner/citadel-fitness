@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -7,9 +7,9 @@ import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { useLiftGoals } from '../../hooks/useLiftGoals';
+import { useLiftGoals, type LiftedExercise } from '../../hooks/useLiftGoals';
 import { todayISO } from '../../lib/analytics';
-import type { GoalProjection, GoalStatus } from '../../lib/goals';
+import { isoInWeeks, suggestedTargets, type GoalProjection, type GoalStatus } from '../../lib/goals';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -21,6 +21,19 @@ const STATUS_COPY: Record<GoalStatus, { label: string; detail: string; icon: key
   declining: { label: 'Not rising', detail: 'This lift is flat or falling right now.', icon: 'trending-down' },
   'no-trend': { label: 'Not enough data', detail: 'Log this lift on two separate days to see a projection.', icon: 'help-circle' },
 };
+
+/**
+ * The horizons offered, in the language training blocks are planned in.
+ * See isoInWeeks in lib/goals for why this replaced a typed date field.
+ * The resolved date is still shown once chosen, because that is what gets
+ * stored and counted down against.
+ */
+const HORIZONS: { label: string; weeks: number }[] = [
+  { label: '6 weeks', weeks: 6 },
+  { label: '3 months', weeks: 13 },
+  { label: '6 months', weeks: 26 },
+  { label: 'A year', weeks: 52 },
+];
 
 function formatDate(dateString: string | null) {
   if (!dateString) return null;
@@ -45,18 +58,53 @@ export function GoalForecastScreen() {
   const [picked, setPicked] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [date, setDate] = useState('');
+  // Closed by default once there are goals to look at. The form used to sit
+  // permanently at the top of the screen, so on every visit after the first
+  // the least useful thing on the page was also the largest -- you came back
+  // to check a forecast and had to scroll past the machinery for creating
+  // another one.
+  const [composing, setComposing] = useState(false);
+
+  const pickedLift = useMemo<LiftedExercise | null>(
+    () => liftedExercises.find((l) => l.id === picked) ?? null,
+    [liftedExercises, picked]
+  );
+
+  // A lift already carrying a goal is not offered again. Two goals on one
+  // lift produce two projections from one trend line, which is noise rather
+  // than information, and the second is usually a mistyped first.
+  const goalledIds = useMemo(
+    () => new Set(projections.map((p) => p.goal.exerciseId)),
+    [projections]
+  );
+  const available = useMemo(
+    () => liftedExercises.filter((l) => !goalledIds.has(l.id)),
+    [liftedExercises, goalledIds]
+  );
+
+  // Achieved goals are kept but moved out of the way. Deleting them on
+  // completion would throw away the only record that the target was ever
+  // met; leaving them in the main list means a year of hit goals slowly
+  // buries the two you are actually chasing.
+  const active = projections.filter((p) => p.status !== 'achieved');
+  const achieved = projections.filter((p) => p.status === 'achieved');
 
   const dateLooksValid = /^\d{4}-\d{2}-\d{2}$/.test(date) && date > todayISO();
   const parsedWeight = Number(weight);
   const weightValid = Number.isFinite(parsedWeight) && parsedWeight > 0;
   const canSave = Boolean(picked) && weightValid && dateLooksValid && !saving;
 
-  const onSave = async () => {
-    if (!picked || !canSave) return;
-    await addGoal(picked, parsedWeight, weightUnit, date);
+  const resetForm = () => {
     setPicked(null);
     setWeight('');
     setDate('');
+  };
+
+  const onSave = async () => {
+    if (!picked || !canSave) return;
+    await addGoal(picked, parsedWeight, weightUnit, date);
+    resetForm();
+    setComposing(false);
   };
 
   const renderProjection = (p: GoalProjection) => {
@@ -70,6 +118,10 @@ export function GoalForecastScreen() {
             ? colors.danger
             : colors.textMuted;
     const arrival = formatDate(p.projectedDate);
+    // How much is left, in the unit the goal is set in. "18 kg to go" is the
+    // question someone actually has ("how far am I?"); a percentage bar
+    // alone answers it only approximately.
+    const remaining = Math.max(0, Math.round((p.target - p.current) * 10) / 10);
 
     return (
       <Card key={p.goal.id}>
@@ -118,7 +170,10 @@ export function GoalForecastScreen() {
           />
         </View>
 
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>{copy.detail}</Text>
+        <Text style={[typography.caption, { color: colors.textSecondary }]}>
+          {remaining > 0 ? `${remaining} ${p.goal.targetUnit} to go · ` : ''}
+          {copy.detail}
+        </Text>
 
         {p.status !== 'no-trend' && p.status !== 'achieved' ? (
           <Text style={[typography.caption, { color: colors.textMuted }]}>
@@ -132,100 +187,175 @@ export function GoalForecastScreen() {
     );
   };
 
-  return (
-    <ScreenContainer>
-      <Card title="Set a target">
-        <Text style={[typography.caption, { color: colors.textMuted }]}>
-          Pick a lift, a weight, and a date. The projection comes from your own logged
-          history, so there&apos;s nothing to keep updated by hand.
+  const suggestions = pickedLift ? suggestedTargets(pickedLift.best) : [];
+
+  const form = (
+    <Card title="Set a target">
+      <Text style={[typography.caption, { color: colors.textMuted }]}>
+        Pick a lift, a weight, and how far out. The projection comes from your own
+        logged history, so there&apos;s nothing to keep updated by hand.
+      </Text>
+
+      {liftedExercises.length === 0 ? (
+        <Text style={[typography.body, { color: colors.textSecondary }]}>
+          Log a strength exercise first. A projection is fitted to your own history, so
+          there needs to be some.
         </Text>
-
-        {liftedExercises.length === 0 ? (
-          <Text style={[typography.body, { color: colors.textSecondary }]}>
-            Log a strength exercise first. A projection is fitted to your own history, so
-            there needs to be some.
-          </Text>
-        ) : (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-            {liftedExercises.map((lift) => (
-              <GradientPill
-                key={lift.id}
-                label={lift.name}
-                active={picked === lift.id}
-                onPress={() => setPicked(lift.id)}
-              />
-            ))}
-          </View>
-        )}
-
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <TextInput
-            value={weight}
-            onChangeText={setWeight}
-            keyboardType="numeric"
-            placeholder={`Target (${weightUnit})`}
-            placeholderTextColor={colors.textMuted}
-            accessibilityLabel={`Target weight in ${weightUnit}`}
-            style={{
-              flex: 1,
-              borderColor: colors.border,
-              borderWidth: 1,
-              borderRadius: radius.md,
-              padding: spacing.md,
-              color: colors.textPrimary,
-            }}
-          />
-          <TextInput
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.textMuted}
-            accessibilityLabel="Target date, year dash month dash day"
-            style={{
-              flex: 1,
-              borderColor: colors.border,
-              borderWidth: 1,
-              borderRadius: radius.md,
-              padding: spacing.md,
-              color: colors.textPrimary,
-            }}
-          />
+      ) : available.length === 0 ? (
+        <Text style={[typography.body, { color: colors.textSecondary }]}>
+          Every lift you have logged already has a goal. Remove one, or log a new lift,
+          to set another.
+        </Text>
+      ) : (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+          {available.map((lift) => (
+            <GradientPill
+              key={lift.id}
+              label={lift.name}
+              active={picked === lift.id}
+              onPress={() => {
+                setPicked(lift.id);
+                // Clearing the weight matters: the suggestions below are
+                // relative to the lift, so a number left over from the
+                // previous pick is a target measured against nothing.
+                setWeight('');
+              }}
+            />
+          ))}
         </View>
+      )}
 
-        {date.length > 0 && !dateLooksValid ? (
+      {pickedLift ? (
+        <View style={{ gap: spacing.xs }}>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            Best so far: <Text style={{ fontWeight: '700' }}>{pickedLift.best} {weightUnit}</Text>
+            {pickedLift.lastLogged ? ` · last trained ${formatDate(pickedLift.lastLogged)}` : ''}
+          </Text>
+          {suggestions.length > 0 ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+              {suggestions.map((value) => (
+                <GradientPill
+                  key={value}
+                  label={`${value} ${weightUnit}`}
+                  active={weight === String(value)}
+                  onPress={() => setWeight(String(value))}
+                />
+              ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      <TextInput
+        value={weight}
+        onChangeText={setWeight}
+        keyboardType="numeric"
+        placeholder={`Target (${weightUnit})`}
+        placeholderTextColor={colors.textMuted}
+        accessibilityLabel={`Target weight in ${weightUnit}`}
+        style={{
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: radius.md,
+          padding: spacing.md,
+          color: colors.textPrimary,
+        }}
+      />
+
+      <View style={{ gap: spacing.xs }}>
+        <Text style={[typography.caption, { color: colors.textSecondary }]}>By when?</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+          {HORIZONS.map((horizon) => {
+            const iso = isoInWeeks(horizon.weeks);
+            return (
+              <GradientPill
+                key={horizon.label}
+                label={horizon.label}
+                active={date === iso}
+                onPress={() => setDate(iso)}
+              />
+            );
+          })}
+        </View>
+        {dateLooksValid ? (
+          // The chosen horizon resolved to a real date. Shown because that
+          // is what gets stored, counted down against, and displayed on the
+          // goal card afterwards -- "3 months" should not be the last time
+          // you see what it actually means.
           <Text style={[typography.caption, { color: colors.textMuted }]}>
-            Use YYYY-MM-DD, and pick a date in the future.
+            Target date: {formatDate(date)}
           </Text>
         ) : null}
+      </View>
 
+      <GradientButton
+        label={saving ? 'Saving...' : 'Save goal'}
+        loading={saving}
+        disabled={!canSave}
+        onPress={onSave}
+      />
+
+      {projections.length > 0 ? (
         <GradientButton
-          label={saving ? 'Saving...' : 'Save goal'}
-          loading={saving}
-          disabled={!canSave}
-          onPress={onSave}
+          label="Cancel"
+          variant="outline"
+          onPress={() => {
+            resetForm();
+            setComposing(false);
+          }}
         />
-      </Card>
+      ) : null}
+    </Card>
+  );
 
+  return (
+    <ScreenContainer>
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       {loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : projections.length === 0 ? (
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="flag" colors={gradients.reward} size={44} />
-            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-              <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                No goals yet
-              </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                Set one above and it starts tracking against everything you log.
-              </Text>
+        // Nothing to look at yet, so the form is the screen and there is
+        // nothing to collapse it in favour of.
+        <>
+          {form}
+          <Card>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <GradientIconBadge icon="flag" colors={gradients.reward} size={44} />
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
+                  No goals yet
+                </Text>
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                  Set one above and it starts tracking against everything you log.
+                </Text>
+              </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </>
       ) : (
-        projections.map(renderProjection)
+        <>
+          {composing ? (
+            form
+          ) : (
+            <GradientButton
+              label="Set another target"
+              variant="outline"
+              onPress={() => setComposing(true)}
+            />
+          )}
+
+          {active.map(renderProjection)}
+
+          {achieved.length > 0 ? (
+            <>
+              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+                Achieved
+              </Text>
+              {achieved.map(renderProjection)}
+            </>
+          ) : null}
+        </>
       )}
     </ScreenContainer>
   );

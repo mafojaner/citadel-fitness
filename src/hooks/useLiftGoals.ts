@@ -12,12 +12,28 @@ import { useAuthStore } from '../state/authStore';
 import { useProfileStore } from '../state/profileStore';
 import type { WeightUnit } from '../types/models';
 
+export interface LiftedExercise {
+  id: string;
+  name: string;
+  /**
+   * The heaviest set ever logged for this lift, in the display unit.
+   *
+   * The history was already being fetched to build the picker and then
+   * thrown away except for the id and name. Keeping the number lets the
+   * form answer the question it was asking people to answer blind: a target
+   * weight means nothing without knowing what you already lift.
+   */
+  best: number;
+  /** ISO date of the most recent set, for the same reason. */
+  lastLogged: string | null;
+}
+
 export function useLiftGoals() {
   const userId = useAuthStore((s) => s.session?.user.id);
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const [projections, setProjections] = useState<GoalProjection[]>([]);
-  const [liftedExercises, setLiftedExercises] = useState<{ id: string; name: string }[]>([]);
+  const [liftedExercises, setLiftedExercises] = useState<LiftedExercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +57,20 @@ export function useLiftGoals() {
         setLiftedExercises(
           histories
             .filter((h) => h.type === 'strength')
-            .map((h) => ({ id: h.exerciseId, name: h.exerciseName }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((h) => ({
+              id: h.exerciseId,
+              name: h.exerciseName,
+              best: h.sets.reduce((max, set) => (set.weight > max ? set.weight : max), 0),
+              lastLogged: h.sets.reduce<string | null>(
+                (latest, set) => (latest === null || set.date > latest ? set.date : latest),
+                null
+              ),
+            }))
+            // Most recently trained first, not alphabetical. The lift you
+            // are about to set a goal on is overwhelmingly the one you were
+            // just doing, and an A-Z list buries it behind whatever happens
+            // to start with a B.
+            .sort((a, b) => (b.lastLogged ?? '').localeCompare(a.lastLogged ?? ''))
         );
       })
       .catch((err) => {
