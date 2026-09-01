@@ -1,10 +1,17 @@
 import {
   annualSavingPct,
   APP_FEATURES,
+  pricingFor,
   TIER_ORDER,
   TIER_PITCH,
-  TIER_PRICING,
 } from '../../constants/featureCatalog';
+import {
+  CURRENCIES,
+  DEFAULT_CURRENCY,
+  formatPrice,
+  isCurrencyCode,
+  parseCurrency,
+} from '../currency';
 import { TIER_LABELS, parseTier, tierAllows, tierRank } from '../membership';
 
 describe('tierRank', () => {
@@ -156,49 +163,85 @@ describe('the catalogue', () => {
     }
   });
 
-  it('prices every paid tier coherently, or not at all', () => {
-    // This used to assert that no tier quoted a price, because billing did
-    // not exist and a number was a promise the app could not keep. Prices
-    // were set on 28 August in preparation for launch, so the rule changes
-    // rather than disappears: a tier may carry a price, but the numbers have
-    // to make sense together.
+  it('prices every paid tier coherently, in every currency', () => {
+    // This once asserted that no tier quoted a price at all, because billing
+    // did not exist. Prices landed on 28 August and currencies on 1
+    // September, so the rule keeps widening rather than disappearing: a tier
+    // may carry a price, but every column has to make sense on its own.
     //
-    // What has NOT changed is that nothing is purchasable. The plan buttons
-    // still open a waitlist, which PlansScreen's own tests pin.
-    for (const tier of TIER_ORDER) {
-      const p = TIER_PRICING[tier];
-      expect(p.currency).toBeTruthy();
+    // Checking all of them matters more than it looks. Currencies are the
+    // sort of table where one cell gets edited and its annual twin does not,
+    // and the only way that surfaces is a member in one market being offered
+    // a "saving" that costs more.
+    for (const currency of CURRENCIES) {
+      for (const tier of TIER_ORDER) {
+        const p = pricingFor(tier, currency.code);
+        const where = `${currency.code} ${tier}`;
 
-      if (tier === 'free') {
-        expect(p.monthly).toBe(0);
-        continue;
+        expect(p.currency).toBe(currency.code);
+
+        if (tier === 'free') {
+          expect(p.monthly).toBe(0);
+          continue;
+        }
+
+        // Either both are set or neither is. A monthly price with no annual
+        // renders a billing toggle whose other side is blank.
+        expect(`${where}: ${p.monthly}`).not.toContain('null');
+        expect(`${where}: ${p.annualPerMonth}`).not.toContain('null');
+        expect(p.monthly as number).toBeGreaterThan(0);
+
+        // Paying for a year up front must never cost more per month than
+        // paying monthly. This is the one way a pair can be actively wrong
+        // rather than merely debatable.
+        expect(p.annualPerMonth as number).toBeLessThan(p.monthly as number);
+
+        // And the saving has to be worth a badge. Under about 10% reads as
+        // an insult rather than an offer.
+        const saving = annualSavingPct(p);
+        expect(saving).not.toBeNull();
+        expect(saving as number).toBeGreaterThanOrEqual(10);
       }
 
-      // Either both are set or neither is. A monthly price with no annual
-      // would render a billing toggle whose other side is blank.
-      expect(p.monthly).not.toBeNull();
-      expect(p.annualPerMonth).not.toBeNull();
-      expect(p.monthly as number).toBeGreaterThan(0);
-
-      // Paying for a year up front must never cost more per month than
-      // paying monthly, which is the one way this pair can be actively
-      // wrong rather than merely debatable.
-      expect(p.annualPerMonth as number).toBeLessThan(p.monthly as number);
-
-      // And the saving has to be worth a badge. Under about 10% reads as an
-      // insult rather than an offer.
-      const saving = annualSavingPct(p);
-      expect(saving).not.toBeNull();
-      expect(saving as number).toBeGreaterThanOrEqual(10);
+      // Valhalla costs somebody's hours and Fortress does not, so it is the
+      // dearer of the two by a distance that reflects that -- in every
+      // market, not just the one whose numbers were written first. Pinned
+      // because a well-meaning local discount on the coached tier is how it
+      // stops paying its coach.
+      const fortress = pricingFor('fortress', currency.code).monthly as number;
+      const valhalla = pricingFor('valhalla', currency.code).monthly as number;
+      expect(valhalla).toBeGreaterThan(fortress * 5);
     }
+  });
 
-    // Valhalla costs somebody's hours and Fortress does not, so it must be
-    // the dearer of the two by a distance that reflects that. Pinned because
-    // a well-meaning discount on the coached tier is how it stops paying its
-    // coach.
-    expect(TIER_PRICING.valhalla.monthly as number).toBeGreaterThan(
-      (TIER_PRICING.fortress.monthly as number) * 5
-    );
+  it('offers a currency for every priced column, and no orphans', () => {
+    // The picker iterates CURRENCIES and the table is keyed by the same
+    // codes, so a currency added to one and not the other is either a pill
+    // that crashes on selection or a price table nobody can reach.
+    for (const currency of CURRENCIES) {
+      expect(pricingFor('fortress', currency.code)).toBeTruthy();
+    }
+    expect(isCurrencyCode(DEFAULT_CURRENCY)).toBe(true);
+
+    // An unknown code falls back rather than throwing: a stored preference
+    // can outlive the currency it names, and a pricing page that crashes on
+    // one is worse than one that shows dollars.
+    expect(parseCurrency('XBT')).toBe(DEFAULT_CURRENCY);
+    expect(parseCurrency(undefined)).toBe(DEFAULT_CURRENCY);
+    expect(parseCurrency('ZAR')).toBe('ZAR');
+  });
+
+  it('formats an amount with its own symbol, never a hard-coded dollar', () => {
+    // The bug this stops: the symbol was inlined in PlanPrice while USD was
+    // the only option, which would have printed "$89.99" for a rand price
+    // and looked entirely normal doing it.
+    expect(formatPrice(4.99, 'USD')).toBe('$4.99');
+    expect(formatPrice(89.99, 'ZAR')).toBe('R89.99');
+    expect(formatPrice(4.49, 'GBP')).toBe('£4.49');
+    expect(formatPrice(5.49, 'EUR')).toBe('€5.49');
+    // Two decimals always, so a price point never reads as a rounded number
+    // beside one that does not.
+    expect(formatPrice(70, 'ZAR')).toBe('R70.00');
   });
 
   it('caps the tier a person has to deliver, and only that one', () => {

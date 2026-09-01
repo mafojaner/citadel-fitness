@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { MembershipTier } from '../lib/membership';
+import type { CurrencyCode } from '../lib/currency';
 import { gradients } from '../theme/tokens';
 
 export type FeatureTier = MembershipTier;
@@ -353,33 +354,73 @@ export function featureInk(feature: AppFeature): string {
 export interface TierPricing {
   monthly: number | null;
   annualPerMonth: number | null;
-  currency: string;
+  currency: CurrencyCode;
 }
 
-export const TIER_PRICING: Record<FeatureTier, TierPricing> = {
-  free: { monthly: 0, annualPerMonth: 0, currency: 'USD' },
-
-  // Fortress is software, so it is priced against software. Strong and Hevy
-  // sit at $4.99-$5.99 a month for a comparable feature set, and undercutting
-  // them says "worth less" rather than "better value" -- there is no third
-  // reading of a lower price for the same thing. The annual works out at two
-  // months free, which is the convention people already recognise.
-  fortress: { monthly: 4.99, annualPerMonth: 3.99, currency: 'USD' },
-
-  // Valhalla is somebody's hours, and the number has to pay them.
-  //
-  // The plan's own sizing is four form checks a month at fifteen minutes
-  // each, plus a nutrition plan and priority replies -- call it ninety
-  // minutes of skilled time per member per month. The stores take 15-30% of
-  // this, so $79.99 nets roughly $56 and works out near $37 an hour for
-  // whoever is doing the reviewing. At $49.99 the same maths lands around
-  // $23 an hour after the store's cut, which is not a rate a decent coach
-  // works for, and a tier that cannot pay its coach stops having one.
-  //
-  // This is the number most worth arguing with, and it is one line.
-  valhalla: { monthly: 79.99, annualPerMonth: 66.99, currency: 'USD' },
+/**
+ * Prices per currency, not per currency-times-a-rate.
+ *
+ * Each column is its own set of round local price points, chosen the way a
+ * store console works, because that is where they will be entered. There is
+ * no conversion anywhere in this file and there must not be: the stores
+ * charge in the buyer's own currency at the tier chosen per storefront, so a
+ * converted figure is a number nobody is charged, computed from a rate that
+ * is stale by the time anyone reads it. See lib/currency.ts.
+ *
+ * The reasoning behind the two USD numbers carries across the row:
+ *
+ *   Fortress is software, priced against software. Strong and Hevy sit at
+ *   about $4.99-$5.99 for a comparable feature set, and undercutting them
+ *   says "worth less" rather than "better value".
+ *
+ *   Valhalla is somebody's hours. Four form checks at fifteen minutes, plus
+ *   a nutrition plan and priority replies, is about ninety minutes of
+ *   skilled time per member per month. The stores take 15-30%, so $79.99
+ *   nets roughly $56, near $37 an hour for whoever reviews. At $49.99 the
+ *   same maths lands around $23 an hour, which is not a rate a good coach
+ *   works for, and a tier that cannot pay its coach stops having one.
+ *
+ * The non-USD rows are not that reasoning re-derived; they are the nearest
+ * ordinary local price point, which is why ZAR is not simply USD times
+ * eighteen. Adjust any cell without touching another.
+ */
+export const TIER_PRICING: Record<CurrencyCode, Record<FeatureTier, TierPricing>> = {
+  USD: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'USD' },
+    fortress: { monthly: 4.99, annualPerMonth: 3.99, currency: 'USD' },
+    valhalla: { monthly: 79.99, annualPerMonth: 66.99, currency: 'USD' },
+  },
+  ZAR: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'ZAR' },
+    fortress: { monthly: 89.99, annualPerMonth: 71.99, currency: 'ZAR' },
+    valhalla: { monthly: 1399.99, annualPerMonth: 1169.99, currency: 'ZAR' },
+  },
+  GBP: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'GBP' },
+    fortress: { monthly: 4.49, annualPerMonth: 3.49, currency: 'GBP' },
+    valhalla: { monthly: 69.99, annualPerMonth: 57.99, currency: 'GBP' },
+  },
+  EUR: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'EUR' },
+    fortress: { monthly: 5.49, annualPerMonth: 4.49, currency: 'EUR' },
+    valhalla: { monthly: 84.99, annualPerMonth: 69.99, currency: 'EUR' },
+  },
+  AUD: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'AUD' },
+    fortress: { monthly: 7.99, annualPerMonth: 6.49, currency: 'AUD' },
+    valhalla: { monthly: 124.99, annualPerMonth: 104.99, currency: 'AUD' },
+  },
+  CAD: {
+    free: { monthly: 0, annualPerMonth: 0, currency: 'CAD' },
+    fortress: { monthly: 6.99, annualPerMonth: 5.49, currency: 'CAD' },
+    valhalla: { monthly: 109.99, annualPerMonth: 91.99, currency: 'CAD' },
+  },
 };
 
+/** The prices for one tier in one currency. */
+export function pricingFor(tier: FeatureTier, currency: CurrencyCode): TierPricing {
+  return TIER_PRICING[currency][tier];
+}
 /** Whether this plan has enough set to show a price at all. */
 export function isPriced(pricing: TierPricing): boolean {
   return pricing.monthly !== null;

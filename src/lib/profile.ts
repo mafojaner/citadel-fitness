@@ -1,10 +1,19 @@
 import { parseTier, type MembershipTier } from './membership';
+import { DEFAULT_CURRENCY, type CurrencyCode } from './currency';
 import { supabase } from './supabase';
 import type { ArticleCategory } from '../types/models';
 
 export interface ProfilePreferences {
   units: 'lb' | 'kg';
   distanceUnit: 'mi' | 'km';
+  /**
+   * Which currency plan prices are shown in.
+   *
+   * A display choice only. The stores charge in the currency of the
+   * buyer's own store account, so this changes what someone reads while
+   * deciding, never what they are billed. See lib/currency.ts.
+   */
+  currency: CurrencyCode;
   notifications: boolean;
   /** Which newsletter categories may raise a notification when published. */
   articleNotifications: Record<ArticleCategory, boolean>;
@@ -31,6 +40,7 @@ export interface ProfilePreferences {
 }
 
 export const DEFAULT_PREFERENCES: ProfilePreferences = {
+  currency: DEFAULT_CURRENCY,
   units: 'lb',
   distanceUnit: 'mi',
   notifications: true,

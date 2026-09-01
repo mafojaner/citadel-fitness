@@ -184,11 +184,26 @@ Connect and Play Console when billing goes in; the product ids the webhook
 already expects are `fortress_monthly`, `fortress_annual`,
 `valhalla_monthly` and `valhalla_annual`.
 
-| Plan | Monthly | Yearly | Yearly total | Saving |
+Six currencies, each with its own local price points rather than a
+conversion. **There is no exchange rate anywhere in the app** and there
+should not be: the stores charge in the currency of the buyer's own store
+account at the tier chosen per storefront, so a converted figure is a number
+nobody is charged, from a rate that is stale the day it is written. These
+are the numbers to enter per storefront.
+
+| Currency | Fortress monthly | Fortress yearly | Valhalla monthly | Valhalla yearly |
 |---|---|---|---|---|
-| Free | — | — | — | — |
-| Fortress | $4.99 | $3.99/mo | $47.88 | 20% |
-| Valhalla | $79.99 | $66.99/mo | $803.88 | 16% |
+| USD | $4.99 | $3.99/mo | $79.99 | $66.99/mo |
+| ZAR | R89.99 | R71.99/mo | R1399.99 | R1169.99/mo |
+| GBP | £4.49 | £3.49/mo | £69.99 | £57.99/mo |
+| EUR | €5.49 | €4.49/mo | €84.99 | €69.99/mo |
+| AUD | A$7.99 | A$6.49/mo | A$124.99 | A$104.99/mo |
+| CAD | C$6.99 | C$5.49/mo | C$109.99 | C$91.99/mo |
+
+Every column is checked by a test: the annual must be cheaper per month than
+the monthly, the saving must be at least 10%, and Valhalla must stay more
+than five times Fortress in every market — because a well-meaning local
+discount on the coached tier is how it stops paying its coach.
 
 **Fortress is priced against software.** Strong and Hevy sit at $4.99–$5.99
 for a comparable feature set; undercutting them reads as "worth less" rather

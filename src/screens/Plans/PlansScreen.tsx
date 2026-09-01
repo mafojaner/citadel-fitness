@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { BillingPeriodToggle, type BillingPeriod } from '../../components/BillingPeriodToggle';
+import { CurrencyPicker } from '../../components/CurrencyPicker';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
@@ -17,7 +18,7 @@ import {
   isPriced,
   TIER_ORDER,
   TIER_PITCH,
-  TIER_PRICING,
+  pricingFor,
   type TierPitch,
 } from '../../constants/featureCatalog';
 import { TIER_LABELS, tierAllows, type MembershipTier } from '../../lib/membership';
@@ -26,8 +27,11 @@ import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import type { WaitlistTier } from '../../lib/fortress';
 import { isEmailValid } from '../../lib/email';
+import { parseCurrency, type CurrencyCode } from '../../lib/currency';
 import { planAction } from '../../lib/planAction';
 import { gradients } from '../../theme/tokens';
+import { useAuthStore } from '../../state/authStore';
+import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -137,6 +141,7 @@ function PlanCard({
   recommended = false,
   period,
   onPeriodChange,
+  currency,
 }: {
   pitch: TierPitch;
   currentTier: MembershipTier;
@@ -149,11 +154,12 @@ function PlanCard({
   period: BillingPeriod;
   /** Omitted on cards that should show the period but not let you change it. */
   onPeriodChange?: (value: BillingPeriod) => void;
+  currency: CurrencyCode;
 }) {
   const { colors, spacing, radius, typography } = useTheme();
   const included = FEATURES_BY_TIER[pitch.tier];
   const isCurrent = currentTier === pitch.tier;
-  const pricing = TIER_PRICING[pitch.tier];
+  const pricing = pricingFor(pitch.tier, currency);
   const addsLabel =
     pitch.tier === 'free'
       ? 'Includes'
@@ -446,6 +452,7 @@ function WaitlistJoinedNotice({
 export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' }) {
   const { colors, tiers, spacing, typography } = useTheme();
   const currentTier = useMembershipTier();
+  const userId = useAuthStore((state) => state.session?.user.id);
   const isDesktop = useIsDesktop();
   const { accountEmail, joined, joinedEmail, joinedTier, loading, joining, leaving, error, join, leave } =
     useFortressWaitlist();
@@ -458,6 +465,24 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
   // the list back under them mid-comparison would be the page arguing.
   const [showAll, setShowAll] = useState(false);
   const [period, setPeriod] = useState<BillingPeriod>('monthly');
+
+  // Persisted, so the choice survives leaving the screen. Read through
+  // parseCurrency because a stored preference can outlive the currency
+  // it names -- an older build, or a market since dropped -- and a
+  // pricing page that throws on an unknown code is worse than one that
+  // shows dollars.
+  const storedCurrency = useProfileStore((s) => s.preferences.currency);
+  const savePreferences = useProfileStore((s) => s.savePreferences);
+  const currency = parseCurrency(storedCurrency);
+
+  const onCurrencyChange = (next: CurrencyCode) => {
+    if (next === currency || !userId) return;
+    // A patch, not the whole preferences object. Sending the lot would
+    // write back whatever this screen happened to be holding, which is how
+    // a stale read on one screen quietly reverts a setting changed on
+    // another.
+    savePreferences(userId, { currency: next });
+  };
 
   // The next plan up from the one they hold, which is the only plan there is
   // anything to say about. A Valhalla member has nothing above them, so they
@@ -530,6 +555,12 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
         {TIER_LABELS[currentTier]}.
       </Text>
 
+      {/* Above the cards rather than inside one, unlike the billing toggle.
+          The period changes one card's figure; the currency changes every
+          number on the page, so it belongs where it can be seen to govern
+          all of them. */}
+      <CurrencyPicker value={currency} onChange={onCurrencyChange} />
+
       {/* One plan first, all of them on request.
 
           Three cards at once is a comparison, and a comparison is work. Most
@@ -565,6 +596,7 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
               recommended={!nothingToRecommend && tier === recommendedTier}
               period={period}
               onPeriodChange={setPeriod}
+              currency={currency}
             />
           ))}
         </View>
@@ -577,6 +609,7 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
             recommended
             period={period}
             onPeriodChange={setPeriod}
+            currency={currency}
           />
 
           <PlainButton

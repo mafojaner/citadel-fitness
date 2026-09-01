@@ -21,7 +21,9 @@ describe('PlanPrice', () => {
 
   it('shows the monthly figure and how it is billed', () => {
     const view = render(<PlanPrice pricing={PAID} period="monthly" fallback="—" />);
-    expect(view.getByText('$12')).toBeTruthy();
+    // Two decimals always, since formatPrice took over from an inlined
+    // dollar sign: '$12' beside '$4.99' reads as two kinds of number.
+    expect(view.getByText('$12.00')).toBeTruthy();
     expect(view.getByText('billed monthly')).toBeTruthy();
   });
 
@@ -31,7 +33,7 @@ describe('PlanPrice', () => {
     // not, and hiding the basis entirely is what produces a surprise on the
     // first statement.
     const view = render(<PlanPrice pricing={PAID} period="yearly" fallback="—" />);
-    expect(view.getByText('$10')).toBeTruthy();
+    expect(view.getByText('$10.00')).toBeTruthy();
     expect(view.getByText('USD / month')).toBeTruthy();
     expect(view.getByText('billed yearly')).toBeTruthy();
   });

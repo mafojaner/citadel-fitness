@@ -55,10 +55,28 @@ jest.mock('../../../components/HeaderSearchBar', () => ({
   HeaderSearchBar: () => null,
 }));
 
+const mockSavePreferences = jest.fn();
+let mockCurrency: string | undefined = 'USD';
+
+jest.mock('../../../state/profileStore', () => ({
+  useProfileStore: (selector: (s: unknown) => unknown) =>
+    selector({
+      preferences: { currency: mockCurrency },
+      savePreferences: mockSavePreferences,
+    }),
+}));
+
+jest.mock('../../../state/authStore', () => ({
+  useAuthStore: (selector: (s: unknown) => unknown) =>
+    selector({ session: { user: { id: 'u1' } } }),
+}));
+
 describe('PlansScreen flow', () => {
   beforeEach(() => {
     mockTier.mockReturnValue('free');
     mockIsDesktop.mockReturnValue(false);
+    mockCurrency = 'USD';
+    mockSavePreferences.mockClear();
   });
 
   it('opens on one recommended plan, not on all three', () => {
@@ -136,5 +154,39 @@ describe('PlansScreen flow', () => {
     expect(view.getByLabelText('Join the waitlist')).toBeTruthy();
     expect(view.queryByText(/^Get /)).toBeNull();
     expect(view.getByText(/Nothing is on sale yet/)).toBeTruthy();
+  });
+
+  it('shows the price in the stored currency, not always dollars', () => {
+    mockCurrency = 'ZAR';
+    const view = render(<PlansScreen variant="screen" />);
+    expect(view.getByText('R89.99')).toBeTruthy();
+    expect(view.getByText('ZAR / month')).toBeTruthy();
+    // And nothing anywhere still says dollars.
+    expect(view.queryByText('$4.99')).toBeNull();
+  });
+
+  it('persists the currency rather than only changing the view', () => {
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('South African rand (ZAR)'));
+    // A patch, not the whole preferences object: sending the lot would write
+    // back whatever this screen was holding and could revert a setting
+    // changed elsewhere.
+    expect(mockSavePreferences).toHaveBeenCalledWith('u1', { currency: 'ZAR' });
+  });
+
+  it('falls back to dollars on a currency it does not recognise', () => {
+    // A stored preference can outlive the currency it names. Showing dollars
+    // beats a pricing page that throws.
+    mockCurrency = 'XBT';
+    const view = render(<PlansScreen variant="screen" />);
+    expect(view.getByText('$4.99')).toBeTruthy();
+  });
+
+  it('keeps the price and the period toggle agreeing in any currency', () => {
+    mockCurrency = 'ZAR';
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('Yearly, · Save 20%'));
+    expect(view.getByText('R71.99')).toBeTruthy();
+    expect(view.getByText('billed yearly')).toBeTruthy();
   });
 });
