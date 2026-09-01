@@ -10,7 +10,7 @@
     "@react-navigation/native-stack": "^7.18.5",
     "@sentry/react-native": "~7.11.0",
     "@supabase/supabase-js": "^2.110.8",
-    "expo": "~57.0.8",
+    "expo": "~57.0.18",
     "expo-asset": "~57.0.15",
     "expo-blur": "~57.0.2",
     "expo-file-system": "~57.0.4",
@@ -47,9 +47,12 @@
     "react-test-renderer": "^19.2.3",
     "typescript": "~6.0.3"
   },
-  "//overrides": "jest-expo 57.0.4 needs @react-native/jest-preset ^0.86.2 while react-native 0.86.0 pins it to exactly 0.86.0. It's the Jest preset — babel transforms and mocks, test-time only — so it isn't in the shipped bundle and the patch bump is safe. Pinned here rather than installing with --legacy-peer-deps, so a plain `npm install` keeps working for everyone.",
+  "//overrides": "jest-expo 57.0.4 needs @react-native/jest-preset ^0.86.2 while react-native 0.86.0 pins it to exactly 0.86.0. It's the Jest preset — babel transforms and mocks, test-time only — so it isn't in the shipped bundle and the patch bump is safe. Pinned here rather than installing with --legacy-peer-deps, so a plain `npm install` keeps working for everyone. The three added 2026-09-01 clear the last of the high-severity audit findings. Each one is inside the range its own parent already declares (@react-native/community-cli-plugin asks for metro ^0.84.3; minimatch@3 for brace-expansion ^1.1.7; minimatch@10 for ^5.0.5), so they are the versions a fresh resolve would pick anyway — they defeat a stale lockfile, not a maintainer's constraint. Keyed on the declared spec, not the vulnerable version range: npm matches an override key against what the parent asked for, so a key written as the CVE's affected range silently matches nothing and reads as protection that isn't there.",
   "overrides": {
-    "@react-native/jest-preset": "0.86.2"
+    "@react-native/jest-preset": "0.86.2",
+    "brace-expansion@^1.1.7": "1.1.18",
+    "brace-expansion@^5.0.5": "5.0.9",
+    "metro@0.84.4": "0.84.5"
   },
   "jest": {
     "preset": "jest-expo",
