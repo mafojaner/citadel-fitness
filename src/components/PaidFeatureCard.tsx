@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
-import { Card } from './Card';
 import { SettingsRow } from './SettingsRow';
 import { APP_FEATURES, featureInk } from '../constants/featureCatalog';
 import { useMembershipTier } from '../hooks/useMembership';
 import { useOpenPlans } from '../hooks/useOpenPlans';
 import { TIER_LABELS, tierAllows } from '../lib/membership';
+import { shadow } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface PaidFeatureCardProps {
@@ -166,7 +166,7 @@ export function PaidFeatureLink({
  * landing page's chips once did.
  */
 export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }: PaidFeatureCardProps) {
-  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
   const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
@@ -199,14 +199,6 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
   // "Open" and "Coming soon" describe availability, not a tier, and stay in
   // the app's own accent.
   const accent = tiers[feature.tier];
-  // The unlocked card is filled with primaryMuted, so a badge also filled
-  // with primaryMuted disappears into it -- which is exactly what happened
-  // the first time the fill went in: the chip lost its pill and the word
-  // "Open" floated on the card looking like stray text. It sits on the
-  // surface colour instead, so it reads as a chip on the tint the same way
-  // it reads as a chip on white.
-  // No unlocked branch: the filled card draws no badge, so this only ever
-  // colours the two states that stay on a white surface.
   const badgeBackground = entitled ? colors.primaryMuted : accent.accent;
   const badgeForeground = entitled ? colors.primary : accent.onAccent;
 
@@ -217,10 +209,17 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
         alignItems: 'center',
         gap: 4,
         backgroundColor: badgeBackground,
-        // Carried on both branches so the chip keeps one silhouette, and so
-        // a white Fortress chip on a white card is still a chip.
+        // Outlined against the slab, not against the page.
+        //
+        // Two of the three tier fills are fixed colours -- Fortress is
+        // always white and Valhalla always near-black -- so on an inverted
+        // card exactly one of them vanishes in each theme: Valhalla on the
+        // light theme's black slab, Fortress on the dark theme's white one.
+        // A hairline in the slab's own ink rescues both without touching
+        // the fills, which have to stay as they are because they are how
+        // each plan's card looks on the Plans page.
         borderWidth: 1,
-        borderColor: entitled ? colors.primaryMuted : accent.border,
+        borderColor: variant === 'card' ? colors.inverseBorder : entitled ? colors.primaryMuted : accent.border,
         borderRadius: radius.pill,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
@@ -275,105 +274,89 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
       }`}
       scaleTo={0.98}
     >
-      {unlocked ? (
-        /* Solid, not tinted.
-         *
-         * The first attempt at making this noticeable used primaryMuted --
-         * a pale peach wash -- and it read as a disabled state rather than
-         * an invitation. This is the treatment RewardsCard already uses on
-         * the Activity screen for the same job: a full ember fill, white
-         * text, the glyph in a translucent well, and a shadow in the card's
-         * own colour so it lifts off the page instead of sitting flat on
-         * it. Borrowed rather than invented, so the app has one way of
-         * saying "this is a door worth opening" instead of two.
-         *
-         * Drawn directly rather than through Card, because Card paints the
-         * surface, the hairline border and a neutral shadow, and all three
-         * would have to be overridden to get here.
-         */
+      {/* Filled on every state, not just the ones you own.
+        *
+        * The previous pass filled only the unlocked card, on the argument
+        * that a locked teaser in colour is an advert while a live entry
+        * point in colour is a button. That holds for a coloured fill. It
+        * does not hold for this one: the inverse slab is not a colour, it
+        * is a way of saying "this is a premium feature", and that is
+        * equally true of one you have not bought yet.
+        *
+        * Which means the fill no longer distinguishes the states, so the
+        * badge is back on all three and is now the only thing that does --
+        * "Open", "Coming soon", or the tier's own name under a padlock.
+        *
+        * Drawn directly rather than through Card, because Card paints the
+        * surface, the hairline border and a neutral shadow, and all three
+        * would have to be overridden to get here.
+        */}
+      <View
+        style={{
+          backgroundColor: colors.inverseSurface,
+          borderRadius: radius.lg,
+          padding: spacing.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          ...shadow.card,
+          // A shadow under the white slab on a near-black page is invisible
+          // work; on the light theme it is what stops a black rectangle
+          // reading as a hole cut in the page. Same split FloatingTabBar
+          // makes, rather than a second theming mechanism.
+          shadowOpacity: scheme === 'dark' ? 0 : 0.18,
+          elevation: scheme === 'dark' ? 0 : 4,
+        }}
+      >
+        {/* Monochrome, where the flat card used the feature's own ink.
+            That ink is the saturated end of the feature's gradient, and
+            half of those -- the yellow, the cyan, the mint -- fall under
+            2:1 against the dark theme's white slab. The colour survives
+            where it is still legible: the row variant and PaidFeatureLink
+            both sit on ordinary surfaces and both still use featureInk. */}
         <View
           style={{
-            backgroundColor: colors.primary,
-            borderRadius: radius.lg,
-            padding: spacing.md,
-            flexDirection: 'row',
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: colors.inverseWell,
             alignItems: 'center',
-            gap: spacing.md,
-            shadowColor: colors.primary,
-            shadowOpacity: 0.35,
-            shadowRadius: 14,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: 4,
+            justifyContent: 'center',
           }}
         >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: 'rgba(255,255,255,0.22)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name={feature.icon} size={22} color="#FFFFFF" />
-          </View>
+          <Ionicons name={feature.icon} size={22} color={colors.inverseText} />
+        </View>
 
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={[typography.subheading, { color: '#FFFFFF' }]} numberOfLines={1}>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            {/* Shrinks so the badge keeps its place: the title is the part
+                that can be truncated, the tier is not. */}
+            <Text
+              style={[typography.subheading, { flexShrink: 1, color: colors.inverseText }]}
+              numberOfLines={1}
+            >
               {feature.title}
             </Text>
-            <Text
-              style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]}
-              numberOfLines={2}
-            >
-              {feature.short ?? feature.description}
-            </Text>
+            {badge}
           </View>
-
-          {/* No "Open" chip here. On a white card it was doing real work --
-              distinguishing an entry point from a locked teaser. On a card
-              this loud the fill has already said it, and the badge became a
-              second voice repeating the first. */}
-          <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+          {/* Opacity rather than a second ink token, because the secondary
+              colour here is the primary one stepped back, and that holds
+              whichever way round the slab is. */}
+          <Text
+            style={[typography.caption, { color: colors.inverseText, opacity: 0.72 }]}
+            numberOfLines={2}
+          >
+            {feature.short ?? feature.description}
+          </Text>
         </View>
-      ) : (
-      <Card>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          {/* In colour rather than greyed out: this is advertising what the
-              feature will be, not showing a disabled control. On the glyph
-              rather than behind it, so it sits at the same weight as the
-              icons on every other flat row in the app. */}
-          <Ionicons
-            name={feature.icon}
-            size={26}
-            color={featureInk(feature)}
-            style={{ width: 32, textAlign: 'center' }}
-          />
 
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
-                {feature.title}
-              </Text>
-              {badge}
-            </View>
-            {/* The short line, and clamped. `description` is written for the
-                plans page where someone is comparing tiers; the same
-                sentence here was three lines of prose between the title and
-                the chevron, which is the length at which nobody reads it. */}
-            <Text
-              style={[typography.caption, { color: colors.textSecondary }]}
-              numberOfLines={2}
-            >
-              {feature.short ?? feature.description}
-            </Text>
-          </View>
-
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </View>
-      </Card>
-      )}
+        <Ionicons
+          name="chevron-forward"
+          size={20}
+          color={colors.inverseText}
+          style={{ opacity: 0.6 }}
+        />
+      </View>
     </AnimatedPressable>
   );
 }

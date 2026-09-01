@@ -72,6 +72,29 @@ export const lightColors = {
   textMuted: palette.ink300,
   primary: palette.primary,
   primaryMuted: palette.primaryMuted,
+  // The inverse surface.
+  //
+  // A slab that deliberately contrasts with the page instead of sitting on
+  // it: near-black on the light theme, white on the dark one. It exists so
+  // one element on a screen can be the thing you are meant to reach for
+  // without reaching for colour to say so -- `primary` fills already mean
+  // "the app's own accent" on the rewards and water cards, and a second
+  // orange slab beside those would read as the same feature.
+  //
+  // The four values move together and are only meaningful together, which
+  // is why they are tokens rather than four literals at the call site: any
+  // component that fills with `inverseSurface` needs the matching ink, the
+  // translucent well for an icon, and the hairline for a chip, or it will
+  // paint white-on-white the moment the theme flips.
+  // ink700 and offWhite rather than the ends of the palette. Pure #000 on
+  // #FFF is the pairing that makes a slab read as a hole punched in the
+  // page instead of a card resting on it, and it is the one combination in
+  // the palette that appears nowhere else in the app -- every other surface
+  // already lives one step in from the extremes.
+  inverseSurface: palette.ink700,
+  inverseText: palette.offWhite,
+  inverseWell: 'rgba(255,255,255,0.14)',
+  inverseBorder: 'rgba(255,255,255,0.35)',
   success: palette.success,
   danger: palette.danger,
   tabInactive: '#8A93A6',
@@ -89,6 +112,12 @@ export const darkColors = {
   textMuted: palette.ink300,
   primary: palette.primary,
   primaryMuted: '#4A2A20',
+  // Mirrored, not copied: on a near-black page the high-contrast slab is
+  // the white one. See lightColors for why these four travel together.
+  inverseSurface: palette.offWhite,
+  inverseText: palette.ink900,
+  inverseWell: 'rgba(11,14,20,0.08)',
+  inverseBorder: 'rgba(11,14,20,0.22)',
   success: palette.success,
   danger: palette.danger,
   tabInactive: palette.ink500,
