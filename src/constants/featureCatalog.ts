@@ -480,6 +480,26 @@ export function isPriced(pricing: TierPricing): boolean {
 }
 
 /**
+ * What a year actually costs, or null when there is no annual price.
+ *
+ * The card headlines the per-month figure because that is what compares
+ * against the monthly plan, and it says "billed yearly" underneath. Both
+ * were already true and neither told you the number that leaves your
+ * account. This is that number.
+ *
+ * Derived rather than stored, which is right while nothing is purchasable
+ * and worth revisiting when it is: the annual store SKU will be a price
+ * point of its own, and if it is set to a tidy R4999.99 rather than the
+ * R4979.88 this computes, the table has to store the total and derive the
+ * per-month from it instead of the other way round.
+ */
+export function annualTotal(pricing: TierPricing): number | null {
+  const { annualPerMonth } = pricing;
+  if (annualPerMonth === null) return null;
+  return Math.round(annualPerMonth * 12 * 100) / 100;
+}
+
+/**
  * The saving from paying yearly, as a whole percent, or null when there is
  * nothing to compare. Rounded down so the badge can never overstate it.
  */

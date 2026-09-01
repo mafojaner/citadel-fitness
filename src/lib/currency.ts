@@ -76,7 +76,17 @@ export function currencyInfo(code: CurrencyCode): CurrencyInfo {
 export function formatPrice(amount: number, code: CurrencyCode): string {
   const { symbol } = currencyInfo(code);
   if (amount === 0) return `${symbol}0`;
-  return `${symbol}${amount.toFixed(2)}`;
+  // Grouped, because annual totals reach four and five figures: R4979.88 is
+  // a number you have to count the digits of, and the one place a price
+  // must not be hard to read is the total someone is committing to.
+  //
+  // Grouped by hand rather than through toLocaleString, which formats to
+  // the device's locale -- so the same rand price would render R4 979,88 on
+  // one phone and R4,979.88 on another, and the decimal separator would
+  // move. A store price is one string everywhere.
+  const [whole, fraction] = amount.toFixed(2).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${symbol}${grouped}.${fraction}`;
 }
 
 /**
