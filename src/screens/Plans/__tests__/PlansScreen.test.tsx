@@ -189,4 +189,41 @@ describe('PlansScreen flow', () => {
     expect(view.getByText('R71.99')).toBeTruthy();
     expect(view.getByText('billed yearly')).toBeTruthy();
   });
+
+  it('starts with the explanation hidden, and the plans visible', () => {
+    // The complaint this answers: six lines of prose above the first plan.
+    const view = render(<PlansScreen variant="screen" />);
+    expect(view.queryByText(/Fortress tells you what you did/)).toBeNull();
+    expect(view.queryByText(/store account/)).toBeNull();
+    // The currency pills stay, because they are a control rather than an
+    // explanation.
+    expect(view.getByLabelText('US dollar (USD)')).toBeTruthy();
+    expect(view.getByText('Fortress')).toBeTruthy();
+  });
+
+  it('shows both explanations behind the one info button', () => {
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('About plans and pricing'));
+    expect(view.getByText(/Fortress tells you what you did/)).toBeTruthy();
+    expect(view.getByText(/currency of your own store account/)).toBeTruthy();
+  });
+
+  it('hides it again, and says so on the control', () => {
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('About plans and pricing'));
+    // The label flips, so the control describes its own state rather than
+    // leaving a screen reader to notice text appearing further down.
+    fireEvent.press(view.getByLabelText('Hide information about plans and pricing'));
+    expect(view.queryByText(/Fortress tells you what you did/)).toBeNull();
+  });
+
+  it('keeps the store-charges note truthful for the chosen currency', () => {
+    // Moved behind a disclosure, not deleted. Someone with a US account can
+    // read rand here and still be billed dollars, and this is the only place
+    // the app says so.
+    mockCurrency = 'ZAR';
+    const view = render(<PlansScreen variant="screen" />);
+    fireEvent.press(view.getByLabelText('About plans and pricing'));
+    expect(view.getByText(/Prices are shown in South African rand/)).toBeTruthy();
+  });
 });

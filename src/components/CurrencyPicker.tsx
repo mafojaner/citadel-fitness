@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { CURRENCIES, currencyInfo, type CurrencyCode } from '../lib/currency';
+import { CURRENCIES, type CurrencyCode } from '../lib/currency';
 import { useTheme } from '../theme/useTheme';
 
 /**
@@ -10,24 +10,32 @@ import { useTheme } from '../theme/useTheme';
  * the currency changes every number on the page, so it goes where it can be
  * seen to govern all of them.
  *
- * The line underneath is not boilerplate and should not be trimmed. These
- * prices are what will be listed, but the App Store and Play charge in the
- * currency of the buyer's own store account -- so someone with a US account
- * reading rand here would still be billed in dollars. Saying that once,
- * plainly, is cheaper than a support thread about a card statement.
+ * Pills only. The sentence explaining that the store bills in the buyer's
+ * own account currency used to sit underneath and now lives behind the
+ * page's info toggle -- it is an explanation rather than a control, and the
+ * top of the plans page had grown to six lines of prose before the first
+ * plan. See currencyNote in lib/currency.ts; it is still required reading,
+ * just not required scrolling.
+ *
+ * `trailing` is where the info button goes, so it shares a row with the
+ * pills instead of taking another line of its own.
  */
 export function CurrencyPicker({
   value,
   onChange,
+  trailing,
 }: {
   value: CurrencyCode;
   onChange: (value: CurrencyCode) => void;
+  /** Rendered at the end of the row, outside the scrolling pills. */
+  trailing?: React.ReactNode;
 }) {
   const { colors, spacing, radius, typography } = useTheme();
 
   return (
-    <View style={{ gap: spacing.xs }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
       <ScrollView
+        style={{ flex: 1, minWidth: 0 }}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: spacing.xs, paddingRight: spacing.md }}
@@ -72,11 +80,7 @@ export function CurrencyPicker({
           })}
         </View>
       </ScrollView>
-
-      <Text style={[typography.caption, { color: colors.textMuted }]}>
-        Prices shown in {currencyInfo(value).label}. The App Store and Google Play charge in the
-        currency of your own store account, so that is what a card statement will show.
-      </Text>
+      {trailing}
     </View>
   );
 }

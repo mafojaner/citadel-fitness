@@ -1,17 +1,16 @@
 import { render, fireEvent } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import { CurrencyPicker } from '../CurrencyPicker';
 import { CURRENCIES } from '../../lib/currency';
 
 /**
- * The disclaimer is the reason most of these exist.
+ * Pills only. The disclaimer that used to live here moved behind the plans
+ * page's info toggle on 1 September, because the top of that page had grown
+ * to six lines of prose before the first plan.
  *
- * Nothing here converts anything -- each currency carries its own price
- * points, the way a store console works. But someone with a US store account
- * can still switch this to rand, read R89.99, and be charged $4.99, because
- * the stores bill in the currency of the buyer's account and not in whatever
- * the app was showing. Saying that once, plainly, on the screen is the whole
- * defence against a support thread about a card statement, so it is pinned
- * rather than left as a line someone tidies away.
+ * It is still pinned, just in PlansScreen's tests rather than these --
+ * moving an explanation behind a disclosure is fine, and losing it is not,
+ * so the assertion had to move with it rather than be deleted alongside.
  */
 describe('CurrencyPicker', () => {
   it('offers every currency the price table has', () => {
@@ -37,16 +36,17 @@ describe('CurrencyPicker', () => {
     expect(onChange).toHaveBeenCalledWith('GBP');
   });
 
-  it('says the store charges in the account currency, not this one', () => {
-    const view = render(<CurrencyPicker value="ZAR" onChange={() => {}} />);
-    expect(view.getByText(/South African rand/)).toBeTruthy();
-    expect(view.getByText(/currency of your own store account/)).toBeTruthy();
+  it('renders whatever it is handed in the trailing slot', () => {
+    // Where the info button goes, so the explanation shares a row with the
+    // pills rather than taking a line of its own.
+    const view = render(
+      <CurrencyPicker value="USD" onChange={() => {}} trailing={<Text>slot</Text>} />
+    );
+    expect(view.getByText('slot')).toBeTruthy();
   });
 
-  it('names the selected currency in full, not just its code', () => {
-    // "Prices shown in ZAR" assumes the reader knows the code. The full name
-    // costs nothing and is the difference between a label and a hint.
-    const view = render(<CurrencyPicker value="EUR" onChange={() => {}} />);
-    expect(view.getByText(/Prices shown in Euro/)).toBeTruthy();
+  it('carries no prose of its own any more', () => {
+    const view = render(<CurrencyPicker value="ZAR" onChange={() => {}} />);
+    expect(view.queryByText(/store account/)).toBeNull();
   });
 });

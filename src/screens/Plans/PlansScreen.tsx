@@ -4,6 +4,7 @@ import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { BillingPeriodToggle, type BillingPeriod } from '../../components/BillingPeriodToggle';
 import { CurrencyPicker } from '../../components/CurrencyPicker';
+import { InfoToggle } from '../../components/InfoToggle';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
@@ -27,7 +28,7 @@ import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import type { WaitlistTier } from '../../lib/fortress';
 import { isEmailValid } from '../../lib/email';
-import { parseCurrency, type CurrencyCode } from '../../lib/currency';
+import { currencyNote, parseCurrency, type CurrencyCode } from '../../lib/currency';
 import { planAction } from '../../lib/planAction';
 import { gradients } from '../../theme/tokens';
 import { useAuthStore } from '../../state/authStore';
@@ -465,6 +466,10 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
   // the list back under them mid-comparison would be the page arguing.
   const [showAll, setShowAll] = useState(false);
   const [period, setPeriod] = useState<BillingPeriod>('monthly');
+  // Closed by default. Someone arriving here wants the plans; someone
+  // who wants the explanation can ask for it, and it stays open until
+  // they close it.
+  const [showInfo, setShowInfo] = useState(false);
 
   // Persisted, so the choice survives leaving the screen. Read through
   // parseCurrency because a stored preference can outlive the currency
@@ -545,21 +550,37 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
 
   const content = (
     <ScreenContainer>
-      {/* One line for both variants. It used to print its own big "Plans"
-          title as a tab, which is not how any other tab titles itself —
-          Home, Workouts, Activity and Learn all use HeaderSearchBar, and
-          this one wore a heading inside its scroll view instead. The header
-          below supplies the title now, so this is only the subtitle. */}
-      <Text style={[typography.body, { color: colors.textSecondary }]}>
-        Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
-        {TIER_LABELS[currentTier]}.
-      </Text>
+      {/* One row instead of six lines.
 
-      {/* Above the cards rather than inside one, unlike the billing toggle.
-          The period changes one card's figure; the currency changes every
-          number on the page, so it belongs where it can be seen to govern
-          all of them. */}
-      <CurrencyPicker value={currency} onChange={onCurrencyChange} />
+          What the tiers mean, which currency, and who actually charges you
+          are all true and all worth reading once. None of them is worth
+          scrolling past on the way to the plans, which is what the top of
+          this page had become. The control stays -- the currency pills are
+          how you change something -- and the prose goes behind the "i",
+          which is the part you read once and then never again. */}
+      <CurrencyPicker
+        value={currency}
+        onChange={onCurrencyChange}
+        trailing={
+          <InfoToggle
+            open={showInfo}
+            onPress={() => setShowInfo((v) => !v)}
+            label="plans and pricing"
+          />
+        }
+      />
+
+      {showInfo ? (
+        <View style={{ gap: spacing.xs }}>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>
+            Fortress tells you what you did. Valhalla tells you what to do next. You&apos;re on{' '}
+            {TIER_LABELS[currentTier]}.
+          </Text>
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            {currencyNote(currency)}
+          </Text>
+        </View>
+      ) : null}
 
       {/* One plan first, all of them on request.
 

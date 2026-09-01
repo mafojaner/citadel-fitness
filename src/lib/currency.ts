@@ -78,3 +78,24 @@ export function formatPrice(amount: number, code: CurrencyCode): string {
   if (amount === 0) return `${symbol}0`;
   return `${symbol}${amount.toFixed(2)}`;
 }
+
+/**
+ * The sentence that has to be on the plans page somewhere.
+ *
+ * Nothing in this app converts anything, so the prices shown are real
+ * listed prices. But the stores bill in the currency of the buyer's own
+ * store account -- someone with a US account can read rand here and still
+ * be charged dollars. Saying that once, plainly, costs less than the
+ * support thread about a card statement.
+ *
+ * It lives behind the info toggle rather than always on screen, because it
+ * is an explanation rather than a control and the top of that page was six
+ * lines of prose before the first plan. Behind a disclosure is not the same
+ * as deleted.
+ */
+export function currencyNote(code: CurrencyCode): string {
+  return (
+    `Prices are shown in ${currencyInfo(code).label}. The App Store and Google Play charge in ` +
+    'the currency of your own store account, so that is what a card statement will show.'
+  );
+}
