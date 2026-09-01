@@ -180,13 +180,28 @@ function PlanCard({
         flexBasis: fill ? 0 : undefined,
         minWidth: 0,
         borderRadius: radius.lg,
-        borderWidth: 1,
-        // The recommended card is tinted rather than outlined or shadowed.
-        // A heavier border reads as selected-and-locked, and a shadow was
-        // just removed from every other premium element for looking like an
-        // advert; a faint wash lifts the card while keeping its silhouette.
-        borderColor: recommended ? colors.primaryMuted : colors.border,
-        backgroundColor: recommended ? colors.primaryMuted : colors.surface,
+        // Outlined, where this used to be washed.
+        //
+        // The previous note here argued the opposite -- that a heavier
+        // border reads as selected-and-locked and a faint tint lifts the
+        // card while keeping its silhouette. The tint was primaryMuted,
+        // which is #FFDACE in light and #4A2A20 in dark, so the whole card
+        // became either a peach block or a muddy brown one, and every price,
+        // tick and paragraph inside it sat on a surface nothing else in the
+        // app uses. The same colour had already been tried and rejected as
+        // a fill on the feature cards on the same day.
+        //
+        // It also ate the chip: "Recommended for you" was primaryMuted on a
+        // primaryMuted card, so the one element actually saying why the card
+        // is different lost its pill and floated as loose orange text.
+        //
+        // So the card keeps the ordinary surface every other card has, and
+        // the recommendation is carried by a two-pixel ember outline and a
+        // filled chip. Nothing about the content moves, which is the part
+        // the wash got wrong.
+        borderWidth: recommended ? 2 : 1,
+        borderColor: recommended ? colors.primary : colors.border,
+        backgroundColor: colors.surface,
         overflow: 'hidden',
       }}
     >
@@ -199,15 +214,19 @@ function PlanCard({
           <TierIcon icon={pitch.icon} color={colors.textPrimary} size={34} />
           <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end', gap: spacing.xs }}>
             {recommended ? (
+              // Filled, not tinted. White on ember is what every solid
+              // control in the app already uses, and on a plain surface the
+              // chip is now the loudest thing on the card -- which is right,
+              // because it is the only part that explains the outline.
               <View
                 style={{
-                  backgroundColor: colors.primaryMuted,
+                  backgroundColor: colors.primary,
                   borderRadius: radius.pill,
                   paddingHorizontal: spacing.md,
                   paddingVertical: 4,
                 }}
               >
-                <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
                   Recommended for you
                 </Text>
               </View>
