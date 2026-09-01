@@ -1,4 +1,3 @@
-import { BlurView } from 'expo-blur';
 import { TextInput, View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 
@@ -12,10 +11,16 @@ interface SearchFieldProps {
 }
 
 /**
- * The app's one search-field look — a frosted-glass pill matching
- * FloatingTabBar's material (BlurView + navBorder + full pill radius) —
- * shared by the header search bar and any in-page search fields so they
- * all read as the same control rather than each screen inventing its own.
+ * The app's one search-field look — a pill matching FloatingTabBar's
+ * material (surface fill + navBorder + full pill radius) — shared by the
+ * header search bar and any in-page search fields so they all read as the
+ * same control rather than each screen inventing its own.
+ *
+ * Followed the tab bar off frosted glass deliberately. This is the other
+ * half of "the same material", so leaving it blurred would have quietly
+ * made that comment false. It also carried the same repaint bug in its
+ * worse form: the tab bar at least remounted on a theme change, and this
+ * only ever updated the `tint` prop that does not reliably repaint.
  */
 export function SearchField({
   placeholder = 'Search...',
@@ -34,6 +39,7 @@ export function SearchField({
         overflow: 'hidden',
         borderWidth: 1,
         borderColor: colors.navBorder,
+        backgroundColor: colors.surface,
         shadowColor: '#000',
         shadowOpacity: scheme === 'dark' ? 0.35 : 0.12,
         shadowRadius: 12,
@@ -41,7 +47,6 @@ export function SearchField({
         elevation: 4,
       }}
     >
-      <BlurView intensity={80} tint={scheme === 'dark' ? 'dark' : 'light'}>
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={colors.textMuted}
@@ -55,7 +60,6 @@ export function SearchField({
             fontSize: isLarge ? 16 : 14,
           }}
         />
-      </BlurView>
     </View>
   );
 }

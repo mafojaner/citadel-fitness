@@ -2,7 +2,6 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { useEffect, useState } from 'react';
 import { Animated, Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -91,8 +90,26 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           overflow: 'hidden',
           borderWidth: 1,
           borderColor: colors.navBorder,
-          // Blur alone can render flat without a shadow to lift it off busy
-          // content — the actual "floating" part of a floating bar.
+          // An opaque surface, where this used to be frosted glass.
+          //
+          // The blur was 62% transparent, so the bar's real background was
+          // whatever it happened to be floating over, and the icon colours
+          // were picked against a surface that only existed on some screens.
+          // On Home it sits over the blue water card and the four inactive
+          // icons all but vanish; on Workouts it is over white and they are
+          // fine; scrolling moves it between the two. That is the whole of
+          // the "finicky" — one bar with a different legibility on every
+          // screen and at every scroll position.
+          //
+          // `surface` rather than `navBackground`: in dark mode
+          // navBackground is the page colour, so a bar painted with it would
+          // read as a hole rather than something floating above. `surface`
+          // is a step in from the page in both schemes, which is what the
+          // cards already use to say "this sits on top".
+          backgroundColor: colors.surface,
+          // A shadow to lift it off busy content — the actual "floating"
+          // part of a floating bar, and now the only thing separating it
+          // from the page besides the hairline.
           shadowColor: '#000',
           shadowOpacity: scheme === 'dark' ? 0.4 : 0.15,
           shadowRadius: 16,
@@ -100,16 +117,23 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           elevation: 8,
         }}
       >
-        <BlurView
-          // Keyed on scheme: BlurView's tint is a native prop, same class of
-          // bug as the stack header (see screenOptions.tsx) — it doesn't
-          // reliably repaint on a live theme change, so force a remount
-          // instead of relying on a prop update.
-          key={scheme}
-          intensity={80}
-          tint={scheme === 'dark' ? 'dark' : 'light'}
-          style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}
-        >
+        {/* A plain row now.
+          *
+          * What was here was a BlurView keyed on `scheme`, remounted on
+          * every theme change because its `tint` is a native prop that does
+          * not reliably repaint when it changes. That workaround is the
+          * reason the bar sometimes came back wrong after a theme switch:
+          * it depended on a remount landing at the right moment, and a
+          * remount is not a repaint. With the surface painted by an ordinary
+          * style prop there is nothing left to go stale — React Native
+          * repaints a backgroundColor every time, on both platforms.
+          *
+          * It also takes the tab buttons out of the blast radius. Keying the
+          * blur remounted all five of them along with it, throwing away
+          * their focus animation state on a change that had nothing to do
+          * with which tab was selected.
+          */}
+        <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}>
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
             return (
@@ -136,7 +160,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
               />
             );
           })}
-        </BlurView>
+        </View>
       </View>
     </View>
   );

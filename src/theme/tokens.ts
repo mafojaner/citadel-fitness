@@ -120,7 +120,12 @@ export const darkColors = {
   inverseBorder: 'rgba(11,14,20,0.22)',
   success: palette.success,
   danger: palette.danger,
-  tabInactive: palette.ink500,
+  // ink300, not ink500. Against the bar's own surface (ink700) ink500 is
+  // 2.1:1 -- an icon you have to hunt for, and it was worse still while the
+  // bar was translucent and the page showed through. ink300 is 5.2:1 there
+  // and 7:1 on the sidebar's navBackground, and it matches the light theme's
+  // value, so an inactive tab is now the same grey in both schemes.
+  tabInactive: palette.ink300,
   // Matches `background` rather than a separate near-black value — the
   // mismatch between the two was exactly what read as a distinct dark bar
   // sitting on top of the page.
