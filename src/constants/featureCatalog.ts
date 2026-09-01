@@ -11,6 +11,17 @@ export interface AppFeature {
   colors: readonly [string, string, ...string[]];
   title: string;
   description: string;
+  /**
+   * A shorter line for the feature cards placed around the app.
+   *
+   * `description` is written for the plans page, where someone is comparing
+   * tiers and a parenthetical list of programs earns its space. On a card
+   * dropped into the middle of the Workouts screen the same sentence is
+   * three lines of prose between you and a chevron, and it stops being read
+   * at all. Falls back to `description` where the full line is already
+   * short enough.
+   */
+  short?: string;
   tier: FeatureTier;
   /** Whether this row shows up in the tier comparison table on PlansScreen. */
   showInComparison: boolean;
@@ -77,6 +88,7 @@ export const APP_FEATURES: AppFeature[] = [
     // which is what this said before the feature existed to check it
     // against.
     description: 'A weight and rep target for each lift, worked out from how your last sessions actually went.',
+    short: 'A weight and rep target for your next session.',
     tier: 'valhalla',
     showInComparison: true,
   },
@@ -117,6 +129,7 @@ export const APP_FEATURES: AppFeature[] = [
     // has to move with the tier — otherwise Valhalla is charging a human
     // price for something the copy says a program does by itself.
     description: 'Macro targets set with a coach around your training load, and revisited as your program changes.',
+    short: 'Macro targets set with a coach.',
     tier: 'valhalla',
     showInComparison: true,
   },
@@ -132,6 +145,7 @@ export const APP_FEATURES: AppFeature[] = [
     // claimed. Put a number back here when someone is actually answering,
     // and not before.
     description: 'Send a set on video and a coach writes back on it. Four reviews a month.',
+    short: 'Send a set on video, a coach writes back.',
     tier: 'valhalla',
     showInComparison: true,
   },
@@ -153,6 +167,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.arms,
     title: 'Expert guide library',
     description: 'In-depth programs and technique breakdowns written by coaches, with new guides added monthly.',
+    short: 'Technique breakdowns written by coaches.',
     tier: 'valhalla',
     showInComparison: false,
   },
@@ -187,6 +202,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.calendar,
     title: 'Structured programs',
     description: 'Pick a program (5x5, push/pull/legs, an 8-week hypertrophy block) and it fills in your workouts day by day.',
+    short: 'Fills in your workouts, day by day.',
     tier: 'fortress',
     showInComparison: true,
   },
@@ -219,6 +235,7 @@ export const APP_FEATURES: AppFeature[] = [
     // Challenges as named, stored objects aren't built; the comparison
     // window does that job. Described as what ships, same as RPE's tempo.
     description: 'Start an invite-only leaderboard for your own gym crew, and compare over any period.',
+    short: 'An invite-only leaderboard for your gym crew.',
     tier: 'fortress',
     showInComparison: true,
   },
@@ -246,6 +263,7 @@ export const APP_FEATURES: AppFeature[] = [
     colors: gradients.volume,
     title: 'Video demonstrations',
     description: 'Professionally shot technique video for every exercise in the catalogue, not just a text description.',
+    short: 'Technique video for every exercise.',
     // Moved up from Fortress. The old argument for keeping it low was that
     // video is filmed once and then served for nothing, so holding it higher
     // would shrink its audience and save nothing. True, but it answered the

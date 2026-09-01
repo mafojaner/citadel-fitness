@@ -199,6 +199,14 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
   // "Open" and "Coming soon" describe availability, not a tier, and stay in
   // the app's own accent.
   const accent = tiers[feature.tier];
+  // The unlocked card is filled with primaryMuted, so a badge also filled
+  // with primaryMuted disappears into it -- which is exactly what happened
+  // the first time the fill went in: the chip lost its pill and the word
+  // "Open" floated on the card looking like stray text. It sits on the
+  // surface colour instead, so it reads as a chip on the tint the same way
+  // it reads as a chip on white.
+  // No unlocked branch: the filled card draws no badge, so this only ever
+  // colours the two states that stay on a white surface.
   const badgeBackground = entitled ? colors.primaryMuted : accent.accent;
   const badgeForeground = entitled ? colors.primary : accent.onAccent;
 
@@ -267,6 +275,69 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
       }`}
       scaleTo={0.98}
     >
+      {unlocked ? (
+        /* Solid, not tinted.
+         *
+         * The first attempt at making this noticeable used primaryMuted --
+         * a pale peach wash -- and it read as a disabled state rather than
+         * an invitation. This is the treatment RewardsCard already uses on
+         * the Activity screen for the same job: a full ember fill, white
+         * text, the glyph in a translucent well, and a shadow in the card's
+         * own colour so it lifts off the page instead of sitting flat on
+         * it. Borrowed rather than invented, so the app has one way of
+         * saying "this is a door worth opening" instead of two.
+         *
+         * Drawn directly rather than through Card, because Card paints the
+         * surface, the hairline border and a neutral shadow, and all three
+         * would have to be overridden to get here.
+         */
+        <View
+          style={{
+            backgroundColor: colors.primary,
+            borderRadius: radius.lg,
+            padding: spacing.md,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.md,
+            shadowColor: colors.primary,
+            shadowOpacity: 0.35,
+            shadowRadius: 14,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 4,
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(255,255,255,0.22)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name={feature.icon} size={22} color="#FFFFFF" />
+          </View>
+
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={[typography.subheading, { color: '#FFFFFF' }]} numberOfLines={1}>
+              {feature.title}
+            </Text>
+            <Text
+              style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]}
+              numberOfLines={2}
+            >
+              {feature.short ?? feature.description}
+            </Text>
+          </View>
+
+          {/* No "Open" chip here. On a white card it was doing real work --
+              distinguishing an entry point from a locked teaser. On a card
+              this loud the fill has already said it, and the badge became a
+              second voice repeating the first. */}
+          <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+        </View>
+      ) : (
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           {/* In colour rather than greyed out: this is advertising what the
@@ -287,14 +358,22 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
               </Text>
               {badge}
             </View>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {feature.description}
+            {/* The short line, and clamped. `description` is written for the
+                plans page where someone is comparing tiers; the same
+                sentence here was three lines of prose between the title and
+                the chevron, which is the length at which nobody reads it. */}
+            <Text
+              style={[typography.caption, { color: colors.textSecondary }]}
+              numberOfLines={2}
+            >
+              {feature.short ?? feature.description}
             </Text>
           </View>
 
           <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </View>
       </Card>
+      )}
     </AnimatedPressable>
   );
 }
