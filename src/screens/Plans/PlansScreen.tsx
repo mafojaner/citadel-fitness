@@ -206,40 +206,55 @@ function PlanCard({
       }}
     >
       <View style={{ padding: spacing.lg, gap: spacing.sm }}>
-        {/* Icon left, status right. The chip and the toggle both belong up
-            here rather than above the card: they qualify this plan, and a
-            control that floats above three cards leaves you guessing which
-            one it changes. */}
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+        {/* Icon left, chip right, and nothing else on this line.
+            The chip and the toggle used to share one right-aligned column
+            four pixels apart, and they were not even aligned to the same
+            edge -- the chip sat flush right while the toggle stretched from
+            the left, so a label and a control overlapped horizontally with
+            no room between them. They are different kinds of thing: the
+            chip states a fact about this card, the toggle changes what the
+            card says. Splitting them onto their own lines is what fixes the
+            crowding; adding gap to the shared column would only have spaced
+            out two things that should not have been stacked. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <TierIcon icon={pitch.icon} color={colors.textPrimary} size={34} />
-          <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end', gap: spacing.xs }}>
-            {recommended ? (
-              // Filled, not tinted. White on ember is what every solid
-              // control in the app already uses, and on a plain surface the
-              // chip is now the loudest thing on the card -- which is right,
-              // because it is the only part that explains the outline.
-              <View
-                style={{
-                  backgroundColor: colors.primary,
-                  borderRadius: radius.pill,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: 4,
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
-                  Recommended for you
-                </Text>
-              </View>
-            ) : null}
-            {onPeriodChange && isPriced(pricing) && pricing.monthly ? (
-              <BillingPeriodToggle
-                value={period}
-                onChange={onPeriodChange}
-                savingPct={annualSavingPct(pricing)}
-              />
-            ) : null}
-          </View>
+          {/* A spacer rather than flex on the chip, so the chip keeps its
+              natural width and the row does not stretch it across the card. */}
+          <View style={{ flex: 1, minWidth: 0 }} />
+          {recommended ? (
+            // Filled, not tinted. White on ember is what every solid
+            // control in the app already uses, and on a plain surface the
+            // chip is now the loudest thing on the card -- which is right,
+            // because it is the only part that explains the outline.
+            <View
+              style={{
+                backgroundColor: colors.primary,
+                borderRadius: radius.pill,
+                paddingHorizontal: spacing.md,
+                paddingVertical: 4,
+              }}
+            >
+              <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+                Recommended for you
+              </Text>
+            </View>
+          ) : null}
         </View>
+
+        {/* The toggle on its own line, left-aligned with the icon above it
+            and the title, tagline and price below -- so the card has one
+            left margin rather than a control indented off its own. The row
+            wrapper is what keeps it hugging its content: on its own it
+            stretches to whatever width it is given. */}
+        {onPeriodChange && isPriced(pricing) && pricing.monthly ? (
+          <View style={{ flexDirection: 'row', marginTop: spacing.xs }}>
+            <BillingPeriodToggle
+              value={period}
+              onChange={onPeriodChange}
+              savingPct={annualSavingPct(pricing)}
+            />
+          </View>
+        ) : null}
 
         <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: '800' }}>
           {TIER_LABELS[pitch.tier]}
