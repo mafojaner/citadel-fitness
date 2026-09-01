@@ -368,6 +368,13 @@ export function featureInk(feature: AppFeature): string {
  * selected, not the annual total. Pricing pages compare like with like:
  * "$16/month billed yearly" against "$20/month billed monthly" is a
  * comparison someone can make in their head, where "$192/year" is not.
+ *
+ * Some of these end in .39 or .59 rather than .99, which looks like an
+ * oversight and is not. This figure is never charged -- the store sells an
+ * annual SKU and this is that price divided by twelve -- so it answers to
+ * the arithmetic rather than to charm pricing. Forcing every one onto a .99
+ * ending is what made the advertised saving drift between 18% and 22% by
+ * market in the first place.
  */
 export interface TierPricing {
   monthly: number | null;
@@ -402,36 +409,64 @@ export interface TierPricing {
  * ordinary local price point, which is why ZAR is not simply USD times
  * eighteen. Adjust any cell without touching another.
  */
+/**
+ * What each plan costs in each market.
+ *
+ * These are price *points*, chosen per market. They are deliberately not a
+ * base price times an exchange rate -- lib/currency.ts contains no rate at
+ * all, for exactly this reason -- but the first version of this table was
+ * filled in by converting anyway, and ZAR is where that showed. Valhalla
+ * came out at R1399.99, which is $79.99 at about 17.5, and is more than a
+ * year of most South African gym memberships for four video reviews and a
+ * macro target. The conversion was arithmetically right and the answer was
+ * unsellable.
+ *
+ * Two rules hold across the table, and both are checked in the comment
+ * blocks below rather than by a test, so read them before editing a number:
+ *
+ *   1. Valhalla stays above 5x Fortress in every market. Below that the
+ *      coach's share stops covering the hour their reviews take.
+ *   2. The yearly saving floors to 20% on Fortress and 17% on Valhalla in
+ *      every market, so the "Save X%" badge reads the same wherever you
+ *      are. It used to drift between 18% and 22% by currency, because each
+ *      annual figure had been picked to look tidy rather than derived.
+ */
 export const TIER_PRICING: Record<CurrencyCode, Record<FeatureTier, TierPricing>> = {
   USD: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'USD' },
     fortress: { monthly: 4.99, annualPerMonth: 3.99, currency: 'USD' },
-    valhalla: { monthly: 79.99, annualPerMonth: 66.99, currency: 'USD' },
+    valhalla: { monthly: 79.99, annualPerMonth: 65.99, currency: 'USD' },
   },
   ZAR: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'ZAR' },
     fortress: { monthly: 89.99, annualPerMonth: 71.99, currency: 'ZAR' },
-    valhalla: { monthly: 1399.99, annualPerMonth: 1169.99, currency: 'ZAR' },
+    // The one market priced against itself rather than against the dollar.
+    // R499.99 is 5.6x Fortress where every other market is about 15x, and
+    // that gap is the point: the coach-hours maths behind $79.99 assumes a
+    // reviewer paid at US rates. After the store's cut R499.99 leaves about
+    // R350 for the hour four reviews take, which is a normal South African
+    // coaching rate, where R1399.99 was priced for somebody else's.
+    valhalla: { monthly: 499.99, annualPerMonth: 414.99, currency: 'ZAR' },
   },
   GBP: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'GBP' },
-    fortress: { monthly: 4.49, annualPerMonth: 3.49, currency: 'GBP' },
+    fortress: { monthly: 4.49, annualPerMonth: 3.59, currency: 'GBP' },
     valhalla: { monthly: 69.99, annualPerMonth: 57.99, currency: 'GBP' },
   },
   EUR: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'EUR' },
-    fortress: { monthly: 5.49, annualPerMonth: 4.49, currency: 'EUR' },
+    fortress: { monthly: 5.49, annualPerMonth: 4.39, currency: 'EUR' },
     valhalla: { monthly: 84.99, annualPerMonth: 69.99, currency: 'EUR' },
   },
   AUD: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'AUD' },
-    fortress: { monthly: 7.99, annualPerMonth: 6.49, currency: 'AUD' },
-    valhalla: { monthly: 124.99, annualPerMonth: 104.99, currency: 'AUD' },
+    fortress: { monthly: 7.99, annualPerMonth: 6.39, currency: 'AUD' },
+    valhalla: { monthly: 124.99, annualPerMonth: 102.99, currency: 'AUD' },
   },
   CAD: {
     free: { monthly: 0, annualPerMonth: 0, currency: 'CAD' },
-    fortress: { monthly: 6.99, annualPerMonth: 5.49, currency: 'CAD' },
-    valhalla: { monthly: 109.99, annualPerMonth: 91.99, currency: 'CAD' },
+    fortress: { monthly: 6.99, annualPerMonth: 5.59, currency: 'CAD' },
+    valhalla: { monthly: 109.99, annualPerMonth: 90.99, currency: 'CAD' },
   },
 };
 

@@ -193,12 +193,12 @@ are the numbers to enter per storefront.
 
 | Currency | Fortress monthly | Fortress yearly | Valhalla monthly | Valhalla yearly |
 |---|---|---|---|---|
-| USD | $4.99 | $3.99/mo | $79.99 | $66.99/mo |
-| ZAR | R89.99 | R71.99/mo | R1399.99 | R1169.99/mo |
-| GBP | £4.49 | £3.49/mo | £69.99 | £57.99/mo |
-| EUR | €5.49 | €4.49/mo | €84.99 | €69.99/mo |
-| AUD | A$7.99 | A$6.49/mo | A$124.99 | A$104.99/mo |
-| CAD | C$6.99 | C$5.49/mo | C$109.99 | C$91.99/mo |
+| USD | $4.99 | $3.99/mo | $79.99 | $65.99/mo |
+| ZAR | R89.99 | R71.99/mo | **R499.99** | **R414.99/mo** |
+| GBP | £4.49 | £3.59/mo | £69.99 | £57.99/mo |
+| EUR | €5.49 | €4.39/mo | €84.99 | €69.99/mo |
+| AUD | A$7.99 | A$6.39/mo | A$124.99 | A$102.99/mo |
+| CAD | C$6.99 | C$5.59/mo | C$109.99 | C$90.99/mo |
 
 Every column is checked by a test: the annual must be cheaper per month than
 the monthly, the saving must be at least 10%, and Valhalla must stay more
