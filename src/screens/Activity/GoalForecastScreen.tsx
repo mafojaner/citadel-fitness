@@ -5,9 +5,9 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { EmptyState } from '../../components/EmptyState';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useLiftGoals, type LiftedExercise } from '../../hooks/useLiftGoals';
@@ -343,19 +343,12 @@ export function GoalForecastScreen() {
         // nothing to collapse it in favour of.
         <>
           {form}
-          <Card>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <GradientIconBadge icon="flag" colors={gradients.reward} size={44} />
-              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                  No goals yet
-                </Text>
-                <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                  Set one above and it starts tracking against everything you log.
-                </Text>
-              </View>
-            </View>
-          </Card>
+          <EmptyState
+            icon="flag"
+            colors={gradients.reward}
+            title="No goals yet"
+            detail="Set one above and it starts tracking against everything you log."
+          />
         </>
       ) : (
         <>

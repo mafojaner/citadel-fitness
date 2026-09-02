@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { EmptyState } from '../../components/EmptyState';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
@@ -64,19 +65,12 @@ export function AdvancedAnalyticsScreen() {
       ) : error ? (
         <ErrorNotice message={error} onRetry={reload} />
       ) : empty ? (
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="trending-up" colors={gradients.volume} size={44} />
-            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-              <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                Nothing logged in this period
-              </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                Try a longer range, or log a workout and come back.
-              </Text>
-            </View>
-          </View>
-        </Card>
+        <EmptyState
+          icon="trending-up"
+          colors={gradients.volume}
+          title="Nothing logged in this period"
+          detail="Try a longer range, or log a workout and come back."
+        />
       ) : (
         <>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>

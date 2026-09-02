@@ -4,6 +4,7 @@ import { Text, TextInput, View } from 'react-native';
 import { GradientButton } from './GradientButton';
 import { GradientNumberBadge } from './GradientNumberBadge';
 import { GradientPill } from './GradientPill';
+import { useArmedAction } from '../hooks/useArmedAction';
 import { useAuthStore } from '../state/authStore';
 import {
   CHALLENGE_LENGTHS,
@@ -46,7 +47,6 @@ export function GroupChallengeCard({ groupId, challenge, onChanged }: GroupChall
   const [lengthDays, setLengthDays] = useState(CHALLENGE_LENGTHS[0].days);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const start = useCallback(async () => {
     if (!userId || name.trim().length === 0) return;
@@ -77,6 +77,11 @@ export function GroupChallengeCard({ groupId, challenge, onChanged }: GroupChall
       setBusy(false);
     }
   }, [challenge, onChanged]);
+
+  // Declared after `cancel`, which it takes as its argument. Disarms itself
+  // after a few seconds, like every other destructive control in the app now
+  // does.
+  const { armed: confirmingCancel, trigger: triggerCancel } = useArmedAction(cancel);
 
   const panel = {
     borderTopWidth: 1,
@@ -266,14 +271,7 @@ export function GroupChallengeCard({ groupId, challenge, onChanged }: GroupChall
           label={confirmingCancel ? 'Tap again to call it off' : 'Call it off'}
           variant="outline"
           disabled={busy}
-          onPress={() => {
-            if (confirmingCancel) {
-              setConfirmingCancel(false);
-              cancel();
-            } else {
-              setConfirmingCancel(true);
-            }
-          }}
+          onPress={triggerCancel}
         />
       ) : null}
     </View>

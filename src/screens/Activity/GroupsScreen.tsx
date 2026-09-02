@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Image, Share, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { EmptyState } from '../../components/EmptyState';
 import { GradientButton } from '../../components/GradientButton';
 import { GroupChallengeCard } from '../../components/GroupChallengeCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
@@ -10,6 +11,7 @@ import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { useArmedAction } from '../../hooks/useArmedAction';
 import { useGroupChallenge } from '../../hooks/useGroupChallenge';
 import { useGroups } from '../../hooks/useGroups';
 import { GROUP_PERIODS } from '../../lib/groups';
@@ -50,7 +52,10 @@ export function GroupsScreen() {
   const [addingGroup, setAddingGroup] = useState(false);
   // Two taps to leave. You would need the invite code again to get back in,
   // and there is no undo -- same reason the program card arms its own leave.
-  const [confirmingLeave, setConfirmingLeave] = useState(false);
+  // Disarms itself after a few seconds; see useArmedAction.
+  const { armed: confirmingLeave, trigger: triggerLeave } = useArmedAction(() => {
+    if (selectedId) leave(selectedId);
+  });
   const selected = groups.find((g) => g.id === selectedId);
 
   const { challenge, reload: loadChallenge } = useGroupChallenge(selectedId);
@@ -210,30 +215,16 @@ export function GroupsScreen() {
                 label={confirmingLeave ? 'Tap again to leave' : 'Leave group'}
                 variant="outline"
                 disabled={busy}
-                onPress={() => {
-                  if (confirmingLeave) {
-                    setConfirmingLeave(false);
-                    leave(selected.id);
-                  } else {
-                    setConfirmingLeave(true);
-                  }
-                }}
+                onPress={triggerLeave}
               />
             </Card>
           ) : (
-            <Card>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <GradientIconBadge icon="people-circle" colors={gradients.rankGold} size={44} />
-                <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                  <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                    No groups yet
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                    Start one and share the code, or join a crew you&apos;ve been invited to.
-                  </Text>
-                </View>
-              </View>
-            </Card>
+            <EmptyState
+              icon="people-circle"
+              colors={gradients.rankGold}
+              title="No groups yet"
+              detail="Start one and share the code, or join a crew you've been invited to."
+            />
           )}
 
           {selected && !addingGroup ? (

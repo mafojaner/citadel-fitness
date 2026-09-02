@@ -8,6 +8,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
+import { EmptyState } from '../../components/EmptyState';
 import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
@@ -226,19 +227,12 @@ export function PersonalRecordsScreen() {
       ) : error ? (
         <ErrorNotice message={error} onRetry={reload} />
       ) : records.length === 0 ? (
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="trophy" colors={gradients.flame} size={44} />
-            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-              <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
-                No records yet
-              </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                Log a workout and your bests start appearing here automatically. There&apos;s nothing to set up.
-              </Text>
-            </View>
-          </View>
-        </Card>
+        <EmptyState
+          icon="trophy"
+          colors={gradients.flame}
+          title="No records yet"
+          detail="Log a workout and your bests start appearing here automatically. There's nothing to set up."
+        />
       ) : (
         <>
           {/* One pill that opens a picker, matching the exercise catalogue.

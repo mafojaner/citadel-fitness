@@ -331,9 +331,33 @@ export function AddWorkoutScreen() {
                     </Text>
                     <Text style={[typography.caption, { color: colors.textMuted, flex: 1 }]}>Reps</Text>
                     {isFortress ? (
-                      <Text style={[typography.caption, { color: colors.textMuted, width: 46, textAlign: 'center' }]}>
-                        RPE
-                      </Text>
+                      // The scale, at the point of entry.
+                      //
+                      // RPE is a Fortress feature that requires knowing a
+                      // convention most people do not, and an unexplained
+                      // 1-10 field is one people leave blank. A feature
+                      // nobody fills in cannot justify a tier. The note sits
+                      // in the header rather than under every set row,
+                      // where it would repeat itself four times a workout.
+                      <View
+                        style={{
+                          width: 46,
+                          alignItems: 'center',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          gap: 2,
+                        }}
+                      >
+                        <Text style={[typography.caption, { color: colors.textMuted }]}>RPE</Text>
+                        <InfoNote
+                          label="What RPE means"
+                          text={
+                            'How hard the set was, out of 10. 10 is a set you could not have added a rep to; ' +
+                            '9 is one rep left in the tank, 8 is two, 7 is three. Below 7 is warm-up territory. ' +
+                            'Leave it blank if you would rather not judge — nothing else depends on it being filled in.'
+                          }
+                        />
+                      </View>
                     ) : null}
                   </>
                 )}

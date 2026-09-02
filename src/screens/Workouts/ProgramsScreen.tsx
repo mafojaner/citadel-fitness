@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -9,6 +8,8 @@ import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
+import { useArmedAction } from '../../hooks/useArmedAction';
+import { useOpenActivityScreen } from '../../hooks/useOpenActivityScreen';
 import { usePrograms } from '../../hooks/usePrograms';
 import { todayISO } from '../../lib/analytics';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -32,13 +33,15 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
 export function ProgramsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
+  const openActivityScreen = useOpenActivityScreen();
   const { programs, enrollment, enrolled, today, loading, busy, error, reload, join, leave } =
     usePrograms();
   // Two taps to leave, because one tap throws away your place in the cycle
   // and this button sits directly under the one you press every session.
-  // The app has no confirmation dialog anywhere, so arming the button is
-  // the pattern that fits rather than introducing a modal for one case.
-  const [confirmingLeave, setConfirmingLeave] = useState(false);
+  // The shared hook also disarms after a few seconds -- the first version of
+  // this stayed armed indefinitely, so a tap, a distraction and a return
+  // meant the next tap was destructive with no warning it had been primed.
+  const { armed: confirmingLeave, trigger: triggerLeave } = useArmedAction(leave);
   const loadFromProgram = useWorkoutDraftStore((s) => s.loadFromProgram);
 
   const startSession = () => {
@@ -105,6 +108,18 @@ export function ProgramsScreen() {
             loading={busy}
             onPress={startSession}
           />
+
+          {/* The seam between two Fortress features that had none.
+              Committing to a training block is precisely the moment someone
+              has a number in mind, and goal forecasting sat two tabs away
+              with nothing pointing at it. Offered rather than imposed: a
+              program is a plan for the next few weeks, and not everyone
+              running one wants a target on top of it. */}
+          <GradientButton
+            label="Set a target on one of these lifts"
+            variant="outline"
+            onPress={() => openActivityScreen('GoalForecast')}
+          />
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             The program moves to day {(today.position % enrolled.days.length) + 1} once
             you save this session, not now — so loading it to look is free.
@@ -112,14 +127,7 @@ export function ProgramsScreen() {
           <GradientButton
             label={confirmingLeave ? 'Tap again to leave' : 'Leave program'}
             variant="outline"
-            onPress={() => {
-              if (confirmingLeave) {
-                setConfirmingLeave(false);
-                leave();
-              } else {
-                setConfirmingLeave(true);
-              }
-            }}
+            onPress={triggerLeave}
           />
         </Card>
       ) : null}
