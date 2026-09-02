@@ -966,7 +966,8 @@
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Dependency audit &mdash; the one runtime finding is fixed (27 August).</strong> The previous entry here said these were &ldquo;all in the build-tooling chain, no runtime path in the shipped bundle&rdquo;. That was wrong. <code>nanoid</code> reaches the app through <code>@react-navigation/native</code>, which uses it for route keys at runtime, so it shipped in every bundle. The advisory needs a custom generator called with size zero and React Navigation calls <code>nanoid()</code> bare, so exposure was low &mdash; but &ldquo;the vulnerable path is unreachable&rdquo; and &ldquo;it isn't in the bundle&rdquo; are different claims and only one was true. Bumped to 3.3.18 in the lockfile; React Navigation's range already allowed it. Verified by exporting the web bundle, not just by re-running audit.
             <br><br>Seven high advisories remain and this time it is traced rather than assumed: every one reaches the tree only through <code>eslint</code>, <code>jest</code>, or the Metro bundler inside <code>expo</code>/<code>react-native</code>. They want the planned SDK bump, which is its own work.
-              <br><br><strong>Re-audited 3 September, after the SDK alignment: the seven are gone.</strong> Zero high, zero critical, twenty-two moderate, and those twenty-two trace to three roots rather than twenty-two problems. <code>@xmldom/xmldom</code> arrives through <code>config-plugins</code> and <code>prebuild-config</code>; <code>uuid</code> through <code>xcode</code>, an iOS project tool. Both build-time.
+              <br><br><strong>The seven were cleared on 1 September, not on the 3rd, and this row credited the wrong day's work.</strong> Commit <code>2a8ff29</code> did it with a patch move plus three overrides. The 3 September SDK alignment moved the audit not at all &mdash; running <code>npm audit</code> against the lockfile as it stood before that change returns the same zero high and twenty-two moderate it returns after. Checked that way round on purpose, because &ldquo;the numbers are good now&rdquo; and &ldquo;my change made them good&rdquo; are different claims and only the first was ever tested.
+              <br><br>The twenty-two moderate trace to three roots rather than twenty-two problems. <code>@xmldom/xmldom</code> arrives through <code>config-plugins</code> and <code>prebuild-config</code>; <code>uuid</code> through <code>xcode</code>, an iOS project tool. Both build-time.
               <br><br>The third was traced rather than filed, because this row has been wrong in exactly that way before. <code>decode-uri-component</code> reaches the app through <code>query-string</code> through <code>@react-navigation/core</code>, so it ships in the bundle. The vulnerable decode is only entered through React Navigation's <code>getStateFromPath</code>, which runs only when a <code>linking</code> config is passed to <code>NavigationContainer</code> &mdash; and neither container passes one. The app's own deep-link handling, <code>parseRecoveryTokensFromUrl</code>, uses the platform <code>URLSearchParams</code> instead. Present, and not on a reachable path: the two claims that got conflated over <code>nanoid</code> in August, checked separately this time.
               <br><br>It is conditional, which is worth writing down. Adding deep-link routing later &mdash; a <code>linking</code> config, so a notification can open a screen &mdash; activates this advisory, and there is no upstream fix available. That is a thing to re-check at the time, not to assume.</div>
             <span class="priority done">0 high, 22 moderate</span>
@@ -1037,189 +1038,6 @@
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>What was built in that window instead.</strong> Not nothing, but not this: thirty-one commits covering the Fortress gate and its verification, offline sync, billing's database half, the plans page, the account centre, the desktop rail and the privacy policy's move onto the real domain. That is September's plan and the post-launch plan pulled forward. Useful work that bought no ground on the thing the schedule was actually gated on, which is worth naming rather than letting the commit count read as progress against this column.</div>
             <span class="priority medium">Context</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="block">
-        <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
-
-        <div class="callout" style="margin-bottom:16px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-          <span><strong>Status as of Aug 20:</strong> the whole month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown, 102 tests in CI, telemetry, the migrations port, the accessibility pass &mdash; <strong>and nine Fortress features on top of it</strong>, taking the premium tier from scaffolding to something real. 182 tests, seven migrations applied, one Edge Function deployed. Fortress still ships free at v1: what's missing is billing plumbing, not product. <strong>Three things gate the launch, and none of them is more code.</strong> The store enrollments and a PostHog project are yours alone. The third is verification &mdash; nine features are live in production and not one of their screens has been opened by anyone, because every check so far was made without a signed-in session.</span>
-        </div>
-
-        <div class="month-card">
-          <div class="month-label">August 2026</div>
-          <div class="month-grid">
-            <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
-            <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
-            <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
-            <div class="day active weekend">9</div><div class="day active done">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active done weekend">15</div>
-            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done">18</div><div class="day active done">19</div><div class="day active done today">20</div><div class="day active">21</div><div class="day active weekend">22</div>
-            <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
-            <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
-          </div>
-          <div class="legend">
-            <span><span class="sw a"></span>Beta plan (Aug 4–31)</span>
-            <span><span class="sw w"></span>Weekend / lighter day</span>
-            <span><span class="sw d"></span>Shipped</span>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 4</span></div>
-            <div class="agenda-task"><strong>Sentry crash reporting</strong> at the ErrorBoundary and for unhandled promise rejections.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 5</span></div>
-            <div class="agenda-task"><strong>GitHub Actions CI</strong> — lint + typecheck gate on every push/PR.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 6</span></div>
-            <div class="agenda-task"><strong>Finish the email system:</strong> Resend SMTP, deploy the three Edge Functions, wire the two database webhooks, run <code>migration_021</code>.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 7</span></div>
-            <div class="agenda-task"><strong>Staging environment:</strong> second free-tier Supabase project; point EAS's development/preview profiles at it.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 8</span></div>
-            <div class="agenda-task">Buffer — verify this week's work end to end.</div>
-            <span class="priority medium">Medium</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 9</span></div>
-            <div class="agenda-task">Rest.</div>
-            <span class="priority rest">Rest</span>
-          </div>
-
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
-            <div class="agenda-task"><strong>Analytics:</strong> screen views + key events. Slipped nine days, delivered Aug 19. Still needs a PostHog project and key before it records anything.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. Slipped a week, delivered Aug 18.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. Slipped, delivered Aug 18.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
-            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. Slipped, delivered Aug 18.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
-            <div class="agenda-task"><strong>Performance pass &mdash; the memoization half landed 27 August.</strong> It had never actually been done: no <code>React.memo</code> existed anywhere, and the catalogue rebuilt every visible row on every keystroke. Now memoised, and covered by a render-counting test that fails without it. A profiling session is still the only thing that can price it in milliseconds on a device.</div>
-            <span class="priority medium">Unverified</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
-            <div class="agenda-task"><strong>Move to tracked migrations:</strong> slipped four days, delivered Aug 19.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
-            <div class="agenda-task">Rest.</div>
-            <span class="priority rest">Rest</span>
-          </div>
-
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
-            <div class="agenda-task"><strong>Store enrollments — status unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. The accessibility pass carried to Aug 20 and shipped there.</div>
-            <span class="priority critical">Check</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
-            <div class="agenda-task"><strong>Test framework + all three planned suites</strong> — <code>jest-expo</code> per the SDK 57 docs, wired into CI so it gates pushes alongside lint and typecheck. 89 tests over <code>units.ts</code>, <code>email.ts</code>, <code>password.ts</code>, <code>analytics.ts</code> and <code>rewards.ts</code>. Aug 19's work landed here too, so testing is a day ahead. Each suite was confirmed to fail against a deliberately broken copy of the code before being committed — a passing suite isn't the same as a working one.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
-            <div class="agenda-task"><strong>Telemetry + the migrations port</strong>, both landed. PostHog wired for screen views and four events, inert until <code>EXPO_PUBLIC_POSTHOG_KEY</code> is set — no PII, no session replay, EU host to match Supabase and Sentry. And all 35 historical migrations moved under <code>supabase/migrations/</code>, each verified present in production by probing for the artifact it creates before being marked applied. <code>db push</code> now reports the remote up to date; applied state is recorded instead of assumed.</div>
-            <span class="priority done">Shipped</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
-            <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Then: nine Fortress features built</strong>, taking the tier from scaffolding to a real product &mdash; PR vault, advanced analytics, data export, goal forecasting, RPE &amp; rest timer, weekly digest, structured programs, private groups, referrals. Seven migrations applied to production, one Edge Function deployed, 182 tests. <code>FortressFeatureCard</code> gained an <code>onOpen</code> prop, so a feature graduates from teaser to entry point by passing one callback.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
-            <span class="priority check">Check</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
-            <div class="agenda-task"><strong>First real production builds:</strong> <code>eas build</code> for iOS and Android; fill real credentials into <code>eas.json</code> (still <code>REPLACE_WITH_*</code> placeholders today). Needs both enrollments approved.</div>
-            <span class="priority critical">Critical</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 22</span></div>
-            <div class="agenda-task"><strong>Store listings &mdash; drafted 27 August, in <code>docs/store-listing.md</code>.</strong> Both privacy questionnaires are answered line by line, the listing copy is written, and the keyword string is inside Apple's 100-character limit. The answers were generated by querying production for every column in <code>public</code> plus the storage buckets, rather than summarised from a design doc &mdash; which matters, because two of the answers only became true today: <code>form_check_submissions</code> makes this an app that collects <strong>video</strong>, and <code>nutrition_intakes</code> makes it one that collects <strong>health data</strong> (body weight, height, dietary restrictions). Filling either form from an older understanding of the app would have been a false declaration.
-            <br><br>Also caught while writing it: the <code>avatars</code> bucket is public, so a profile photo is fetchable at a known URL without signing in. That is by design and listing was closed off in <code>20260101000015</code>, but it is a disclosure, and it is now written down as one.
-            <br><br><strong>The feature graphic is done too</strong> &mdash; <code>assets/play-feature-graphic.png</code>, built from the app icon by <code>scripts/make-feature-graphic.py</code>. Exactly 1024&times;500, RGB with no alpha, and the mark keeps about 350px clear either side so it survives Play's crops. It carries no text on purpose: Play overlays the app title itself in several placements, and there is no openly-licensed typeface on this machine, so baking Arial into a shipped asset would be a licensing question invisible inside a committed PNG. Generated rather than drawn, so text can be added later with a font you hold a licence for.
-            <br><br><strong>The wordmark clash is settled (3 September).</strong> <code>assets/logo-wordmark.png</code> read &ldquo;CITADEL SOCIETY&rdquo; while <code>app.json</code>, the bundle ids, the listing, the privacy policy and the app's own copy all said &ldquo;Citadel Fitness&rdquo;. Both stores check the listing name against the app, and a wordmark carrying a third name returns as a rejection with a vague reason. It now reads <strong>CITADEL FITNESS</strong>.
-              <br><br>Regenerated rather than retouched, by <code>scripts/make-wordmark.py</code> drawing onto <code>assets/logo-castle.png</code> &mdash; the same mark with the text band cleared, kept as a separate file because a generator whose output is its own input can only be run once. <strong>The face was measured rather than eyeballed:</strong> it reads as Montserrat ExtraBold and is actually Montserrat <em>Black</em>, established by rendering &ldquo;CITADEL&rdquo; across every weight, size and tracking combination and scoring pixel overlap against the original &mdash; Black at 31px with 2px tracking, 0.914 IoU. Guessing ExtraBold would have put a subtly wrong weight on the one asset where that shows.
-              <br><br>This is the only asset that sets type, so the licensing question <code>make-feature-graphic.py</code> avoids had to be answered: <code>assets/fonts</code> now holds Montserrat under the <strong>SIL Open Font License 1.1</strong>, which permits commercial use and embedding, with <code>OFL.txt</code> beside it. Every other shipped asset &mdash; icon, both adaptive icons, favicon, feature graphic &mdash; was checked and is the castle alone, carrying no name either way.
-            <br><br><strong>Still needs you:</strong> entering all of it in both consoles, and screenshots &mdash; the one part of this day that genuinely needs a build.</div>
-            <span class="priority high">Drafted, needs entering</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 23</span></div>
-            <div class="agenda-task">Buffer — absorbs enrollment approval or build failures, the two things most likely to slip this week.</div>
-            <span class="priority rest">Rest</span>
-          </div>
-
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 24</span></div>
-            <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing.</div>
-            <span class="priority critical">Critical</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
-            <div class="agenda-task">Buffer — reserved when analytics moved up to Aug 19. Absorbs submission-review or tester-onboarding friction, which is where this week actually tends to slip.</div>
-            <span class="priority medium">Medium</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
-            <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
-            <span class="priority high">High</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 27</span></div>
-            <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
-            <span class="priority high">High</span>
-          </div>
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 28</span></div>
-            <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
-            <span class="priority critical">Critical</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 29</span></div>
-            <div class="agenda-task"><strong>Public testing links:</strong> TestFlight public link; Play Console Closed/Open testing opt-in link. Then watch the dashboards live — this page, plus Sentry.</div>
-            <span class="priority medium">Medium</span>
-          </div>
-          <div class="agenda-day weekend">
-            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 30</span></div>
-            <div class="agenda-task">Rest.</div>
-            <span class="priority rest">Rest</span>
-          </div>
-
-          <div class="agenda-day">
-            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
-            <div class="agenda-task"><strong>Wrap-up &mdash; done as far as it can be (2 September).</strong> This asked for a backlog compiled from two sources, and only one of them exists.
-              <br><br><strong>What could not be done, and why it is not a scheduling excuse.</strong> There is no tester feedback, because there are no testers: the store enrollments never completed, so there was never a build to install. And there is no usage data, because <code>EXPO_PUBLIC_POSTHOG_KEY</code> has never been set, so the telemetry wired on 19 August has recorded nothing in the fortnight since. Both are the same root cause the whole Aug 21&ndash;31 column has, and neither is fixable from inside the repository.
-              <br><br><strong>What was compiled instead:</strong> the engineering backlog, from the code and the live project rather than from users. That is the Fortress improvement plan &mdash; an audit of all ten Fortress surfaces against functionality, styling and integration &mdash; which produced seventeen items, of which fifteen were built on 1&ndash;2 September and two were declined with reasons recorded. It is a worse input than real usage would have been, and it was the one available.
-              <br><br><strong>What carries into September:</strong> nothing new. Every item this wrap-up would have raised is already on the list below or in the open ledger above, and the three that matter are unchanged &mdash; the store enrollments, which gate everything; the two repo secrets standing between the weekly digest and a real send; and billing's client half. The honest summary of August is that its first three weeks shipped in full and its last ten days never started, for one reason that has not moved since 17 August.</div>
-            <span class="priority done">Done, partly blocked</span>
           </div>
         </div>
       </section>
@@ -1304,7 +1122,7 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 2</span></div>
-            <div class="agenda-task"><strong>Dependency audit &mdash; done, and it never needed the SDK bump (1 September).</strong> Cleared a day early: <strong>7 high &rarr; 0</strong>, with 21 moderate unchanged.
+            <div class="agenda-task"><strong>Dependency audit &mdash; done, and it never needed the SDK bump (1 September).</strong> Cleared a day early: <strong>7 high &rarr; 0</strong>, with 21 moderate unchanged. (It reads 22 as of 3 September against the same lockfile &mdash; advisory databases gain entries over time, so an audit count moves without any dependency moving.)
               <br><br><strong>Two numbers in this row were wrong.</strong> There were seven findings, not fourteen &mdash; that count predates the 27 August pass and was never updated here. And the chain does not need a major bump: <code>metro</code> 0.84.5 drops its <code>image-size</code> dependency outright, which alone accounts for five of the seven (<code>@expo/metro</code>, <code>metro</code>, <code>metro-config</code>, <code>metro-transform-worker</code>, and <code>image-size</code> itself).
               <br><br><strong>What it took:</strong> <code>expo</code> <code>~57.0.8</code> &rarr; <code>~57.0.18</code>, which the tilde already permitted &mdash; only the lockfile was holding it &mdash; plus three overrides for the copies that bump does not reach: <code>metro@0.84.4 &rarr; 0.84.5</code> under react-native's community CLI plugin, and <code>brace-expansion</code> 1.1.17 &rarr; 1.1.18 and 5.0.8 &rarr; 5.0.9 under <code>minimatch@3</code> and <code>minimatch@10</code>. Every one sits inside the range its own parent declares, so they are the versions a fresh resolve picks anyway. They defeat a stale lockfile, not a maintainer's constraint.
               <br><br><strong>A trap worth recording.</strong> npm matches an override key against the spec the parent <em>asked for</em>, not the version that got installed. Keys written as the advisory's affected range &mdash; <code>brace-expansion@&lt;1.1.18</code> &mdash; match nothing at all, and sit in <code>package.json</code> reading like protection that is not there. The first attempt here was written exactly that way and was a silent no-op. Two further keys were dropped after testing whether they did anything: <code>js-yaml</code> resolves to 4.3.2 on its own.
@@ -1364,7 +1182,8 @@
           </div>
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 8</span></div>
-            <div class="agenda-task"><strong>Expo SDK bump &mdash; no longer needed, and the premise was wrong (1 September).</strong> This day existed to absorb a breaking major bump, deferred until after the beta for exactly that reason. The findings turned out to clear inside SDK 57 on a patch move plus three overrides, so they were taken on 1 September instead and this slot is free. Nothing about it was breaking and no regression was required beyond the usual gates. <strong>The day is now buffer</strong> &mdash; the nearest real work is the four remaining teasers on Sep 9.</div>
+            <div class="agenda-task"><strong>Expo SDK bump &mdash; no longer needed, and the premise was wrong (1 September).</strong> This day existed to absorb a breaking major bump, deferred until after the beta for exactly that reason. The findings turned out to clear inside SDK 57 on a patch move plus three overrides, so they were taken on 1 September instead and this slot is free. Nothing about it was breaking and no regression was required beyond the usual gates. <strong>The day is now buffer</strong> &mdash; the nearest real work is the four remaining teasers on Sep 9.
+              <br><br><strong>A patch-level move did happen on 3 September</strong>, and it is not the bump this day was reserved for. <code>expo install --fix</code> took React Native 0.86.0 to 0.86.3 to clear a Hermes V1 regression that would otherwise have shipped in the first production build. Inside SDK 57, nothing breaking, and unrelated to the audit findings that closed on the 1st.</div>
             <span class="priority done">Not needed</span>
           </div>
           <div class="agenda-day">
@@ -1532,6 +1351,189 @@
           </div>
         </div>
       </section>
+      <section class="block">
+        <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
+
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span><strong>Status as of Aug 20:</strong> the whole month's plan is shipped &mdash; Aug 4&ndash;7, the <code>profiles</code> lockdown, 102 tests in CI, telemetry, the migrations port, the accessibility pass &mdash; <strong>and nine Fortress features on top of it</strong>, taking the premium tier from scaffolding to something real. 182 tests, seven migrations applied, one Edge Function deployed. Fortress still ships free at v1: what's missing is billing plumbing, not product. <strong>Three things gate the launch, and none of them is more code.</strong> The store enrollments and a PostHog project are yours alone. The third is verification &mdash; nine features are live in production and not one of their screens has been opened by anyone, because every check so far was made without a signed-in session.</span>
+        </div>
+
+        <div class="month-card">
+          <div class="month-label">August 2026</div>
+          <div class="month-grid">
+            <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
+            <div class="day">26</div><div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day active weekend">1</div>
+            <div class="day active weekend">2</div><div class="day active">3</div><div class="day active done">4</div><div class="day active done">5</div><div class="day active done">6</div><div class="day active done">7</div><div class="day active weekend">8</div>
+            <div class="day active weekend">9</div><div class="day active done">10</div><div class="day active done">11</div><div class="day active done">12</div><div class="day active done">13</div><div class="day active">14</div><div class="day active done weekend">15</div>
+            <div class="day active weekend">16</div><div class="day active done">17</div><div class="day active done">18</div><div class="day active done">19</div><div class="day active done today">20</div><div class="day active">21</div><div class="day active weekend">22</div>
+            <div class="day active weekend">23</div><div class="day active">24</div><div class="day active">25</div><div class="day active">26</div><div class="day active">27</div><div class="day active">28</div><div class="day active weekend">29</div>
+            <div class="day active weekend">30</div><div class="day active">31</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div>
+          </div>
+          <div class="legend">
+            <span><span class="sw a"></span>Beta plan (Aug 4–31)</span>
+            <span><span class="sw w"></span>Weekend / lighter day</span>
+            <span><span class="sw d"></span>Shipped</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 4</span></div>
+            <div class="agenda-task"><strong>Sentry crash reporting</strong> at the ErrorBoundary and for unhandled promise rejections.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 5</span></div>
+            <div class="agenda-task"><strong>GitHub Actions CI</strong> — lint + typecheck gate on every push/PR.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 6</span></div>
+            <div class="agenda-task"><strong>Finish the email system:</strong> Resend SMTP, deploy the three Edge Functions, wire the two database webhooks, run <code>migration_021</code>.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 7</span></div>
+            <div class="agenda-task"><strong>Staging environment:</strong> second free-tier Supabase project; point EAS's development/preview profiles at it.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 8</span></div>
+            <div class="agenda-task">Buffer — verify this week's work end to end.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 9</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
+            <div class="agenda-task"><strong>Analytics:</strong> screen views + key events. Slipped nine days, delivered Aug 19. Still needs a PostHog project and key before it records anything.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. Slipped a week, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. Slipped, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
+            <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. Slipped, delivered Aug 18.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
+            <div class="agenda-task"><strong>Performance pass &mdash; the memoization half landed 27 August.</strong> It had never actually been done: no <code>React.memo</code> existed anywhere, and the catalogue rebuilt every visible row on every keystroke. Now memoised, and covered by a render-counting test that fails without it. A profiling session is still the only thing that can price it in milliseconds on a device.</div>
+            <span class="priority medium">Measured</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
+            <div class="agenda-task"><strong>Move to tracked migrations:</strong> slipped four days, delivered Aug 19.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
+            <div class="agenda-task"><strong>Store enrollments — Google Play approved 3 September; Apple still unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. The accessibility pass carried to Aug 20 and shipped there.</div>
+            <span class="priority high">Play done</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
+            <div class="agenda-task"><strong>Test framework + all three planned suites</strong> — <code>jest-expo</code> per the SDK 57 docs, wired into CI so it gates pushes alongside lint and typecheck. 89 tests over <code>units.ts</code>, <code>email.ts</code>, <code>password.ts</code>, <code>analytics.ts</code> and <code>rewards.ts</code>. Aug 19's work landed here too, so testing is a day ahead. Each suite was confirmed to fail against a deliberately broken copy of the code before being committed — a passing suite isn't the same as a working one.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
+            <div class="agenda-task"><strong>Telemetry + the migrations port</strong>, both landed. PostHog wired for screen views and four events, inert until <code>EXPO_PUBLIC_POSTHOG_KEY</code> is set — no PII, no session replay, EU host to match Supabase and Sentry. And all 35 historical migrations moved under <code>supabase/migrations/</code>, each verified present in production by probing for the artifact it creates before being marked applied. <code>db push</code> now reports the remote up to date; applied state is recorded instead of assumed.</div>
+            <span class="priority done">Shipped</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
+            <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Then: nine Fortress features built</strong>, taking the tier from scaffolding to a real product &mdash; PR vault, advanced analytics, data export, goal forecasting, RPE &amp; rest timer, weekly digest, structured programs, private groups, referrals. Seven migrations applied to production, one Edge Function deployed, 182 tests. <code>FortressFeatureCard</code> gained an <code>onOpen</code> prop, so a feature graduates from teaser to entry point by passing one callback.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
+            <span class="priority check">Check</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
+            <div class="agenda-task"><strong>First real production builds &mdash; the Android one started 3 September.</strong> <code>eas build -p android --profile production</code> is queued on EAS, and the run created the project's signing keystore and took <code>versionCode</code> to 2. Google's credential slot in <code>eas.json</code> is filled; the three <code>REPLACE_WITH_*</code> placeholders that remain are all Apple's, and iOS still needs that enrollment.</div>
+            <span class="priority high">Android building</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 22</span></div>
+            <div class="agenda-task"><strong>Store listings &mdash; drafted 27 August, in <code>docs/store-listing.md</code>.</strong> Both privacy questionnaires are answered line by line, the listing copy is written, and the keyword string is inside Apple's 100-character limit. The answers were generated by querying production for every column in <code>public</code> plus the storage buckets, rather than summarised from a design doc &mdash; which matters, because two of the answers only became true today: <code>form_check_submissions</code> makes this an app that collects <strong>video</strong>, and <code>nutrition_intakes</code> makes it one that collects <strong>health data</strong> (body weight, height, dietary restrictions). Filling either form from an older understanding of the app would have been a false declaration.
+            <br><br>Also caught while writing it: the <code>avatars</code> bucket is public, so a profile photo is fetchable at a known URL without signing in. That is by design and listing was closed off in <code>20260101000015</code>, but it is a disclosure, and it is now written down as one.
+            <br><br><strong>The feature graphic is done too</strong> &mdash; <code>assets/play-feature-graphic.png</code>, built from the app icon by <code>scripts/make-feature-graphic.py</code>. Exactly 1024&times;500, RGB with no alpha, and the mark keeps about 350px clear either side so it survives Play's crops. It carries no text on purpose: Play overlays the app title itself in several placements, and there is no openly-licensed typeface on this machine, so baking Arial into a shipped asset would be a licensing question invisible inside a committed PNG. Generated rather than drawn, so text can be added later with a font you hold a licence for.
+            <br><br><strong>The wordmark clash is settled (3 September).</strong> <code>assets/logo-wordmark.png</code> read &ldquo;CITADEL SOCIETY&rdquo; while <code>app.json</code>, the bundle ids, the listing, the privacy policy and the app's own copy all said &ldquo;Citadel Fitness&rdquo;. Both stores check the listing name against the app, and a wordmark carrying a third name returns as a rejection with a vague reason. It now reads <strong>CITADEL FITNESS</strong>.
+              <br><br>Regenerated rather than retouched, by <code>scripts/make-wordmark.py</code> drawing onto <code>assets/logo-castle.png</code> &mdash; the same mark with the text band cleared, kept as a separate file because a generator whose output is its own input can only be run once. <strong>The face was measured rather than eyeballed:</strong> it reads as Montserrat ExtraBold and is actually Montserrat <em>Black</em>, established by rendering &ldquo;CITADEL&rdquo; across every weight, size and tracking combination and scoring pixel overlap against the original &mdash; Black at 31px with 2px tracking, 0.914 IoU. Guessing ExtraBold would have put a subtly wrong weight on the one asset where that shows.
+              <br><br>This is the only asset that sets type, so the licensing question <code>make-feature-graphic.py</code> avoids had to be answered: <code>assets/fonts</code> now holds Montserrat under the <strong>SIL Open Font License 1.1</strong>, which permits commercial use and embedding, with <code>OFL.txt</code> beside it. Every other shipped asset &mdash; icon, both adaptive icons, favicon, feature graphic &mdash; was checked and is the castle alone, carrying no name either way.
+            <br><br><strong>Still needs you:</strong> entering all of it in both consoles, and screenshots &mdash; the one part of this day that genuinely needs a build.</div>
+            <span class="priority high">Drafted, needs entering</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 23</span></div>
+            <div class="agenda-task">Buffer — absorbs enrollment approval or build failures, the two things most likely to slip this week.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 24</span></div>
+            <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing. <strong>The Play half is reachable as of 3 September</strong> &mdash; <code>eas submit -p android --profile production</code> reads only the android block, so Apple's placeholders do not hold it up. It needs <code>certs/play-service-account.json</code> in place. TestFlight still waits on the Apple enrollment.</div>
+            <span class="priority high">Android unblocked</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
+            <div class="agenda-task">Buffer — reserved when analytics moved up to Aug 19. Absorbs submission-review or tester-onboarding friction, which is where this week actually tends to slip.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
+            <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
+            <span class="priority medium">After the build</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 27</span></div>
+            <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
+            <span class="priority high">High</span>
+          </div>
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 28</span></div>
+            <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
+            <span class="priority critical">Critical</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 29</span></div>
+            <div class="agenda-task"><strong>Public testing links:</strong> TestFlight public link; Play Console Closed/Open testing opt-in link. Then watch the dashboards live — this page, plus Sentry.</div>
+            <span class="priority medium">Medium</span>
+          </div>
+          <div class="agenda-day weekend">
+            <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 30</span></div>
+            <div class="agenda-task">Rest.</div>
+            <span class="priority rest">Rest</span>
+          </div>
+
+          <div class="agenda-day">
+            <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
+            <div class="agenda-task"><strong>Wrap-up &mdash; done as far as it can be (2 September).</strong> This asked for a backlog compiled from two sources, and only one of them exists.
+              <br><br><strong>What could not be done, and why it is not a scheduling excuse.</strong> There is no tester feedback, because there are no testers: the store enrollments never completed, so there was never a build to install. And there is no usage data, because <code>EXPO_PUBLIC_POSTHOG_KEY</code> has never been set, so the telemetry wired on 19 August has recorded nothing in the fortnight since. Both are the same root cause the whole Aug 21&ndash;31 column has, and neither is fixable from inside the repository.
+              <br><br><strong>What was compiled instead:</strong> the engineering backlog, from the code and the live project rather than from users. That is the Fortress improvement plan &mdash; an audit of all ten Fortress surfaces against functionality, styling and integration &mdash; which produced seventeen items, of which fifteen were built on 1&ndash;2 September and two were declined with reasons recorded. It is a worse input than real usage would have been, and it was the one available.
+              <br><br><strong>What carries into September:</strong> nothing new. Every item this wrap-up would have raised is already on the list below or in the open ledger above, and the three that matter are unchanged &mdash; the store enrollments, which gate everything; the two repo secrets standing between the weekly digest and a real send; and billing's client half. The honest summary of August is that its first three weeks shipped in full and its last ten days never started, for one reason that has not moved since 17 August.</div>
+            <span class="priority done">Done, partly blocked</span>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 
