@@ -54,6 +54,13 @@ def render_line(text, size):
     Pillow has no letter-spacing, and the original is tracked -- setting the
     string in one call would come out too tight and no scaling would fix it,
     because the error is in the gaps rather than the glyphs.
+
+    Returns the glyph mask plus the offset of its *solid* ink within it. Those
+    differ: getbbox() includes anti-aliased pixels that fall well below the
+    threshold the original was measured at, so positioning by it lands the
+    type a pixel low and off centre. Small enough to miss by eye on a logo,
+    and exactly the kind of thing that is obvious once someone puts the old
+    and new files on top of each other.
     """
     font = ImageFont.truetype(FONT, size)
     font.set_variation_by_name(WEIGHT)
@@ -65,22 +72,29 @@ def render_line(text, size):
         draw.text((x, 100), ch, font=font, fill=255)
         x += draw.textlength(ch, font=font) + TRACKING
 
-    # Trim to ink. Positioning off the drawn bounding box rather than off the
-    # font's own metrics keeps the cap-top where it was measured, regardless
-    # of the ascent Montserrat happens to report.
-    box = scratch.getbbox()
-    return scratch.crop(box)
+    mask = scratch.crop(scratch.getbbox())
+
+    # Where the ink actually starts, at the same >128 threshold used to
+    # measure the original.
+    solid = mask.point(lambda v: 255 if v > 128 else 0).getbbox()
+    return mask, solid
 
 
 def main():
     base = Image.open(CASTLE).convert('RGB')
 
     for line in LINES:
-        ink = render_line(line['text'], line['size'])
-        x = CENTRE_X - ink.width // 2
+        mask, solid = render_line(line['text'], line['size'])
+        solid_w = solid[2] - solid[0]
+
+        # Place so the *thresholded* ink lands on the measured cap-top and
+        # centre, then subtract where that ink sits inside the mask.
+        x = int(round(CENTRE_X - solid_w / 2)) - solid[0]
+        y = line['top'] - solid[1]
+
         # White type, pasted through the glyph mask so the near-black ground
         # underneath is left alone rather than flattened to a grey block.
-        base.paste((255, 255, 255), (x, line['top']), ink)
+        base.paste((255, 255, 255), (x, y), mask)
 
     base.save(OUT)
     print('wrote %s (%dx%d)' % (OUT, base.width, base.height))
