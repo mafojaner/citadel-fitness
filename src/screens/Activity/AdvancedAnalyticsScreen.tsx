@@ -6,6 +6,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { Sparkline } from '../../components/Sparkline';
 import { StatChip } from '../../components/StatChip';
 import {
   CATEGORY_GRADIENTS,
@@ -150,6 +151,16 @@ export function AdvancedAnalyticsScreen() {
                         {p.first} → {p.latest} {weightUnit} · {p.points.length} sessions
                       </Text>
                     </View>
+                    {/* The middle of the series, which was already being
+                        computed and then reduced to its two ends. A steady
+                        climb and a lift that spiked early then slid produce
+                        the same first, latest and percentage; only the shape
+                        tells them apart. */}
+                    <Sparkline
+                      values={p.points.map((point) => point.estimatedOneRepMax)}
+                      color={tint}
+                      accessibilityLabel={`${p.exerciseName} across ${p.points.length} sessions, ${p.first} to ${p.latest} ${weightUnit}`}
+                    />
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                       <Ionicons
                         name={flat ? 'remove' : up ? 'arrow-up' : 'arrow-down'}

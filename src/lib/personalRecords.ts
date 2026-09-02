@@ -1,3 +1,4 @@
+import { addDays } from './analytics';
 import { supabase } from './supabase';
 import { roundForDisplay } from './units';
 import { type ExerciseHistory } from './workoutHistory';
@@ -61,6 +62,49 @@ export interface PersonalRecord {
   bestSessionDate: string | null;
   totalSets: number;
   lastPerformed: string;
+}
+
+/**
+ * The most recent date on which any of this exercise's records was set.
+ *
+ * Every record already carries the date it was achieved, and the screen
+ * printed each one under its value. What none of them answered is the
+ * question a records screen exists for: did I just set one? Reading the
+ * dates off six lines and comparing them to today is work the page should
+ * have done.
+ *
+ * Null when the exercise has no dated record at all, which happens for a
+ * lift logged only as bodyweight with no qualifying set.
+ */
+export function newestRecordDate(record: PersonalRecord): string | null {
+  const dates = [
+    record.heaviestWeightDate,
+    record.estimatedOneRepMaxDate,
+    record.longestDurationDate,
+    record.farthestDistanceDate,
+    record.bestSessionDate,
+  ].filter((d): d is string => d !== null);
+  if (dates.length === 0) return null;
+  return dates.reduce((latest, d) => (d > latest ? d : latest));
+}
+
+/**
+ * Whether a record was set recently enough to still feel like news.
+ *
+ * Seven days rather than "since your last visit": the app does not track
+ * visits, and a window tied to one would mark everything as new for someone
+ * returning after a month off -- which is the moment the marker means least.
+ * Compared as ISO strings, which sort lexically, so no date parsing and no
+ * timezone to get wrong.
+ */
+export function isRecentRecord(
+  record: PersonalRecord,
+  today: string,
+  withinDays = 7
+): boolean {
+  const set = newestRecordDate(record);
+  if (set === null) return false;
+  return set > addDays(today, -withinDays) && set <= today;
 }
 
 /**

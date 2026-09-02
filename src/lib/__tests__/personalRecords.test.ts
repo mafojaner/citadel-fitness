@@ -1,7 +1,10 @@
 import {
   computePersonalRecords,
   estimateOneRepMax,
+  isRecentRecord,
+  newestRecordDate,
   type ExerciseHistory,
+  type PersonalRecord,
   type RecordSet,
 } from '../personalRecords';
 
@@ -188,5 +191,98 @@ describe('computePersonalRecords — collection', () => {
     const [record] = computePersonalRecords([cardio([set({ durationSeconds: 60 })])]);
     expect(record.category).toBe('cardio');
     expect(record.type).toBe('cardio');
+  });
+});
+
+describe('record freshness', () => {
+  const record = (over: Partial<PersonalRecord> = {}): PersonalRecord => ({
+    exerciseId: 'ex-1',
+    exerciseName: 'Bench Press',
+    category: 'chest',
+    type: 'strength',
+    heaviestWeight: 100,
+    heaviestWeightReps: 5,
+    heaviestWeightDate: '2026-08-01',
+    estimatedOneRepMax: 112,
+    estimatedOneRepMaxDate: '2026-08-01',
+    longestDurationSeconds: 0,
+    longestDurationDate: null,
+    farthestDistance: 0,
+    farthestDistanceDate: null,
+    bestSessionValue: 2000,
+    bestSessionDate: '2026-08-01',
+    totalSets: 12,
+    lastPerformed: '2026-08-01',
+    ...over,
+  });
+
+  it('takes the latest of the record dates, not the first it finds', () => {
+    expect(
+      newestRecordDate(record({ heaviestWeightDate: '2026-08-01', bestSessionDate: '2026-09-01' }))
+    ).toBe('2026-09-01');
+  });
+
+  it('ignores the dates that are absent', () => {
+    // A lift with no qualifying 1RM estimate leaves that date null, and a
+    // null must not win a max comparison or sort as a date.
+    expect(
+      newestRecordDate(
+        record({ estimatedOneRepMaxDate: null, bestSessionDate: null, heaviestWeightDate: '2026-07-04' })
+      )
+    ).toBe('2026-07-04');
+  });
+
+  it('is null when nothing is dated at all', () => {
+    expect(
+      newestRecordDate(
+        record({
+          heaviestWeightDate: null,
+          estimatedOneRepMaxDate: null,
+          longestDurationDate: null,
+          farthestDistanceDate: null,
+          bestSessionDate: null,
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('counts a record inside the window as new', () => {
+    expect(isRecentRecord(record({ bestSessionDate: '2026-09-10' }), '2026-09-12')).toBe(true);
+  });
+
+  it('does not count one on the far edge of the window', () => {
+    // Exactly seven days back is outside: the window is the last seven days,
+    // not the last eight.
+    expect(isRecentRecord(record({ bestSessionDate: '2026-09-05' }), '2026-09-12')).toBe(false);
+    expect(isRecentRecord(record({ bestSessionDate: '2026-09-06' }), '2026-09-12')).toBe(true);
+  });
+
+  it('counts one set today', () => {
+    expect(isRecentRecord(record({ bestSessionDate: '2026-09-12' }), '2026-09-12')).toBe(true);
+  });
+
+  it('does not count a future date as new', () => {
+    // Nothing should produce one, but a device clock set forward would, and
+    // "new" on a record from next week is worse than not marking it.
+    expect(isRecentRecord(record({ bestSessionDate: '2026-09-20' }), '2026-09-12')).toBe(false);
+  });
+
+  it('crosses a month boundary rather than comparing day numbers', () => {
+    expect(isRecentRecord(record({ bestSessionDate: '2026-08-30' }), '2026-09-02')).toBe(true);
+  });
+
+  it('is not new when the exercise has no dated record', () => {
+    expect(
+      isRecentRecord(
+        record({
+          heaviestWeightDate: null,
+          estimatedOneRepMaxDate: null,
+          longestDurationDate: null,
+          farthestDistanceDate: null,
+          bestSessionDate: null,
+        }),
+        '2026-09-12'
+      )
+    ).toBe(false);
   });
 });

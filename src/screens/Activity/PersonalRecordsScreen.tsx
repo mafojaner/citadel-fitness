@@ -16,8 +16,9 @@ import {
 } from '../../constants/categories';
 import { useDataExport } from '../../hooks/useDataExport';
 import { usePersonalRecords } from '../../hooks/usePersonalRecords';
+import { todayISO } from '../../lib/analytics';
 import { formatDuration } from '../../lib/units';
-import type { PersonalRecord } from '../../lib/personalRecords';
+import { isRecentRecord, type PersonalRecord } from '../../lib/personalRecords';
 import { useProfileStore } from '../../state/profileStore';
 import type { Category } from '../../types/models';
 import { gradients } from '../../theme/tokens';
@@ -62,7 +63,7 @@ function RecordLine({ icon, label, value, date }: RecordLineProps) {
  * personalRecords.ts for the arithmetic.
  */
 export function PersonalRecordsScreen() {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const { records, loading, error, reload } = usePersonalRecords();
@@ -82,6 +83,20 @@ export function PersonalRecordsScreen() {
   }, [records]);
 
   const visible = category === 'all' ? records : records.filter((r) => r.category === category);
+
+  // Which of these are news.
+  //
+  // Every record already carried the date it was set, printed small under
+  // its value, and the screen left you to read six dates and compare them to
+  // today yourself. The one question a records screen exists to answer --
+  // did I just set one? -- was the one it made you work for. Computed once
+  // here rather than per card, since `today` should not be re-derived
+  // halfway down a list that might straddle midnight.
+  const today = todayISO();
+  const freshIds = useMemo(
+    () => new Set(records.filter((r) => isRecentRecord(r, today)).map((r) => r.exerciseId)),
+    [records, today]
+  );
 
   const renderRecord = (record: PersonalRecord) => {
     const cardio = record.type === 'cardio';
@@ -153,6 +168,25 @@ export function PersonalRecordsScreen() {
               {record.totalSets} set{record.totalSets === 1 ? '' : 's'} logged
             </Text>
           </View>
+          {freshIds.has(record.exerciseId) ? (
+            // On the card rather than on the individual line, because the
+            // line already shows its own date -- this is the marker that
+            // makes the card worth stopping at while scrolling past twenty.
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: colors.success,
+                borderRadius: radius.pill,
+                paddingHorizontal: spacing.sm,
+                paddingVertical: 2,
+              }}
+            >
+              <Ionicons name="sparkles" size={10} color="#FFFFFF" />
+              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>New</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={{ gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
@@ -194,7 +228,15 @@ export function PersonalRecordsScreen() {
             <CategoryFilterPicker options={categories} value={category} onChange={setCategory} />
           ) : null}
 
-          <StatChip icon="trophy-outline" value={`${visible.length} exercise${visible.length === 1 ? '' : 's'}`} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+            <StatChip icon="trophy-outline" value={`${visible.length} exercise${visible.length === 1 ? '' : 's'}`} />
+            {freshIds.size > 0 ? (
+              <StatChip
+                icon="sparkles-outline"
+                value={`${freshIds.size} new this week`}
+              />
+            ) : null}
+          </View>
 
           {/* Export sits with the records rather than only in Account: this
               is the screen where someone is looking at their numbers and
