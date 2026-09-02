@@ -7,7 +7,7 @@ import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
-import { InfoNote } from '../../components/InfoNote';
+import { InfoNote, InfoNoteText, InfoNoteTrigger } from '../../components/InfoNote';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { RestTimer } from '../../components/RestTimer';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -43,6 +43,18 @@ interface DurationInputGroupProps {
 }
 
 /** Hours/minutes/seconds entry for a cardio set's duration, composed into a single totalSeconds value. */
+/**
+ * Width of the RPE column, shared by the heading and the input beneath it so
+ * they cannot drift apart. Wide enough for the label, its gap and the icon at
+ * the 1.3x text scaling an accessibility setting can apply.
+ */
+const RPE_COLUMN = 56;
+
+const RPE_NOTE =
+  'How hard the set was, out of 10. 10 is a set you could not have added a rep to; ' +
+  '9 is one rep left in the tank, 8 is two, 7 is three. Below 7 is warm-up territory. ' +
+  'Leave it blank if you would rather not judge — nothing else depends on it being filled in.';
+
 function DurationInputGroup({ totalSeconds, onChange }: DurationInputGroupProps) {
   const { colors, spacing, radius } = useTheme();
   const { hours, minutes, seconds } = secondsToParts(totalSeconds);
@@ -121,6 +133,7 @@ export function AddWorkoutScreen() {
   const [newRecords, setNewRecords] = useState<SavedRecord[]>([]);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [switchingDate, setSwitchingDate] = useState(false);
+  const [rpeNoteFor, setRpeNoteFor] = useState<string | null>(null);
   const finishedRef = useRef(false);
 
   const loadMonth = useCallback(
@@ -339,30 +352,24 @@ export function AddWorkoutScreen() {
                       // nobody fills in cannot justify a tier. The note sits
                       // in the header rather than under every set row,
                       // where it would repeat itself four times a workout.
-                      <View
-                        style={{
-                          width: 46,
-                          alignItems: 'center',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          gap: 2,
-                        }}
-                      >
-                        <Text style={[typography.caption, { color: colors.textMuted }]}>RPE</Text>
-                        <InfoNote
+                      <View style={{ width: RPE_COLUMN, alignItems: 'center' }}>
+                        <InfoNoteTrigger
                           label="What RPE means"
-                          text={
-                            'How hard the set was, out of 10. 10 is a set you could not have added a rep to; ' +
-                            '9 is one rep left in the tank, 8 is two, 7 is three. Below 7 is warm-up territory. ' +
-                            'Leave it blank if you would rather not judge — nothing else depends on it being filled in.'
+                          open={rpeNoteFor === exercise.id}
+                          onPress={() =>
+                            setRpeNoteFor((open) => (open === exercise.id ? null : exercise.id))
                           }
-                        />
+                        >
+                          <Text style={[typography.caption, { color: colors.textMuted }]}>RPE</Text>
+                        </InfoNoteTrigger>
                       </View>
                     ) : null}
                   </>
                 )}
                 <View style={{ width: 24 }} />
               </View>
+
+              {rpeNoteFor === exercise.id ? <InfoNoteText text={RPE_NOTE} /> : null}
 
               {exercise.sets.map((set) => (
                 <View key={set.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
@@ -467,7 +474,7 @@ export function AddWorkoutScreen() {
                           placeholderTextColor={colors.textMuted}
                           accessibilityLabel={`Effort out of 10 for ${entryNoun} ${set.setNumber}`}
                           style={{
-                            width: 46,
+                            width: RPE_COLUMN,
                             textAlign: 'center',
                             borderColor: colors.border,
                             borderWidth: 1,
