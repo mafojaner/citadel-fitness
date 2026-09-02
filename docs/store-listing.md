@@ -270,20 +270,39 @@ PNG; that is the whole reason the asset is generated rather than drawn.
 
 ---
 
-## 7. One thing to decide before you submit
+## 7. The wordmark — settled 3 September
 
-`assets/logo-wordmark.png` reads **“CITADEL SOCIETY”**. Everything else —
-`app.json`, the bundle identifiers, this listing, the privacy policy, the
-app's own copy — says **“Citadel Fitness”**.
+`assets/logo-wordmark.png` read **“CITADEL SOCIETY”** while `app.json`, the
+bundle identifiers, this listing, the privacy policy and the app's own copy
+all said **“Citadel Fitness”**. Both stores check the listing name against the
+name in the app, and a wordmark carrying a third one comes back as a
+rejection with a vague reason attached. It now reads **CITADEL FITNESS**.
 
-Both stores check that the name on the listing matches the name in the app,
-and a wordmark showing a third name is the kind of thing that comes back as
-a rejection with a vague reason attached. It is not a code question, so it
-is left here rather than guessed at:
+Regenerated rather than retouched: `scripts/make-wordmark.py` draws both
+lines onto `assets/logo-castle.png`, which is the same mark with the text
+band cleared. Editing the PNG by hand would have left an asset nobody could
+rebuild — and the generator's own output cannot be its input, which is why
+the castle is a separate file.
 
-- If Citadel Society is the company and Citadel Fitness is the app, the
-  wordmark is fine on a website and wrong in a store listing.
-- If the app was renamed and the asset was not, the asset needs redrawing.
+**The typeface was measured, not eyeballed.** It looks like Montserrat
+ExtraBold. It is Montserrat **Black**: rendering “CITADEL” across every
+weight, size and tracking combination and scoring pixel overlap against the
+original put Black at 31px with 2px tracking at 0.914 IoU, and
+“SOCIETY” at 21px with the same tracking at 0.894. Anything that changes the
+face should be checked the same way.
 
-The feature graphic sidesteps it by using the castle alone, which carries no
-name either way.
+This is the one asset that sets type, so the licensing question
+`make-feature-graphic.py` sidesteps had to be answered instead. `assets/fonts`
+holds Montserrat under the **SIL Open Font License 1.1**, which permits
+commercial use and embedding, with `OFL.txt` beside it. Do not substitute a
+system font — rasterising Arial or Segoe UI into a store asset is precisely
+what that avoids.
+
+Both lines are redrawn, not just the second. Keeping the original raster on
+top and setting the bottom line fresh would put two sources in one lockup,
+and the eye catches a mismatch *between* the lines long before any difference
+from an old file nobody has side by side.
+
+Checked while here: every other shipped asset — `icon.png`, both adaptive
+icons, the favicon and the feature graphic — is the castle alone and carries
+no name in either direction.
