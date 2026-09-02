@@ -7,6 +7,7 @@ import { GroupsScreen } from '../../screens/Activity/GroupsScreen';
 import { NutritionCoachingScreen } from '../../screens/Activity/NutritionCoachingScreen';
 import { LeaderboardScreen } from '../../screens/Activity/LeaderboardScreen';
 import { OverloadScreen } from '../../screens/Activity/OverloadScreen';
+import { LiftDetailScreen } from '../../screens/Activity/LiftDetailScreen';
 import { PersonalRecordsScreen } from '../../screens/Activity/PersonalRecordsScreen';
 import { RewardsScreen } from '../../screens/Activity/RewardsScreen';
 import { useTheme } from '../../theme/useTheme';
@@ -23,6 +24,8 @@ export type ActivityStackParamList = {
   FormCheck: undefined;
   NutritionCoaching: undefined;
   Groups: undefined;
+  /** One lift's record, goal and progression together. */
+  LiftDetail: { exerciseId: string; exerciseName: string };
 };
 
 const Stack = createNativeStackNavigator<ActivityStackParamList>();
@@ -66,6 +69,13 @@ export function ActivityStack() {
         options={{ title: 'Nutrition Coaching' }}
       />
       <Stack.Screen name="Groups" component={GroupsScreen} options={{ title: 'Private Groups' }} />
+      {/* Titled from the route rather than fixed, so the header names the
+          lift you came in on -- this screen is only ever about one. */}
+      <Stack.Screen
+        name="LiftDetail"
+        component={LiftDetailScreen}
+        options={({ route }) => ({ title: route.params.exerciseName })}
+      />
     </Stack.Navigator>
   );
 }

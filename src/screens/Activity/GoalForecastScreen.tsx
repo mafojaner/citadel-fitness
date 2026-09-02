@@ -1,6 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
@@ -13,6 +16,7 @@ import { isoInWeeks, suggestedTargets, type GoalProjection, type GoalStatus } fr
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
+import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 const STATUS_COPY: Record<GoalStatus, { label: string; detail: string; icon: keyof typeof Ionicons.glyphMap }> = {
   achieved: { label: 'Achieved', detail: 'You have already lifted this.', icon: 'checkmark-circle' },
@@ -51,6 +55,7 @@ function formatDate(dateString: string | null) {
  */
 export function GoalForecastScreen() {
   const { colors, spacing, radius, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const { projections, liftedExercises, loading, saving, error, reload, addGoal, removeGoal } =
     useLiftGoals();
@@ -127,12 +132,31 @@ export function GoalForecastScreen() {
       <Card key={p.goal.id}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <Ionicons name={copy.icon} size={20} color={tint} />
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
-              {p.exerciseName}
-            </Text>
+          {/* The name opens the lift's own screen, where this goal sits
+              beside the record and the progression it is measured against.
+              Not the whole card: the row also carries a delete control, and
+              a card that both navigates and deletes is a card that deletes
+              by accident. */}
+          <AnimatedPressable
+            onPress={() =>
+              navigation.navigate('LiftDetail', {
+                exerciseId: p.goal.exerciseId,
+                exerciseName: p.exerciseName,
+              })
+            }
+            scaleTo={0.99}
+            accessibilityRole="button"
+            accessibilityLabel={`${p.exerciseName}. Opens this lift's record, goal and progression.`}
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
+                {p.exerciseName}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+            </View>
             <Text style={{ color: tint, fontWeight: '700', fontSize: 12 }}>{copy.label}</Text>
-          </View>
+          </AnimatedPressable>
           <Pressable
             onPress={() => removeGoal(p.goal.id)}
             hitSlop={12}

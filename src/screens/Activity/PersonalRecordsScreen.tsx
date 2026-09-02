@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -23,6 +26,7 @@ import { useProfileStore } from '../../state/profileStore';
 import type { Category } from '../../types/models';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
+import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 function formatDate(dateString: string | null) {
   if (!dateString) return null;
@@ -64,6 +68,7 @@ function RecordLine({ icon, label, value, date }: RecordLineProps) {
  */
 export function PersonalRecordsScreen() {
   const { colors, spacing, radius, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const distanceUnit = useProfileStore((s) => s.preferences.distanceUnit);
   const { records, loading, error, reload } = usePersonalRecords();
@@ -154,6 +159,20 @@ export function PersonalRecordsScreen() {
 
     return (
       <Card key={record.exerciseId}>
+        {/* The header opens the lift's own screen, where this record sits
+            beside its goal and its progression. Those three were built on
+            the same logged sets and had no route between them. */}
+        <AnimatedPressable
+          onPress={() =>
+            navigation.navigate('LiftDetail', {
+              exerciseId: record.exerciseId,
+              exerciseName: record.exerciseName,
+            })
+          }
+          scaleTo={0.99}
+          accessibilityRole="button"
+          accessibilityLabel={`${record.exerciseName}. Opens this lift's record, goal and progression.`}
+        >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <GradientIconBadge
             icon={CATEGORY_ICONS[record.category] ?? DEFAULT_CATEGORY_ICON}
@@ -187,7 +206,9 @@ export function PersonalRecordsScreen() {
               <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>New</Text>
             </View>
           ) : null}
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </View>
+        </AnimatedPressable>
 
         <View style={{ gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
           {lines.map((line) => (

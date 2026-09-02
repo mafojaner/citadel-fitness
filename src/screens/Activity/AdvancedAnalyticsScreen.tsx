@@ -1,6 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
@@ -18,6 +21,7 @@ import { useAdvancedAnalytics } from '../../hooks/useAdvancedAnalytics';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
+import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 const PERIODS: { label: string; days: number | null }[] = [
   { label: '30 days', days: 30 },
@@ -32,6 +36,7 @@ const PERIODS: { label: string; days: number | null }[] = [
  */
 export function AdvancedAnalyticsScreen() {
   const { colors, spacing, radius, typography } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const weightUnit = useProfileStore((s) => s.preferences.units);
   const [periodIndex, setPeriodIndex] = useState(0);
   const period = PERIODS[periodIndex];
@@ -139,8 +144,19 @@ export function AdvancedAnalyticsScreen() {
                 const flat = p.changePct === 0;
                 const tint = flat ? colors.textMuted : up ? colors.success : colors.danger;
                 return (
-                  <View
+                  <AnimatedPressable
                     key={p.exerciseId}
+                    onPress={() =>
+                      navigation.navigate('LiftDetail', {
+                        exerciseId: p.exerciseId,
+                        exerciseName: p.exerciseName,
+                      })
+                    }
+                    scaleTo={0.99}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${p.exerciseName}, ${p.changePct} percent. Opens this lift's record, goal and progression.`}
+                  >
+                  <View
                     style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
                   >
                     <View style={{ flex: 1, minWidth: 0 }}>
@@ -172,6 +188,7 @@ export function AdvancedAnalyticsScreen() {
                       </Text>
                     </View>
                   </View>
+                  </AnimatedPressable>
                 );
               })
             )}
