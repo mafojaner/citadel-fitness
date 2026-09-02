@@ -47,3 +47,18 @@ yarn-error.*
 
 .vercel
 .env*
+
+# Store credentials — Google's half
+#
+# Apple's .p8/.p12/.jks are covered above. The Play service account JSON was
+# not, and it is the credential that arrives *after* Play approves you, which
+# is exactly when it gets dropped in the repo root to fill in eas.json. This
+# repository is public. A committed key is a compromised key even if the
+# commit is reverted, because it was served to anyone watching in between.
+*service-account*.json
+google-play-*.json
+play-store-*.json
+
+# Where eas.json expects the Play key. Tracked README, ignored contents.
+/certs/*
+!/certs/README.md
