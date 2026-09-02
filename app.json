@@ -48,7 +48,13 @@
           }
         }
       ],
-      "@sentry/react-native",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "reitumetse-mafojane",
+          "project": "citadel-fitness"
+        }
+      ],
       "expo-sharing",
       "expo-asset"
     ]
