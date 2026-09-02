@@ -77,7 +77,11 @@ describe('the product id contract between the app and the webhook', () => {
     // The other direction. A webhook entry with no product behind it is not
     // dangerous, but it is a name nobody is maintaining, and it is exactly
     // where a rename leaves its other half.
-    const sold = new Set(
+    // Typed as strings rather than inheriting PRODUCT_IDS' literal union:
+    // the names being compared come from parsing the webhook, so they are
+    // plain strings, and a Set of literals would reject the very lookup this
+    // test exists to perform.
+    const sold = new Set<string>(
       Object.values(PRODUCT_IDS).flatMap((byPeriod) => Object.values(byPeriod))
     );
     for (const productId of Object.keys(webhookTiers)) {
