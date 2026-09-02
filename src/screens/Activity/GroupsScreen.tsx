@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Share, Text, TextInput, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { GradientPill } from '../../components/GradientPill';
+import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { useGroups } from '../../hooks/useGroups';
 import { GROUP_PERIODS } from '../../lib/groups';
@@ -40,7 +41,27 @@ export function GroupsScreen() {
 
   const [newName, setNewName] = useState('');
   const [code, setCode] = useState('');
+  // Collapsed once you are in a group. Starting and joining are things you
+  // do once; the standings are what you come back for, and two forms parked
+  // permanently underneath them meant every visit after the first opened on
+  // half a screen of setup.
+  const [addingGroup, setAddingGroup] = useState(false);
+  // Two taps to leave. You would need the invite code again to get back in,
+  // and there is no undo -- same reason the program card arms its own leave.
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const selected = groups.find((g) => g.id === selectedId);
+
+  const shareInvite = async () => {
+    if (!selected) return;
+    // The same React Native Share the referral screen uses, for the same
+    // reason: this is a string rather than a file, and Share is what reaches
+    // messaging apps. A private group is invite-only, so handing someone the
+    // code is the feature -- and until now the code was displayed as plain
+    // text with no way to send it anywhere.
+    await Share.share({
+      message: `Join my group "${selected.name}" on Citadel Fitness. Use invite code ${selected.inviteCode}.`,
+    });
+  };
 
   const inputStyle = {
     flex: 1,
@@ -80,7 +101,10 @@ export function GroupsScreen() {
                   <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                     {selected.name}
                   </Text>
-                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                  <Text
+                    style={[typography.caption, { color: colors.textMuted }]}
+                    accessibilityLabel={`${selected.memberCount} members. Invite code ${selected.inviteCode.split('').join(' ')}`}
+                  >
                     {selected.memberCount} member{selected.memberCount === 1 ? '' : 's'} · invite code{' '}
                     <Text style={{ color: colors.primary, fontWeight: '700' }}>
                       {selected.inviteCode}
@@ -88,6 +112,8 @@ export function GroupsScreen() {
                   </Text>
                 </View>
               </View>
+
+              <PlainButton label="Share invite code" onPress={shareInvite} />
 
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {GROUP_PERIODS.map((p, i) => (
@@ -166,10 +192,17 @@ export function GroupsScreen() {
               </View>
 
               <GradientButton
-                label="Leave group"
+                label={confirmingLeave ? 'Tap again to leave' : 'Leave group'}
                 variant="outline"
                 disabled={busy}
-                onPress={() => leave(selected.id)}
+                onPress={() => {
+                  if (confirmingLeave) {
+                    setConfirmingLeave(false);
+                    leave(selected.id);
+                  } else {
+                    setConfirmingLeave(true);
+                  }
+                }}
               />
             </Card>
           ) : (
@@ -188,6 +221,12 @@ export function GroupsScreen() {
             </Card>
           )}
 
+          {selected && !addingGroup ? (
+            <PlainButton label="Start or join another group" onPress={() => setAddingGroup(true)} />
+          ) : null}
+
+          {selected && !addingGroup ? null : (
+          <>
           <Card title="Start a group">
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <TextInput
@@ -239,6 +278,11 @@ export function GroupsScreen() {
               </Text>
             </View>
           </Card>
+          {selected ? (
+            <PlainButton label="Done" onPress={() => setAddingGroup(false)} />
+          ) : null}
+          </>
+          )}
         </>
       )}
     </ScreenContainer>

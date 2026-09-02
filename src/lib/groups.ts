@@ -23,7 +23,14 @@ export interface GroupStanding {
  * decision about what happens to a challenge nobody finished.
  */
 export const GROUP_PERIODS = [
-  { label: 'This week', days: 7 },
+  // '7 days' rather than 'This week', for two reasons that point the same
+  // way. The three pills divide the row equally, and 'This week' is the only
+  // label that does not fit on one line at phone width -- so it wrapped and
+  // stood a head taller than its neighbours. It was also the only one
+  // measured in a different unit, while all three are a rolling window back
+  // from today: 'This week' reads as Monday-to-now, which is not what it
+  // computes.
+  { label: '7 days', days: 7 },
   { label: '30 days', days: 30 },
   { label: '90 days', days: 90 },
 ] as const;

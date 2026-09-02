@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, Vibration, View } from 'react-native';
 import { formatDuration } from '../lib/units';
 import { useTheme } from '../theme/useTheme';
 
@@ -25,6 +25,11 @@ const MAX_SECONDS = 600;
  * setInterval rather than an animation: this ticks once a second for a
  * couple of minutes, so the cost is irrelevant and a real interval keeps
  * working when the JS thread is busy laying out set rows.
+ *
+ * It buzzes when it lands. Until it did, finishing was a word changing
+ * colour on a screen nobody was looking at -- between sets the phone is
+ * face-down on a bench or in a pocket, which is the entire situation this
+ * component exists for. A timer you have to watch is a clock.
  */
 export function RestTimer({ seconds, onChangeSeconds }: RestTimerProps) {
   const { colors, spacing, radius, typography } = useTheme();
@@ -43,6 +48,13 @@ export function RestTimer({ seconds, onChangeSeconds }: RestTimerProps) {
       setRemaining((current) => {
         if (current <= 1) {
           setPhase('done');
+          // Two short pulses rather than one long buzz: a single vibration
+          // is what every notification on the phone already feels like, and
+          // the point is to be distinguishable without looking. React
+          // Native's own Vibration rather than a haptics package, so this
+          // adds no dependency; on web it is a no-op, which is correct,
+          // since nobody rests between sets at a desk.
+          Vibration.vibrate([0, 220, 140, 220]);
           return 0;
         }
         return current - 1;
@@ -50,6 +62,10 @@ export function RestTimer({ seconds, onChangeSeconds }: RestTimerProps) {
     }, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      // Leaving the screen mid-rest cancels the pattern too. Without this a
+      // workout saved with 40 seconds left still buzzes on whatever screen
+      // you happen to be looking at.
+      Vibration.cancel();
     };
   }, [running]);
 
@@ -109,6 +125,9 @@ export function RestTimer({ seconds, onChangeSeconds }: RestTimerProps) {
       <Pressable
         onPress={() => {
           if (running) {
+            // Cancels the pending buzz as well as the countdown: stopping a
+            // timer and then being vibrated by it is the worst of both.
+            Vibration.cancel();
             setPhase('idle');
           } else {
             setRemaining(seconds);
