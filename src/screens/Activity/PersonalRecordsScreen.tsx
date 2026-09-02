@@ -9,6 +9,7 @@ import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { EmptyState } from '../../components/EmptyState';
+import { GradientPill } from '../../components/GradientPill';
 import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SearchField } from '../../components/SearchField';
@@ -21,6 +22,7 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useDataExport } from '../../hooks/useDataExport';
+import { EXPORT_RANGES, type ExportRange } from '../../lib/dataExport';
 import { usePersonalRecords } from '../../hooks/usePersonalRecords';
 import { todayISO } from '../../lib/analytics';
 import { formatDuration } from '../../lib/units';
@@ -78,6 +80,7 @@ export function PersonalRecordsScreen() {
   const { exporting, result: exportResult, run: runExport } = useDataExport();
   const [category, setCategory] = useState<Category | 'all'>('all');
   const [query, setQuery] = useState('');
+  const [exportRange, setExportRange] = useState<ExportRange>('all');
 
   // Only the categories this member has actually logged. The catalogue's
   // picker lists all nine because you are choosing what to browse; here you
@@ -282,10 +285,23 @@ export function PersonalRecordsScreen() {
               thinking "I want these in a spreadsheet". Same hook as Account,
               so the two can't report different outcomes for the same file. */}
           <Card>
+            {/* A range, so exporting four years to look at last month
+                stops being the only option. Above the link rather than
+                below, because it qualifies what the link will do. */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+              {EXPORT_RANGES.map((r) => (
+                <GradientPill
+                  key={r.value}
+                  label={r.label}
+                  active={exportRange === r.value}
+                  onPress={() => setExportRange(r.value)}
+                />
+              ))}
+            </View>
             <PaidFeatureLink
               featureId="data-export"
               label={exporting ? 'Preparing your export…' : 'Export this history as CSV'}
-              onOpen={exporting ? () => {} : runExport}
+              onOpen={exporting ? () => {} : () => runExport(exportRange)}
               // Alone in its card, so a leading rule would be a line with
               // nothing above it. Ruled underneath instead, the way a record
               // card rules off its header.

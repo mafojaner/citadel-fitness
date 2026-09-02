@@ -1,5 +1,5 @@
 import { escapeCsvCell, toCsv } from '../csv';
-import { buildWorkoutCsv } from '../dataExport';
+import { buildWorkoutCsv, rangeStart } from '../dataExport';
 
 const workout = (date: string, name: string, sets: Record<string, unknown>[], over: Record<string, unknown> = {}) => ({
   date,
@@ -129,5 +129,28 @@ describe('buildWorkoutCsv', () => {
     const csv = buildWorkoutCsv([]);
     expect(csv.split('\r\n')).toHaveLength(1);
     expect(csv).toContain('date,exercise');
+  });
+});
+
+describe('rangeStart', () => {
+  const today = new Date('2026-09-02T12:00:00Z');
+
+  it('returns nothing for the whole history', () => {
+    expect(rangeStart('all', today)).toBeNull();
+  });
+
+  it('counts inclusively, so 30 days means thirty including today', () => {
+    // 2026-09-02 back 29 days is 2026-08-04, giving Aug 4 .. Sep 2 = 30 days.
+    expect(rangeStart('30', today)).toBe('2026-08-04');
+  });
+
+  it('crosses a year boundary rather than clamping', () => {
+    expect(rangeStart('365', new Date('2026-01-10T12:00:00Z'))).toBe('2025-01-11');
+  });
+
+  it('does not mutate the date it was given', () => {
+    const origin = new Date('2026-09-02T12:00:00Z');
+    rangeStart('90', origin);
+    expect(origin.toISOString()).toBe('2026-09-02T12:00:00.000Z');
   });
 });

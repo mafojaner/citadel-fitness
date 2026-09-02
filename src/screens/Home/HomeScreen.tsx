@@ -15,6 +15,7 @@ import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { MiniProgressChart } from '../../components/MiniProgressChart';
+import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { WaterIntakeCard } from '../../components/WaterIntakeCard';
 import { StatChip } from '../../components/StatChip';
@@ -113,6 +114,13 @@ export function HomeScreen() {
           it spans the pair of summary cards below it, which keeps the column
           reading as one block instead of a small button floating above it. */}
       <GradientButton label="Log workout" loading={openingDraft} onPress={onLogWorkout} />
+
+      {/* Only when something is actually waiting. Offline sync works
+          silently and so earns no credit for working -- the first sign
+          anything had been queued used to be a failure notice buried in
+          the account centre. Draws nothing when the queue is empty,
+          which is almost always. */}
+      <PendingSyncNotice />
 
       {/* Directly under the primary action, above the two read-only
           summaries.

@@ -11,6 +11,7 @@ import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
+import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -116,6 +117,10 @@ export function WorkoutsScreen() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <HeaderSearchBar title="Workouts" showSearch={false} />
       <ScreenContainer>
+      {/* Same notice as Home, on the screen where workouts are the
+          subject. Both are cheap: it reads the queue already in
+          memory and renders nothing when it is empty. */}
+      <PendingSyncNotice />
       {/* Full width at every size, matching Home's CTA — see the note there. */}
       <GradientButton
         label={dayExercises && dayExercises.length > 0 ? 'Edit workout' : 'Enter a workout'}

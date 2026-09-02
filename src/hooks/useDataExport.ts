@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { exportWorkoutHistory } from '../lib/dataExport';
+import { exportWorkoutHistory, type ExportRange } from '../lib/dataExport';
 import { saveTextFile } from '../lib/saveTextFile';
 import { useAuthStore } from '../state/authStore';
 
@@ -17,14 +17,21 @@ export function useDataExport() {
   const [exporting, setExporting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  const run = useCallback(async () => {
+  const run = useCallback(
+    async (range: ExportRange = 'all') => {
     if (!userId || exporting) return;
     setExporting(true);
     setResult(null);
     try {
-      const { csv, filename, rowCount } = await exportWorkoutHistory(userId);
+      const { csv, filename, rowCount } = await exportWorkoutHistory(userId, range);
       if (rowCount === 0) {
-        setResult('Nothing logged yet, so there is no history to export.');
+        // Distinguished, because "nothing in this range" and "nothing at
+        // all" send someone looking in completely different places.
+        setResult(
+          range === 'all'
+            ? 'Nothing logged yet, so there is no history to export.'
+            : 'Nothing logged in that range. Try a longer one.'
+        );
         return;
       }
       const outcome = await saveTextFile(filename, csv);
@@ -40,7 +47,9 @@ export function useDataExport() {
     } finally {
       setExporting(false);
     }
-  }, [userId, exporting]);
+    },
+    [userId, exporting]
+  );
 
   return { exporting, result, run };
 }
