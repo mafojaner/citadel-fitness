@@ -16,6 +16,8 @@ order they have to happen.
 | RevenueCat account and four products | **Does not exist** |
 | Purchase flow in the app | Written, behind one flag |
 | `react-native-purchases` | **Not installed** — deliberately, see below |
+| Google Play enrollment | **Approved 3 September** |
+| Apple Developer Program | Not confirmed |
 
 The webhook being deployed without its secret is the correct state, not an
 oversight. With the secret unset its check is `header !== undefined`, which
@@ -74,12 +76,21 @@ https://ulyduorkvikeyxtpshoq.supabase.co/functions/v1/revenuecat-webhook
 npx expo install react-native-purchases expo-dev-client
 ```
 
-**This is sequenced deliberately.** `react-native-purchases` is a native
-module, this project has no `expo-dev-client`, and the app currently runs on
-a phone through Expo Go. Installing the SDK breaks Expo Go, and the dev build
-that would replace it cannot be produced until the store enrollments finish —
-so installing early would remove the only way the app runs on a device and
-give nothing back, since steps 1 and 2 are still outstanding anyway.
+**This is sequenced deliberately, and one of its reasons expired on 3
+September.** `react-native-purchases` is a native module, this project has no
+`expo-dev-client`, and the app currently runs on a phone through Expo Go.
+Installing the SDK breaks Expo Go.
+
+The original reason to wait was that the dev build which would replace Expo Go
+could not be produced until the store enrollments finished. **Google Play has
+now approved**, so that build is possible. The remaining reason still holds on
+its own: steps 1, 2 and 4 are outstanding, so `billingAvailability()` would
+return `{ available: false, reason: 'Purchasing is not configured yet.' }` even
+with the SDK in. Installing today costs you the way the app runs on a phone and
+buys nothing back.
+
+Do it in the same change as the first dev build, and expect to run it on a
+device rather than in Expo Go from that point on.
 
 Then, in `src/lib/billing.ts`:
 
