@@ -11,6 +11,7 @@ import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { EmptyState } from '../../components/EmptyState';
 import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { StatChip } from '../../components/StatChip';
 import {
   CATEGORY_GRADIENTS,
@@ -222,6 +223,7 @@ export function PersonalRecordsScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       {loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : error ? (

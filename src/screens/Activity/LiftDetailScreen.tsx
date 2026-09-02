@@ -6,6 +6,7 @@ import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { Sparkline } from '../../components/Sparkline';
 import { StatChip } from '../../components/StatChip';
 import { useLiftDetail } from '../../hooks/useLiftDetail';
@@ -72,6 +73,7 @@ export function LiftDetailScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       <Card>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           <StatChip

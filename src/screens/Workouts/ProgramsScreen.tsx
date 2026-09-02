@@ -6,10 +6,13 @@ import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { StatChip } from '../../components/StatChip';
 import { useArmedAction } from '../../hooks/useArmedAction';
 import { useOpenActivityScreen } from '../../hooks/useOpenActivityScreen';
+import { useProgramHistory } from '../../hooks/useProgramHistory';
 import { usePrograms } from '../../hooks/usePrograms';
 import { todayISO } from '../../lib/analytics';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
@@ -36,6 +39,9 @@ export function ProgramsScreen() {
   const openActivityScreen = useOpenActivityScreen();
   const { programs, enrollment, enrolled, today, loading, busy, error, reload, join, leave } =
     usePrograms();
+  // Declared after usePrograms, whose `enrolled` it needs to decide whether
+  // asking for a history is worth a round trip at all.
+  const { history, moving, moveTo, reload: reloadHistory } = useProgramHistory(Boolean(enrolled));
   // Two taps to leave, because one tap throws away your place in the cycle
   // and this button sits directly under the one you press every session.
   // The shared hook also disarms after a few seconds -- the first version of
@@ -70,6 +76,7 @@ export function ProgramsScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       {enrolled && today ? (
@@ -115,6 +122,37 @@ export function ProgramsScreen() {
               with nothing pointing at it. Offered rather than imposed: a
               program is a plan for the next few weeks, and not everyone
               running one wants a target on top of it. */}
+          {/* Move the cycle by hand.
+              The automatic advance handles the normal case; this is for
+              training out of order or coming back from a missed week, where
+              the only control used to be "leave", which throws the whole
+              enrolment away. Every day in the cycle is offered, including
+              the current one, so re-selecting it is a no-op rather than a
+              trap. */}
+          <View style={{ gap: spacing.xs }}>
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              Trained out of order? Jump the cycle:
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+              {enrolled.days.map((day) => (
+                <GradientPill
+                  key={day.id}
+                  label={day.name}
+                  active={day.position === today.position}
+                  onPress={async () => {
+                    if (moving) return;
+                    await moveTo(day.position);
+                    // Both: the enrolment supplies the next session, the
+                    // history supplies what has been done against it, and a
+                    // jump changes what the first of those says.
+                    reload();
+                    reloadHistory();
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+
           <GradientButton
             label="Set a target on one of these lifts"
             variant="outline"
@@ -129,6 +167,34 @@ export function ProgramsScreen() {
             variant="outline"
             onPress={triggerLeave}
           />
+        </Card>
+      ) : null}
+
+      {enrolled && history.length > 0 ? (
+        <Card title="Since you started">
+          {/* Derived from logged workouts, not from a second table counting
+              sessions -- which would drift the first time a workout was
+              edited. It answers "have I actually been doing this", which
+              "day 3 of 3" cannot. */}
+          {history.map((session) => (
+            <View
+              key={session.date}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
+            >
+              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+              <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary }]}>
+                {new Date(`${session.date}T00:00:00`).toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </Text>
+              <Text style={[typography.caption, { color: colors.textMuted }]}>
+                {session.exercises} exercise{session.exercises === 1 ? '' : 's'} · {session.sets} set
+                {session.sets === 1 ? '' : 's'}
+              </Text>
+            </View>
+          ))}
         </Card>
       ) : null}
 

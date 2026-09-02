@@ -10,6 +10,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { Sparkline } from '../../components/Sparkline';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -48,6 +49,7 @@ export function AdvancedAnalyticsScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         {PERIODS.map((p, i) => (
           <GradientPill

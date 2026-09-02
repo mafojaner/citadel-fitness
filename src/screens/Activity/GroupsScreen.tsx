@@ -11,6 +11,7 @@ import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { useArmedAction } from '../../hooks/useArmedAction';
 import { useGroupChallenge } from '../../hooks/useGroupChallenge';
 import { useGroups } from '../../hooks/useGroups';
@@ -83,6 +84,7 @@ export function GroupsScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       {loading ? (

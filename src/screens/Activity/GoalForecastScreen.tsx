@@ -10,6 +10,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { TierMark } from '../../components/TierMark';
 import { useLiftGoals, type LiftedExercise } from '../../hooks/useLiftGoals';
 import { todayISO } from '../../lib/analytics';
 import { isoInWeeks, suggestedTargets, type GoalProjection, type GoalStatus } from '../../lib/goals';
@@ -334,6 +335,7 @@ export function GoalForecastScreen() {
 
   return (
     <ScreenContainer>
+      <TierMark />
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       {loading ? (
