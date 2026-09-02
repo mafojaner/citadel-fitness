@@ -12,7 +12,10 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { emailShell } from '../_shared/email-template.ts';
-import { weeklyDigestBody } from '../_shared/weekly-digest-content.ts';
+import {
+  weeklyDigestBody,
+  type FortressSummary,
+} from '../_shared/weekly-digest-content.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')!;
@@ -29,6 +32,12 @@ interface Recipient {
   total_sets: number;
   total_volume_kg: number;
   top_category: string | null;
+  /**
+   * The Fortress half of the week, from the same function the Home card
+   * reads. Null-tolerant throughout: a member with no program, no goal and
+   * no group still gets a digest, it just has less in it.
+   */
+  fortress: FortressSummary | null;
 }
 
 function json(body: unknown, status: number) {
@@ -69,6 +78,7 @@ Deno.serve(async (req) => {
         totalSets: recipient.total_sets,
         totalVolumeKg: Number(recipient.total_volume_kg),
         topCategory: recipient.top_category,
+        fortress: recipient.fortress ?? null,
       })
     );
 
