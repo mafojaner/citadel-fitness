@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { BillingPeriodToggle, type BillingPeriod } from '../../components/BillingPeriodToggle';
 import { CurrencyPicker } from '../../components/CurrencyPicker';
@@ -29,6 +29,8 @@ import { useFortressWaitlist } from '../../hooks/useFortressWaitlist';
 import type { WaitlistTier } from '../../lib/fortress';
 import { isEmailValid } from '../../lib/email';
 import { currencyNote, parseCurrency, type CurrencyCode } from '../../lib/currency';
+import { billingAvailability, MANAGE_SUBSCRIPTION_URL, purchase, restore, type PurchasableTier } from '../../lib/billing';
+import { usePaidTier } from '../../hooks/usePaidTier';
 import { planAction } from '../../lib/planAction';
 import { gradients } from '../../theme/tokens';
 import { useAuthStore } from '../../state/authStore';
@@ -499,6 +501,67 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
   // visit: someone who asked to see everything is comparing, and collapsing
   // the list back under them mid-comparison would be the page arguing.
   const [showAll, setShowAll] = useState(false);
+
+  // Billing, resolved once per render rather than per card. It cannot change
+  // between two cards on the same screen, and asking three times would imply
+  // it might.
+  const availability = billingAvailability();
+  const billingLive = availability.available;
+  const [buying, setBuying] = useState(false);
+  const [billingNotice, setBillingNotice] = useState<string | null>(null);
+
+  // Which tier, if any, is held through a store subscription rather than the
+  // hand-granted column. Null until billing exists, which is why "manage"
+  // never appears today.
+  const { paidTier, reload: reloadPaidTier } = usePaidTier(billingLive);
+
+  const onBuy = async (tier: PurchasableTier) => {
+    if (buying) return;
+    setBuying(true);
+    setBillingNotice(null);
+    try {
+      const outcome = await purchase(tier, period);
+      // Cancelling is the most common outcome and is not an error, so it
+      // says nothing at all rather than reporting a failure to someone who
+      // simply changed their mind.
+      if (outcome.kind === 'cancelled') return;
+      if (outcome.kind === 'purchased') {
+        // Entitlement is not granted here. The webhook writes it, the
+        // profile refetches it, and the app never promotes itself -- which
+        // is the whole reason subscriptions has no client write policy.
+        setBillingNotice('Purchase complete. Your plan updates once the store confirms it.');
+        reloadPaidTier();
+        return;
+      }
+      // Narrowed on the two kinds that carry text rather than assuming the
+      // remainder is a failure: PurchaseOutcome is shared with restore(), so
+      // the union reaching here still includes outcomes a purchase cannot
+      // produce.
+      setBillingNotice(
+        outcome.kind === 'unavailable'
+          ? outcome.reason
+          : outcome.kind === 'failed'
+            ? `Could not complete that: ${outcome.message}`
+            : 'Could not complete that purchase.'
+      );
+    } finally {
+      setBuying(false);
+    }
+  };
+
+  const onRestore = async () => {
+    setBillingNotice(null);
+    const outcome = await restore();
+    setBillingNotice(
+      outcome.kind === 'restored'
+        ? 'Restored. Your plan updates once the store confirms it.'
+        : outcome.kind === 'nothing-to-restore'
+          ? 'No previous purchase found on this account.'
+          : outcome.kind === 'unavailable'
+            ? outcome.reason
+            : 'Could not restore that purchase.'
+    );
+  };
   const [period, setPeriod] = useState<BillingPeriod>('monthly');
   // Closed by default. Someone arriving here wants the plans; someone
   // who wants the explanation can ask for it, and it stays open until
@@ -533,11 +596,42 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
   const renderAction = (tier: MembershipTier) => {
     // The decision lives in planAction so it can be tested without a screen;
     // this only turns the answer into pixels. See lib/planAction.ts.
-    const action = planAction({ tier, currentTier, loading, joined, openTier });
+    const action = planAction({
+      tier,
+      currentTier,
+      loading,
+      joined,
+      openTier,
+      billingLive,
+      // Only a store subscription can be managed. Entitlement can also come
+      // from the hand-granted column, and sending that person to the
+      // platform's subscription settings sends them somewhere that has never
+      // heard of them.
+      paidForThisTier: paidTier === tier,
+    });
 
     switch (action.kind) {
       case 'current':
         return <PlanButton label="Your current plan" tier={tier} disabled />;
+      case 'manage':
+        // A link out rather than an in-app cancel button. Both stores own
+        // the cancellation flow and an app cannot cancel on someone's
+        // behalf; a button that appears to would be worse than none.
+        return (
+          <PlanButton
+            label="Manage subscription"
+            tier={tier}
+            onPress={() => Linking.openURL(MANAGE_SUBSCRIPTION_URL)}
+          />
+        );
+      case 'buy':
+        return (
+          <PlanButton
+            label={buying ? 'Opening…' : `Get ${TIER_LABELS[tier]}`}
+            tier={tier}
+            onPress={() => onBuy(action.tier)}
+          />
+        );
       case 'included':
         // Worded from the reader's side. "Included" alone invites the
         // question "included in what?", and this is the card for the plan
@@ -688,6 +782,22 @@ export function PlansScreen({ variant = 'tab' }: { variant?: 'tab' | 'screen' })
           ) : null}
         </View>
       )}
+
+      {billingNotice ? (
+        <Text style={[typography.caption, { color: colors.textSecondary, textAlign: 'center' }]}>
+          {billingNotice}
+        </Text>
+      ) : null}
+
+      {/* Restore, only where a purchase could have happened.
+          Apple requires a restore path in any app selling a subscription,
+          and separately people do reinstall apps. Hidden rather than
+          disabled while billing is off: a control that cannot work is worse
+          than one that is not there, and on web there is no purchase to
+          restore in the first place. */}
+      {billingLive ? (
+        <PlainButton label="Restore purchases" onPress={onRestore} />
+      ) : null}
 
       {/* Everything below is comparison material, and the condensed view
           exists precisely to not show comparison material. Someone who

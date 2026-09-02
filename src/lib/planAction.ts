@@ -1,3 +1,4 @@
+import type { PurchasableTier } from './billing';
 import type { WaitlistTier } from './fortress';
 import { tierAllows, type MembershipTier } from './membership';
 
@@ -24,7 +25,11 @@ export type PlanAction =
   /** The signup form, open on this plan. */
   | { kind: 'form'; tier: WaitlistTier }
   /** The offer itself. */
-  | { kind: 'button'; tier: WaitlistTier };
+  | { kind: 'button'; tier: WaitlistTier }
+  /** Billing is live and this plan can be bought. */
+  | { kind: 'buy'; tier: PurchasableTier }
+  /** Held and paid for, so the offer becomes a way out rather than in. */
+  | { kind: 'manage' };
 
 export function planAction({
   tier,
@@ -32,12 +37,26 @@ export function planAction({
   loading,
   joined,
   openTier,
+  billingLive = false,
+  paidForThisTier = false,
 }: {
   tier: MembershipTier;
   currentTier: MembershipTier;
   loading: boolean;
   joined: boolean;
   openTier: WaitlistTier | null;
+  /**
+   * Whether a purchase can actually complete here. False on web, false
+   * without the SDK, false without a key -- see billingAvailability.
+   */
+  billingLive?: boolean;
+  /**
+   * Whether this tier is held through a store subscription rather than a
+   * hand-granted column. Only a paid holding can be managed: offering
+   * "manage subscription" to someone granted Fortress by hand sends them to
+   * a store page that has never heard of them.
+   */
+  paidForThisTier?: boolean;
 }): PlanAction {
   // Held plans are told apart from each other rather than collapsed into one
   // "nothing to do". Every card carries a button, so the two need different
@@ -47,8 +66,18 @@ export function planAction({
   //
   // tierAllows, not equality: a Valhalla member holds Fortress too, so the
   // Fortress card must not offer them anything to buy.
+  // Managing comes before "current", because both describe a plan you hold
+  // and only one of them is actionable. A paid subscriber needs a route to
+  // cancel; someone hand-granted the same tier has nothing to cancel and
+  // must not be sent looking for it.
+  if (currentTier === tier && paidForThisTier) return { kind: 'manage' };
   if (currentTier === tier) return { kind: 'current' };
   if (tier === 'free' || tierAllows(currentTier, tier)) return { kind: 'included' };
+
+  // Checked before the waitlist branches, so the moment billing is live the
+  // offer becomes a purchase rather than a signup. Free is excluded above,
+  // so anything reaching here is purchasable.
+  if (billingLive) return { kind: 'buy', tier: tier as PurchasableTier };
 
   // Checked before `joined` on purpose. While the status is still loading,
   // `joined` is false, and treating that as "not on the list" would flash a

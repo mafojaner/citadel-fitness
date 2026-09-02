@@ -73,3 +73,49 @@ describe('planAction', () => {
     }
   });
 });
+
+describe('planAction once billing is live', () => {
+  const live = { ...base, billingLive: true };
+
+  it('offers a purchase instead of a waitlist', () => {
+    expect(planAction({ ...live, tier: 'fortress' })).toEqual({ kind: 'buy', tier: 'fortress' });
+    expect(planAction({ ...live, tier: 'valhalla' })).toEqual({ kind: 'buy', tier: 'valhalla' });
+  });
+
+  it('still never offers a plan the account already holds', () => {
+    // The failure that matters in the other direction: selling Fortress to
+    // someone already paying for Valhalla.
+    expect(planAction({ ...live, tier: 'fortress', currentTier: 'valhalla' }).kind).toBe('included');
+    expect(planAction({ ...live, tier: 'valhalla', currentTier: 'valhalla' }).kind).toBe('current');
+    expect(planAction({ ...live, tier: 'free' }).kind).toBe('current');
+  });
+
+  it('offers management only to someone who actually paid', () => {
+    // A hand-granted tier has no store subscription behind it, so sending
+    // that person to the platform's subscription settings sends them to a
+    // page that has never heard of them.
+    expect(
+      planAction({ ...live, tier: 'valhalla', currentTier: 'valhalla', paidForThisTier: true }).kind
+    ).toBe('manage');
+    expect(
+      planAction({ ...live, tier: 'valhalla', currentTier: 'valhalla', paidForThisTier: false }).kind
+    ).toBe('current');
+  });
+
+  it('does not let a waitlist signup suppress a real purchase', () => {
+    // Someone on the waitlist from before billing existed must still be able
+    // to buy once it does -- otherwise the people who wanted it most are the
+    // only ones who cannot pay.
+    expect(planAction({ ...live, tier: 'fortress', joined: true })).toEqual({
+      kind: 'buy',
+      tier: 'fortress',
+    });
+  });
+
+  it('falls back to the waitlist wherever billing cannot complete', () => {
+    // billingLive is false on web, without the SDK, and without a key. In
+    // every one of those the old behaviour has to remain intact.
+    expect(planAction({ ...base, tier: 'fortress' }).kind).toBe('button');
+    expect(planAction({ ...base, tier: 'fortress', joined: true }).kind).toBe('joined');
+  });
+});
