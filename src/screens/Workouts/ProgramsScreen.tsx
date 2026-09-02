@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -18,28 +19,41 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
 /**
  * A program answers one question — what am I doing today — and then gets
  * out of the way by writing that session straight into the workout draft.
- * The cycle advances on load rather than on save, so a session started is a
- * session moved past; re-loading the same day would otherwise be the
- * easiest way to get stuck repeating it.
+ *
+ * The cycle advances when that session is *saved*, not when it is loaded.
+ * It used to advance on load, on the reasoning that a session started is a
+ * session moved past. That reads well and behaves badly: loading a day and
+ * not finishing it is completely ordinary — you check what today is and get
+ * pulled away — and each of those silently burned a day, with nothing in
+ * the interface able to step back. The position now rides along with the
+ * draft and is spent when the workout lands. Re-loading the same day before
+ * saving is now harmless rather than the thing being guarded against.
  */
 export function ProgramsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
-  const { programs, enrolled, today, loading, busy, error, reload, join, leave, advance } =
+  const { programs, enrollment, enrolled, today, loading, busy, error, reload, join, leave } =
     usePrograms();
+  // Two taps to leave, because one tap throws away your place in the cycle
+  // and this button sits directly under the one you press every session.
+  // The app has no confirmation dialog anywhere, so arming the button is
+  // the pattern that fits rather than introducing a modal for one case.
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const loadFromProgram = useWorkoutDraftStore((s) => s.loadFromProgram);
 
-  const startSession = async () => {
-    if (!today) return;
+  const startSession = () => {
+    if (!today || !enrollment || !enrolled) return;
     loadFromProgram(
       todayISO(),
       today.exercises.map((e) => ({
         exerciseId: e.exerciseId,
         targetSets: e.targetSets,
         targetReps: e.targetReps,
-      }))
+      })),
+      // Handed to the draft rather than acted on now. Saving the workout is
+      // what spends it; see the note on this screen and on programAdvance.
+      { position: enrollment.nextPosition, cycleLength: enrolled.days.length }
     );
-    await advance();
     navigation.navigate('AddWorkout');
   };
 
@@ -91,7 +105,22 @@ export function ProgramsScreen() {
             loading={busy}
             onPress={startSession}
           />
-          <GradientButton label="Leave program" variant="outline" onPress={leave} />
+          <Text style={[typography.caption, { color: colors.textMuted }]}>
+            The program moves to day {(today.position % enrolled.days.length) + 1} once
+            you save this session, not now — so loading it to look is free.
+          </Text>
+          <GradientButton
+            label={confirmingLeave ? 'Tap again to leave' : 'Leave program'}
+            variant="outline"
+            onPress={() => {
+              if (confirmingLeave) {
+                setConfirmingLeave(false);
+                leave();
+              } else {
+                setConfirmingLeave(true);
+              }
+            }}
+          />
         </Card>
       ) : null}
 

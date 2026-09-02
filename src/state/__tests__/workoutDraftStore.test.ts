@@ -99,3 +99,54 @@ describe('workout draft — effort', () => {
     expect(sets[0].rpe).toBe(8.5);
   });
 });
+
+describe('programAdvance', () => {
+  const day = [{ exerciseId: 'ex-1', targetSets: 3, targetReps: 5 }];
+  const advance = { position: 2, cycleLength: 4 };
+
+  beforeEach(() => {
+    useWorkoutDraftStore.getState().reset('2026-09-01');
+  });
+
+  it('rides along with a program day instead of being spent on load', () => {
+    // The whole point of the change: loading a day records where the cycle
+    // was, and nothing has advanced yet.
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    expect(useWorkoutDraftStore.getState().programAdvance).toEqual(advance);
+  });
+
+  it('is cleared once spent, so a second save cannot advance twice', () => {
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    useWorkoutDraftStore.getState().clearProgramAdvance();
+    expect(useWorkoutDraftStore.getState().programAdvance).toBeNull();
+  });
+
+  it('does not survive a reset', () => {
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    useWorkoutDraftStore.getState().reset('2026-09-02');
+    expect(useWorkoutDraftStore.getState().programAdvance).toBeNull();
+  });
+
+  it('does not survive being replaced by an existing workout', () => {
+    // Editing a logged workout is not a program day, whatever the draft was
+    // holding a moment earlier -- otherwise re-saving an old session would
+    // advance the cycle.
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    useWorkoutDraftStore.getState().loadFromExisting('2026-08-20', [saved], 'kg', 'km');
+    expect(useWorkoutDraftStore.getState().programAdvance).toBeNull();
+  });
+
+  it('is dropped when ensureDraftFor starts a clean day', () => {
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    useWorkoutDraftStore.getState().ensureDraftFor('2026-09-05');
+    expect(useWorkoutDraftStore.getState().programAdvance).toBeNull();
+  });
+
+  it('is kept when ensureDraftFor reopens the same unfinished day', () => {
+    // Coming back to a program session in progress must not lose the link,
+    // or saving it would leave the cycle parked on a day already trained.
+    useWorkoutDraftStore.getState().loadFromProgram('2026-09-01', day, advance);
+    useWorkoutDraftStore.getState().ensureDraftFor('2026-09-01');
+    expect(useWorkoutDraftStore.getState().programAdvance).toEqual(advance);
+  });
+});

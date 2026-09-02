@@ -25,8 +25,32 @@ interface WorkoutDraftState {
   /** Replaces the draft with a program day's prescribed exercises and set counts. */
   loadFromProgram: (
     date: string,
-    exercises: { exerciseId: string; targetSets: number; targetReps: number }[]
+    exercises: { exerciseId: string; targetSets: number; targetReps: number }[],
+    advance: ProgramAdvance
   ) => void;
+  /**
+   * Set while the draft holds a program day that has not been saved yet.
+   *
+   * The program used to move on the moment a day was loaded into the draft,
+   * on the reasoning that a session started is a session moved past. In
+   * practice a draft gets loaded and abandoned all the time -- you check
+   * what today is, get pulled away, come back tomorrow -- and every one of
+   * those silently burned a day of the cycle, with nothing in the interface
+   * able to step back.
+   *
+   * So the position rides along with the draft instead, and the advance
+   * happens when the workout is actually saved.
+   */
+  programAdvance: ProgramAdvance | null;
+  /** Called once the advance has been attempted, so a re-save cannot repeat it. */
+  clearProgramAdvance: () => void;
+}
+
+export interface ProgramAdvance {
+  /** The enrollment's next_position at the time the day was loaded. */
+  position: number;
+  /** How many days the program has, for the wrap-around. */
+  cycleLength: number;
 }
 
 const makeId = () => Math.random().toString(36).slice(2, 10);
@@ -42,6 +66,7 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
     (set) => ({
       date: todayISO(),
       exercises: [],
+      programAdvance: null,
 
       addExercise: (exercise) =>
         set((state) => ({
@@ -104,7 +129,9 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
         })),
 
       reset: (date) =>
-        set({ date: date ?? todayISO(), exercises: [] }),
+        set({ date: date ?? todayISO(), exercises: [], programAdvance: null }),
+
+      clearProgramAdvance: () => set({ programAdvance: null }),
 
       /**
        * Opens the draft for a day without discarding work in progress.
@@ -114,7 +141,9 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
        */
       ensureDraftFor: (date) =>
         set((state) =>
-          state.date === date && state.exercises.length > 0 ? {} : { date, exercises: [] }
+          state.date === date && state.exercises.length > 0
+            ? {}
+            : { date, exercises: [], programAdvance: null }
         ),
 
       /**
@@ -135,9 +164,10 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
        * appends — the program is describing the whole session, and merging
        * it into an existing draft would silently duplicate exercises.
        */
-      loadFromProgram: (date, exercises) =>
+      loadFromProgram: (date, exercises, advance) =>
         set({
           date,
+          programAdvance: advance,
           exercises: exercises.map((entry) => ({
             id: makeId(),
             exerciseId: entry.exerciseId,
@@ -156,6 +186,9 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
       loadFromExisting: (date, exercises, currentWeightUnit, currentDistanceUnit) =>
         set({
           date,
+          // Editing an existing workout is not a program day, whatever the
+          // draft happened to be holding a moment ago.
+          programAdvance: null,
           exercises: exercises.map((e) => ({
             id: e.id,
             exerciseId: e.exerciseId,
@@ -176,7 +209,16 @@ export const useWorkoutDraftStore = create<WorkoutDraftState>()(
     {
       name: 'citadel-fitness-workout-draft',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ date: state.date, exercises: state.exercises }),
+      // programAdvance is persisted with the draft, not left in memory.
+      // The whole reason this store is persisted is that the OS kills
+      // backgrounded apps mid-workout; a program day that survived that but
+      // lost its link to the enrollment would save fine and silently leave
+      // the cycle parked on a day already trained.
+      partialize: (state) => ({
+        date: state.date,
+        exercises: state.exercises,
+        programAdvance: state.programAdvance,
+      }),
     }
   )
 );

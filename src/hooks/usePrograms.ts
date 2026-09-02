@@ -1,7 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import {
-  advanceEnrollment,
   currentDay,
   enrollInProgram,
   fetchEnrollment,
@@ -78,22 +77,13 @@ export function usePrograms() {
     }
   }, [userId]);
 
-  /** Called once a session has been loaded into the draft, so the cycle moves on. */
-  const advance = useCallback(async () => {
-    if (!userId || !enrollment || !enrolled) return;
-    try {
-      await advanceEnrollment(userId, enrollment.nextPosition, enrolled.days.length);
-      setEnrollment({
-        ...enrollment,
-        nextPosition: (enrollment.nextPosition % enrolled.days.length) + 1,
-      });
-    } catch (err) {
-      // Advancing is bookkeeping, not the user's goal — the session is
-      // already in their draft, so a failure here shouldn't read as the
-      // action having failed.
-      setError(err instanceof Error ? err.message : 'Session loaded, but the program did not advance');
-    }
-  }, [userId, enrollment, enrolled]);
+  // There is deliberately no `advance` here any more.
+  //
+  // It used to fire the moment a day was loaded into the draft, which meant
+  // an abandoned draft silently burned a day of the cycle. The advance now
+  // happens where it belongs -- after the workout saves, in AddWorkoutScreen,
+  // using the position the draft carried with it. Leaving this in as well
+  // would be a second, unguarded path to the same write.
 
-  return { programs, enrollment, enrolled, today, loading, busy, error, reload: load, join, leave, advance };
+  return { programs, enrollment, enrolled, today, loading, busy, error, reload: load, join, leave };
 }

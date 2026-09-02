@@ -152,7 +152,18 @@ export async function advanceEnrollment(
   const { error } = await supabase
     .from('program_enrollments')
     .update({ next_position: nextPositionAfter(current, cycleLength) })
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    // Only advance from where the caller thinks the cycle is.
+    //
+    // This used to write unconditionally, which was safe while advancing
+    // happened in the same breath as reading the position. It is not safe
+    // now that the advance waits for the workout to be saved: the draft can
+    // sit for days, and if the program is switched or advanced by another
+    // device in between, `current` is stale and an unguarded write would
+    // move the cycle to a position derived from a program the user is no
+    // longer on. With the guard a stale advance matches no row and does
+    // nothing, which is the right outcome -- the session was still logged.
+    .eq('next_position', current);
   if (error) throw error;
 }
 

@@ -28,6 +28,7 @@ import { fetchWorkoutDatesInRange, monthRange } from '../../lib/workouts';
 import { useSaveWorkout } from '../../hooks/useSaveWorkout';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
+import { advanceEnrollment } from '../../lib/programs';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -99,6 +100,8 @@ export function AddWorkoutScreen() {
   const removeSet = useWorkoutDraftStore((s) => s.removeSet);
   const removeExercise = useWorkoutDraftStore((s) => s.removeExercise);
   const reset = useWorkoutDraftStore((s) => s.reset);
+  const programAdvance = useWorkoutDraftStore((s) => s.programAdvance);
+  const clearProgramAdvance = useWorkoutDraftStore((s) => s.clearProgramAdvance);
   const openWorkoutDraft = useOpenWorkoutDraft();
   const isFortress = useIsFortress();
   const savePreferences = useProfileStore((s) => s.savePreferences);
@@ -191,6 +194,24 @@ export function AddWorkoutScreen() {
       setQueued(outcome === 'queued');
       finishedRef.current = false;
       setShowSuccess(true);
+
+      // The program moves on now, having waited for the session to land
+      // rather than moving when it was loaded. Cleared either way, so a
+      // second save of the same draft cannot advance the cycle twice, and a
+      // failure here cannot leave a draft that advances on every save.
+      if (programAdvance && userId) {
+        const { position, cycleLength } = programAdvance;
+        clearProgramAdvance();
+        try {
+          await advanceEnrollment(userId, position, cycleLength);
+        } catch {
+          // Bookkeeping, not the person's goal. The workout is saved; the
+          // enrollment is guarded on its current position, so the worst
+          // case is that the program still points at the day just trained
+          // and the next load repeats it -- visible and recoverable, unlike
+          // silently skipping one.
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save workout');
     } finally {
