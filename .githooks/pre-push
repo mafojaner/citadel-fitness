@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# The gates CI runs, run before the push instead of after it.
+#
+# CI already blocks on typecheck, lint and tests -- it has since 18 August.
+# What it cannot do is stop a broken commit reaching main, because it runs
+# on push: by the time it goes red, main is already red. This project pushes
+# straight to main, so that window is every push.
+#
+# It is not hypothetical. A commit went to main on 2 September with
+# `tsc --noEmit` failing, because the tests were green and only the tests
+# were read. This hook exists so the answer to "did you check" stops
+# depending on whoever is typing remembering to.
+#
+# Install (once per clone):
+#   git config core.hooksPath .githooks
+#
+# Skip deliberately, when you know what you are doing:
+#   git push --no-verify
+
+set -e
+
+echo "pre-push: typecheck, lint, tests, control characters"
+
+fail() {
+  echo ""
+  echo "  ✗ $1"
+  echo ""
+  echo "  Fix it, or push with --no-verify if you mean to."
+  exit 1
+}
+
+# Typecheck first. It is the fastest of the three and the one most recently
+# shipped broken.
+npm run typecheck --silent || fail "typecheck failed"
+
+npm run lint --silent || fail "lint failed"
+
+npm test --silent -- --ci --silent || fail "tests failed"
+
+# The same scan CI runs. A stray control character once reached production
+# inside a JSX tree and crashed a whole tab, invisible to all three gates
+# above. tr rather than grep -P, which needs a Perl-enabled build and a
+# cooperative locale, and silently matches nothing without either -- a guard
+# that quietly never fires is worse than no guard.
+hits=$(find src supabase \( -name '*.ts' -o -name '*.tsx' -o -name '*.sql' \) -type f \
+  -exec sh -c 'LC_ALL=C tr -d "\11\12\15\40-\176\200-\377" < "$1" | head -c1 | grep -q . && echo "$1"' _ {} \;)
+if [ -n "$hits" ]; then
+  echo "$hits"
+  fail "control character found in the file(s) above"
+fi
+
+echo "pre-push: all four clean"
