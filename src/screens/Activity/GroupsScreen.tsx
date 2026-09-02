@@ -4,11 +4,13 @@ import { ActivityIndicator, Image, Share, Text, TextInput, View } from 'react-na
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
+import { GroupChallengeCard } from '../../components/GroupChallengeCard';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { PlainButton } from '../../components/PlainButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { useGroupChallenge } from '../../hooks/useGroupChallenge';
 import { useGroups } from '../../hooks/useGroups';
 import { GROUP_PERIODS } from '../../lib/groups';
 import { gradients } from '../../theme/tokens';
@@ -50,6 +52,8 @@ export function GroupsScreen() {
   // and there is no undo -- same reason the program card arms its own leave.
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const selected = groups.find((g) => g.id === selectedId);
+
+  const { challenge, reload: loadChallenge } = useGroupChallenge(selectedId);
 
   const shareInvite = async () => {
     if (!selected) return;
@@ -114,6 +118,17 @@ export function GroupsScreen() {
               </View>
 
               <PlainButton label="Share invite code" onPress={shareInvite} />
+
+              {/* The challenge, above the rolling standings it gives a
+                  deadline to. Ordered that way deliberately: the standings
+                  are the ambient state, the challenge is the thing with an
+                  end date, and the one with an end date is the one worth
+                  reading first. */}
+              <GroupChallengeCard
+                groupId={selected.id}
+                challenge={challenge}
+                onChanged={loadChallenge}
+              />
 
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {GROUP_PERIODS.map((p, i) => (
