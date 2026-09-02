@@ -1,11 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { gradients } from '../theme/tokens';
+
+export interface SavedRecord {
+  exerciseName: string;
+  weight: number;
+  reps: number;
+}
 
 interface WorkoutSavedAnimationProps {
   onDone: () => void;
+  /**
+   * Personal records set by the workout just saved.
+   *
+   * Setting one is the most motivating thing that happens in this app, and
+   * it used to be discoverable only by leaving this screen, opening the
+   * records vault and reading dates. This is the moment it happened.
+   */
+  records?: SavedRecord[];
+  /** The unit the weights are already in. */
+  weightUnit?: string;
   /**
    * Optional line under the badge. Used when the save went to the offline
    * queue rather than the server: the workout is recorded either way, but
@@ -28,6 +44,16 @@ interface ConfettiPiece {
 const PIECE_COUNT = 26;
 const PIECE_COLORS = ['#FF5A36', '#FF3D81', '#FFC837', '#2FB380', '#8B5CF6'];
 const HOLD_MS = 1050;
+/**
+ * Longer when there is a record to read.
+ *
+ * 1050ms is right for "saved" -- it is a confirmation, and confirmations
+ * should get out of the way. It is not enough time to read "New personal
+ * record, Bench Press, 70 kg x 5", and a celebration nobody can finish
+ * reading is worse than no celebration. Records are rare enough that this is
+ * an occasional reward rather than a tax on every save.
+ */
+const HOLD_WITH_RECORD_MS = 2900;
 const FADE_OUT_MS = 250;
 const SCRIM_OPACITY = 0.55;
 
@@ -56,7 +82,13 @@ function generateConfetti(): ConfettiPiece[] {
  * runs on a compositor thread. This is ~26 views animating only transform
  * and opacity (both native-driver-safe), so it stays smooth everywhere.
  */
-export function WorkoutSavedAnimation({ onDone, caption }: WorkoutSavedAnimationProps) {
+export function WorkoutSavedAnimation({
+  onDone,
+  caption,
+  records = [],
+  weightUnit = 'kg',
+}: WorkoutSavedAnimationProps) {
+  const hasRecords = records.length > 0;
   const [badgeProgress] = useState(() => new Animated.Value(0));
   const [confetti] = useState(() => new Animated.Value(0));
   const [scrim] = useState(() => new Animated.Value(0));
@@ -100,11 +132,14 @@ export function WorkoutSavedAnimation({ onDone, caption }: WorkoutSavedAnimation
       ]),
     ]).start();
 
-    const timeout = setTimeout(() => {
-      Animated.timing(scrim, { toValue: 0, duration: FADE_OUT_MS, useNativeDriver: true }).start(onDone);
-    }, HOLD_MS);
+    const timeout = setTimeout(
+      () => {
+        Animated.timing(scrim, { toValue: 0, duration: FADE_OUT_MS, useNativeDriver: true }).start(onDone);
+      },
+      hasRecords ? HOLD_WITH_RECORD_MS : HOLD_MS
+    );
     return () => clearTimeout(timeout);
-  }, [badgeProgress, confetti, scrim, onDone]);
+  }, [badgeProgress, confetti, scrim, onDone, hasRecords]);
 
   const badgeOpacity = badgeProgress.interpolate({
     inputRange: [0, 1.08],
@@ -166,6 +201,50 @@ export function WorkoutSavedAnimation({ onDone, caption }: WorkoutSavedAnimation
           <Ionicons name="checkmark" size={52} color="#FFFFFF" />
         </LinearGradient>
       </Animated.View>
+
+      {hasRecords ? (
+        // Under the badge, in the app's own ember, and stated as plainly as
+        // possible: what the lift was and what was done on it. The screen
+        // this replaces required leaving the workout, opening the records
+        // vault, and comparing six dates.
+        <Animated.View
+          style={{
+            opacity: badgeOpacity,
+            alignItems: 'center',
+            marginTop: 22,
+            paddingHorizontal: 28,
+            gap: 6,
+          }}
+        >
+          <Text
+            style={{
+              color: '#FFC837',
+              fontSize: 12,
+              fontWeight: '800',
+              letterSpacing: 1.2,
+            }}
+          >
+            {records.length === 1 ? 'NEW PERSONAL RECORD' : `${records.length} NEW PERSONAL RECORDS`}
+          </Text>
+          {records.slice(0, 3).map((record) => (
+            <Text
+              key={record.exerciseName}
+              style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700', textAlign: 'center' }}
+              numberOfLines={1}
+            >
+              {record.exerciseName} · {record.weight} {weightUnit} × {record.reps}
+            </Text>
+          ))}
+          {/* Capped at three. A session that sets five records is a first
+              week, not a milestone, and a wall of them stops reading as an
+              achievement. */}
+          {records.length > 3 ? (
+            <Text style={{ color: '#D8DCE4', fontSize: 13 }}>
+              and {records.length - 3} more
+            </Text>
+          ) : null}
+        </Animated.View>
+      ) : null}
 
       {caption ? (
         <Animated.Text

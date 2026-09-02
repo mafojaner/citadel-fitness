@@ -11,7 +11,10 @@ import { InfoNote } from '../../components/InfoNote';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { RestTimer } from '../../components/RestTimer';
 import { ScreenContainer } from '../../components/ScreenContainer';
-import { WorkoutSavedAnimation } from '../../components/WorkoutSavedAnimation';
+import {
+  WorkoutSavedAnimation,
+  type SavedRecord,
+} from '../../components/WorkoutSavedAnimation';
 import {
   CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
@@ -29,6 +32,7 @@ import { useSaveWorkout } from '../../hooks/useSaveWorkout';
 import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { advanceEnrollment } from '../../lib/programs';
+import { fetchRecordsSetOn } from '../../lib/records';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -114,6 +118,7 @@ export function AddWorkoutScreen() {
   const saveWorkout = useSaveWorkout();
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [newRecords, setNewRecords] = useState<SavedRecord[]>([]);
   const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [switchingDate, setSwitchingDate] = useState(false);
   const finishedRef = useRef(false);
@@ -191,6 +196,26 @@ export function AddWorkoutScreen() {
       // Queued counts as logged from the person's side: the workout is
       // recorded and will reach the server on its own, so holding back the
       // confirmation would imply it might not.
+      // Checked before the celebration rather than alongside it, so the
+      // record has something to appear on. The alternative -- show the
+      // animation immediately and let the answer arrive during it -- races
+      // a 1-second overlay and would sometimes announce a record after it
+      // had already faded.
+      //
+      // Skipped when the save was queued: an offline device cannot know
+      // whether a set beat anything, and guessing would mean congratulating
+      // someone on a record they had not set. Also skipped below Fortress,
+      // where the RPC refuses by design.
+      let records: SavedRecord[] = [];
+      if (outcome !== 'queued' && isFortress) {
+        try {
+          records = await fetchRecordsSetOn(date, units);
+        } catch {
+          // A missed celebration is not worth failing a saved workout over.
+        }
+      }
+      setNewRecords(records);
+
       setQueued(outcome === 'queued');
       finishedRef.current = false;
       setShowSuccess(true);
@@ -504,6 +529,8 @@ export function AddWorkoutScreen() {
     {showSuccess ? (
       <WorkoutSavedAnimation
         onDone={finishAndLeave}
+        records={newRecords}
+        weightUnit={units}
         caption={queued ? 'Saved on this device. It will upload when you are back online.' : undefined}
       />
     ) : null}
