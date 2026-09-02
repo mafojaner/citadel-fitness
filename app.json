@@ -57,6 +57,12 @@
       ],
       "expo-sharing",
       "expo-asset"
-    ]
+    ],
+    "owner": "tumidevss-team",
+    "extra": {
+      "eas": {
+        "projectId": "2f57c927-b79e-429a-b961-6e1caa9fbd8f"
+      }
+    }
   }
 }
