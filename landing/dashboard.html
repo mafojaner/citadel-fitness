@@ -887,9 +887,9 @@
             <span class="priority high">Blocks billing</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Sign in on the dev server, or hand over a way to.</strong> Around twenty interface changes across 26&ndash;27 August have shipped without anyone looking at them: the account centre as master-detail, the desktop rail, the appearance and units tiles, the newsletter restyle, the flattened premium elements, the condensed pricing flow, and two entirely new screens &mdash; progressive overload and form check. All pass typecheck, lint and 298 tests.
+            <div class="agenda-task"><strong>Sign in on the dev server &mdash; closed 2 September.</strong> The dev server has run on a signed-in Fortress account with real training history throughout, and every Fortress surface has now been opened and walked. Two things that were previously correct only by test are confirmed on screen: the progression sparkline and the new-record marker, both written against an account that had no logged history at the time. What this row described was around twenty interface changes across 26&ndash;27 August that had shipped without anyone looking at them: the account centre as master-detail, the desktop rail, the appearance and units tiles, the newsletter restyle, the flattened premium elements, the condensed pricing flow, and two entirely new screens &mdash; progressive overload and form check. All pass typecheck, lint and 298 tests.
           <br><br>That combination has now been green over <strong>five</strong> real bugs here, two of them found today and both silent: a save path that could not save, and a digest that skipped everyone who had paid for it. Render tests added on 27 August close part of the gap &mdash; they catch a screen that fails to mount &mdash; but nothing automated can tell you whether any of it looks right.</div>
-            <span class="priority critical">Open</span>
+            <span class="priority done">Closed</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Restore the paused staging project.</strong> Every probe run since Aug 20 has therefore been against production. They were written to roll back and each one did, but &ldquo;we tested it in production and were careful&rdquo; is a habit worth ending before billing writes land there.</div>
@@ -912,7 +912,7 @@
             <span class="priority critical">Not started</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Deploy <code>revenuecat-webhook</code>.</strong> Confirmed absent from production today &mdash; eight functions are live and this is not one of them. Until it is deployed, nothing can grant a paid tier, which is also the reason nothing can wrongly grant one. <code>supabase functions deploy revenuecat-webhook --no-verify-jwt</code>, and it needs its secret set first or it fails closed on every call.</div>
+            <div class="agenda-task"><strong>Deploy <code>revenuecat-webhook</code> &mdash; done 2 September.</strong> Live at version 1 with <code>verify_jwt: false</code>, bringing the project to eleven deployed functions. Proved rather than assumed: a payload attempting to grant <code>valhalla_annual</code> was posted twice, once with no <code>Authorization</code> header and once with a wrong one, and both returned 401 &mdash; after which a rolled-back probe confirmed <code>subscriptions</code> still holds zero rows and the table still has zero client write policies. <strong>It is inert until you set <code>REVENUECAT_WEBHOOK_SECRET</code></strong>, and that is the correct failure direction: with the secret unset the check is <code>header !== undefined</code>, which no HTTP request can satisfy. The value has to match what you configure in RevenueCat's dashboard, so only you can choose it.</div>
             <span class="priority high">Not deployed</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
@@ -951,7 +951,7 @@
             <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>Valhalla: two of seven built, five to go (27 August).</strong> The two that landed are the two that needed no person.
+            <div class="agenda-task"><strong>Valhalla: four of eight built, four to go (updated 2 September).</strong> Both numbers in this row were wrong &mdash; the tier is eight features, not seven, and four have landed rather than two. <em>Form check</em> and <em>nutrition coaching</em> were built on 27 August and this row was never updated for them; both have a real screen and a gated submission path, and both still wait on a person to do the reviewing, which is the actual gate on selling the tier. The four outstanding are wearable sync (a native integration), expert guides and video demonstrations (content budgets), and early access (which is a status rather than a screen). The two originally named here are the two that needed no person at all.
             <br><br><strong>AI progressive overload</strong> is done: double progression with an RPE brake and a stall deload, computed in <code>get_overload_suggestions</code> behind a Valhalla check, with every row carrying the sentence explaining it. It is called AI and it is a readable heuristic, which the code says out loud &mdash; a suggestion about what to put over your own chest should be one you can argue with.
             <br><br><strong>Priority support</strong> has its app half: <code>feedback.answered_at</code>, and a queue ordered by entitlement then oldest-first with outstanding above answered. A person still writes the reply and always will; what the app owed was a queue that could actually be skipped.
             <br><br><strong>Form check</strong> landed later the same day, which was the last one where the app was the bottleneck rather than a person: a private bucket with signed URLs, a submissions table with no client insert or update path, a monthly cap enforced server-side, and a review queue on this page where a coach can watch, claim and reply.
@@ -1188,8 +1188,11 @@
 
           <div class="agenda-day">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
-            <div class="agenda-task"><strong>Wrap-up:</strong> compile the backlog from tester feedback and real usage data; confirm what carries into the September plan below.</div>
-            <span class="priority medium">Medium</span>
+            <div class="agenda-task"><strong>Wrap-up &mdash; done as far as it can be (2 September).</strong> This asked for a backlog compiled from two sources, and only one of them exists.
+              <br><br><strong>What could not be done, and why it is not a scheduling excuse.</strong> There is no tester feedback, because there are no testers: the store enrollments never completed, so there was never a build to install. And there is no usage data, because <code>EXPO_PUBLIC_POSTHOG_KEY</code> has never been set, so the telemetry wired on 19 August has recorded nothing in the fortnight since. Both are the same root cause the whole Aug 21&ndash;31 column has, and neither is fixable from inside the repository.
+              <br><br><strong>What was compiled instead:</strong> the engineering backlog, from the code and the live project rather than from users. That is the Fortress improvement plan &mdash; an audit of all ten Fortress surfaces against functionality, styling and integration &mdash; which produced seventeen items, of which fifteen were built on 1&ndash;2 September and two were declined with reasons recorded. It is a worse input than real usage would have been, and it was the one available.
+              <br><br><strong>What carries into September:</strong> nothing new. Every item this wrap-up would have raised is already on the list below or in the open ledger above, and the three that matter are unchanged &mdash; the store enrollments, which gate everything; the two repo secrets standing between the weekly digest and a real send; and billing's client half. The honest summary of August is that its first three weeks shipped in full and its last ten days never started, for one reason that has not moved since 17 August.</div>
+            <span class="priority done">Done, partly blocked</span>
           </div>
         </div>
       </section>
