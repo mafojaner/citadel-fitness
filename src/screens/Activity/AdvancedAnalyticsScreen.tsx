@@ -20,6 +20,8 @@ import {
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useAdvancedAnalytics } from '../../hooks/useAdvancedAnalytics';
+import { usePeriodComparison } from '../../hooks/usePeriodComparison';
+import { changePct } from '../../lib/periodComparison';
 import { useProfileStore } from '../../state/profileStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -30,6 +32,50 @@ const PERIODS: { label: string; days: number | null }[] = [
   { label: '90 days', days: 90 },
   { label: 'All time', days: null },
 ];
+
+/**
+ * The change against the previous window, in words.
+ *
+ * Reports "no earlier data to compare" rather than a percentage when the
+ * previous window is empty: everything is up from nothing, and a confident
+ * +100% against a fortnight nobody trained would be the most misleading
+ * number on the screen.
+ */
+function ComparisonLine({
+  comparison,
+  label,
+}: {
+  comparison: { current: { sets: number }; previous: { sets: number } };
+  label: string;
+}) {
+  const { colors, spacing, typography } = useTheme();
+  const change = changePct(comparison.current.sets, comparison.previous.sets);
+
+  if (change === null) {
+    return (
+      <Text style={[typography.caption, { color: colors.textMuted }]}>
+        No sets in the previous {label.toLowerCase()} to compare against.
+      </Text>
+    );
+  }
+
+  const up = change > 0;
+  const flat = change === 0;
+  const tint = flat ? colors.textMuted : up ? colors.success : colors.danger;
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+      <Ionicons name={flat ? 'remove' : up ? 'arrow-up' : 'arrow-down'} size={14} color={tint} />
+      <Text style={[typography.caption, { color: tint, fontWeight: '700' }]}>
+        {Math.abs(change)}%
+      </Text>
+      <Text style={[typography.caption, { color: colors.textMuted, flex: 1, minWidth: 0 }]}>
+        {flat ? 'same as' : up ? 'more sets than'  : 'fewer sets than'} the previous{' '}
+        {label.toLowerCase()} ({comparison.previous.sets})
+      </Text>
+    </View>
+  );
+}
 
 /**
  * The two questions the free Activity screen can't answer: where the work is
@@ -44,6 +90,7 @@ export function AdvancedAnalyticsScreen() {
   const period = PERIODS[periodIndex];
   const { balance, progressions, totalSets, activeDays, loading, error, reload } =
     useAdvancedAnalytics(period.days);
+  const comparison = usePeriodComparison(period.days);
 
   const empty = !loading && !error && balance.length === 0;
 
@@ -79,6 +126,13 @@ export function AdvancedAnalyticsScreen() {
             <StatChip icon="calendar-outline" value={`${activeDays} active day${activeDays === 1 ? '' : 's'}`} />
             <StatChip icon="layers-outline" value={`${totalSets} set${totalSets === 1 ? '' : 's'}`} />
           </View>
+
+          {/* Against the window immediately before this one.
+              "42 sets in 30 days" is a number; the same figure against the
+              previous 30 days is a direction, which is what an analytics
+              tier is for. Absent on the all-time range, where there is no
+              window before everything. */}
+          {comparison ? <ComparisonLine comparison={comparison} label={period.label} /> : null}
 
           <Card title="Muscle group balance">
             <Text style={[typography.caption, { color: colors.textMuted }]}>

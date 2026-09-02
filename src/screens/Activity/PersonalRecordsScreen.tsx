@@ -11,6 +11,7 @@ import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { EmptyState } from '../../components/EmptyState';
 import { PaidFeatureLink } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { SearchField } from '../../components/SearchField';
 import { TierMark } from '../../components/TierMark';
 import { StatChip } from '../../components/StatChip';
 import {
@@ -76,6 +77,7 @@ export function PersonalRecordsScreen() {
   const { records, loading, error, reload } = usePersonalRecords();
   const { exporting, result: exportResult, run: runExport } = useDataExport();
   const [category, setCategory] = useState<Category | 'all'>('all');
+  const [query, setQuery] = useState('');
 
   // Only the categories this member has actually logged. The catalogue's
   // picker lists all nine because you are choosing what to browse; here you
@@ -89,7 +91,17 @@ export function PersonalRecordsScreen() {
     ];
   }, [records]);
 
-  const visible = category === 'all' ? records : records.filter((r) => r.category === category);
+  // Filtered by name as well as category.
+  //
+  // The vault is a flat list ordered by recency. At thirty or forty
+  // exercises -- ordinary after a year of training -- finding one lift is
+  // scrolling, and the category picker only narrows it to a dozen.
+  const needle = query.trim().toLowerCase();
+  const visible = records.filter(
+    (r) =>
+      (category === 'all' || r.category === category) &&
+      (needle.length === 0 || r.exerciseName.toLowerCase().includes(needle))
+  );
 
   // Which of these are news.
   //
@@ -243,6 +255,16 @@ export function PersonalRecordsScreen() {
               pushed the records themselves below the fold. */}
           {categories.length > 2 ? (
             <CategoryFilterPicker options={categories} value={category} onChange={setCategory} />
+          ) : null}
+
+          {/* Only once there is enough to search. Below a handful of lifts
+              the field is a control that costs a row and saves nothing. */}
+          {records.length > 6 ? (
+            <SearchField
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search your lifts"
+            />
           ) : null}
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
