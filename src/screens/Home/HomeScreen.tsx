@@ -9,6 +9,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FortressTodayCard } from '../../components/FortressTodayCard';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
@@ -112,6 +113,23 @@ export function HomeScreen() {
           it spans the pair of summary cards below it, which keeps the column
           reading as one block instead of a small button floating above it. */}
       <GradientButton label="Log workout" loading={openingDraft} onPress={onLogWorkout} />
+
+      {/* Directly under the primary action, above the two read-only
+          summaries.
+
+          Every Fortress feature used to live at least one tab away, and the
+          only paid card on this screen was a Valhalla teaser for nutrition
+          coaching -- which is not built. So the screen that opens on launch
+          advertised the one thing that does not exist and none of the ten
+          that do. This draws nothing at all below Fortress, and nothing when
+          the tier has nothing to say today, so it costs a free account
+          neither a row nor a request. */}
+      <FortressTodayCard
+        onOpenPrograms={() => navigation.navigate('Workouts', { screen: 'Programs' })}
+        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast' })}
+        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords' })}
+        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups' })}
+      />
 
       {/* Side by side once there's width for it: these are two peer summaries,
           and stacking them on desktop pushes the category grid below the fold
@@ -294,6 +312,10 @@ export function HomeScreen() {
       {/* Nutrition has no logging surface anywhere in the app to attach
           this to, so it sits here instead: Home is the "what's next for
           you" screen, which is the closest thing it has to a natural home. */}
+      {/* Kept, but no longer the only paid thing on the screen. It is a
+          teaser for an unbuilt Valhalla feature, which is a reasonable thing
+          to show a Fortress member near the bottom of Home and was an
+          indefensible thing to be the sole representative of a paid tier. */}
       <PaidFeatureCard featureId="nutrition-coaching" />
       </ScreenContainer>
 
