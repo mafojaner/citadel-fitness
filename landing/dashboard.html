@@ -879,6 +879,12 @@
             <span class="priority high">Open</span>
           </div>
           <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Branch protection on <code>main</code>.</strong> CI blocks on typecheck, lint, tests and the control-character scan, and a pre-push hook now runs the same four locally &mdash; but the hook is opt-in per clone and skippable with <code>--no-verify</code>, and CI itself runs <em>after</em> the push, so a red build lands on <code>main</code> before anyone sees it. A protection rule is the only version of this that cannot be forgotten. It needs repository settings, which is yours: Settings &rarr; Branches &rarr; Add rule for <code>main</code>, require a pull request, and require status checks to pass.
+              <br><br><strong>The status check is named <code>verify</code>, not <code>CI</code>.</strong> That is the job id in <code>ci.yml</code>; <code>CI</code> is the workflow name and selecting it matches nothing. A required check that matches nothing passes vacuously, which would leave the rule looking enabled while gating nothing &mdash; the same shape as every other silent guard this project has been caught by. Verify after enabling by pushing a deliberately broken branch and confirming the merge is actually blocked.
+              <br><br>The repository is public, so this is available on the free plan.</div>
+            <span class="priority high">Yours &mdash; needs repo settings</span>
+          </div>
+          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Set <code>SUPABASE_FUNCTIONS_URL</code> and <code>WEBHOOK_SECRET</code> as repo secrets.</strong> The weekly digest workflow reads both. Until they are set the Sunday schedule fires into a failure, and Phase 3 of the Fortress plan cannot begin. The function itself is deployed and live.</div>
             <span class="priority high">Blocks Phase 3</span>
           </div>
