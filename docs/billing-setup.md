@@ -26,14 +26,42 @@ refuses everything until you configure it. Verified: a payload attempting to
 grant `valhalla_annual` was posted with no header and with a wrong one, both
 returned 401, and `subscriptions` still holds zero rows.
 
+## 0. The order these have to happen in
+
+RevenueCat does not create products. It mirrors products that already exist
+in a store, so the chain runs backwards from what the dashboard suggests:
+
+1. A build **containing the Play Billing Library** is uploaded to a Play
+   track. Play refuses to let you create subscriptions until one is.
+2. The four subscriptions are created **in Play Console**.
+3. RevenueCat imports them and you attach entitlements and an offering.
+
+**The build queued on 3 September does not contain the billing library.**
+`react-native-purchases` is not installed (step 3 below, deliberately), and
+that package is what pulls the billing library in and adds the
+`com.android.vending.BILLING` permission. So that build is good for getting
+the app into internal testing and in front of testers; it will not unlock
+Play's subscription configuration.
+
+What you *can* do before any of that: create the RevenueCat project, add the
+Android app, connect Play, configure the webhook, and copy the publishable
+key. Only product creation is gated.
+
 ## 1. Create the RevenueCat account and its products
 
 Only you can do this — it needs an account and it connects to your App Store
 Connect and Play Console.
 
-Create exactly these four product identifiers. They are not free-form: the
-app sells them by these ids and the webhook grants entitlement by them, so a
-typo takes someone's money and grants nothing.
+Connecting Play needs a service account with Play Developer API access. It
+can be the same one `eas submit` uses (`certs/play-service-account.json`),
+but RevenueCat wants **View financial data** and **Manage orders and
+subscriptions** on it, which submitting does not require. Grant those in Play
+Console → Users and permissions.
+
+Create exactly these four product identifiers, in Play first and then
+imported. They are not free-form: the app sells them by these ids and the
+webhook grants entitlement by them, so a typo takes someone's money and
+grants nothing.
 
 | Product id | Grants |
 |---|---|
@@ -70,6 +98,18 @@ Point the webhook at:
 https://ulyduorkvikeyxtpshoq.supabase.co/functions/v1/revenuecat-webhook
 ```
 
+**The comparison is exact string equality**, not a bearer-token parse:
+
+```ts
+if (req.headers.get('Authorization') !== WEBHOOK_SECRET) {
+```
+
+So whatever you type into RevenueCat's Authorization field is what
+`REVENUECAT_WEBHOOK_SECRET` must be, character for character. If you type
+`Bearer abc123` there, the secret is the whole string including `Bearer `.
+Simplest is a long random value with no prefix in both places. A mismatch is
+a 401 on every event, and RevenueCat will retry them rather than lose them.
+
 ## 3. Install the SDK — with the first dev build, not before
 
 ```bash
@@ -97,6 +137,28 @@ Then, in `src/lib/billing.ts`:
 - flip `SDK_INSTALLED` to `true`
 - fill in the two call sites marked "the SDK call goes here", in `purchase()`
   and `restore()`
+
+**And identify the user to RevenueCat by their Supabase id.** This is the
+easiest thing here to miss and it fails silently:
+
+```ts
+await Purchases.logIn(session.user.id);
+```
+
+The webhook reads `event.app_user_id` and rejects anything that is not a
+uuid:
+
+```ts
+if (!/^[0-9a-f-]{36}$/i.test(userId)) {
+  return json({ error: 'Unusable app_user_id' }, 400);
+}
+```
+
+Without `logIn`, RevenueCat sends its own anonymous id (`$RCAnonymousID:...`),
+every event is refused, and the person has paid and been granted nothing —
+the exact failure the product-id contract test exists to prevent, arriving
+through a different door. Rejecting is the right behaviour: writing that row
+would create a subscription belonging to no account.
 
 Those are the only two places that touch the SDK. Everything else — which
 plan is offered, whether it is a purchase or a waitlist, whether a member is
