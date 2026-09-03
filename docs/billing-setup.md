@@ -52,11 +52,41 @@ key. Only product creation is gated.
 Only you can do this — it needs an account and it connects to your App Store
 Connect and Play Console.
 
-Connecting Play needs a service account with Play Developer API access. It
-can be the same one `eas submit` uses (`certs/play-service-account.json`),
-but RevenueCat wants **View financial data** and **Manage orders and
-subscriptions** on it, which submitting does not require. Grant those in Play
-Console → Users and permissions.
+In RevenueCat's own words you are adding an **app config**, from the **Apps**
+area in the lower part of the project dashboard. Platform: Google Play Store.
+It asks for three things — App name, Package Name (`com.citadelfitness.app`)
+and Service Credentials.
+
+The credentials can be the same service account `eas submit` uses
+(`certs/play-service-account.json`), but RevenueCat needs **three** Play
+Console account permissions that submitting does not:
+
+- View financial data, orders, and cancellation survey responses
+- Manage orders and subscriptions
+- **Manage store presence** — filed under *Store presence*, not beside the
+  other two, which is why it gets missed. Google uses it for in-app products;
+  without it, creating or updating products in Play from RevenueCat fails.
+
+Grant them in Play Console → Users and permissions, and add the app itself
+under *App permissions*. In Google Cloud the service account also wants
+**Pub/Sub Editor** and **Monitoring Viewer**, which drive Play's server
+notifications (Pub/Sub Admin is the documented fallback if topic creation
+errors).
+
+**Credentials take up to 36 hours to become valid.** Until then RevenueCat
+returns "Invalid Play Store credentials" as a 503 or 521 and purchases fail.
+That is the documented behaviour, not a misconfiguration — regenerating the
+key restarts the clock.
+
+### You are not fully blocked while you wait
+
+Every RevenueCat project ships with a **Test Store**: products, offerings and
+a complete purchase flow with no store connected at all. Give its products
+the same four ids and the whole chain — entitlement, webhook, `subscriptions`
+row — can be exercised before Play has a field filled in. Which means the
+`Purchases.logIn` wiring below can be *proven* rather than assumed, and that
+is the one failure here with no test behind it. Swap the Test Store API key
+for the Google one before shipping.
 
 Create exactly these four product identifiers, in Play first and then
 imported. They are not free-form: the app sells them by these ids and the
