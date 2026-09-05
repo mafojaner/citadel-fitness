@@ -62,35 +62,105 @@ and the error. No IP address, name or email attached.
 
 ## 2. Google Play — Data safety form
 
-Answer **yes, data is collected** and **yes, data is shared** (the
-processors in §4).
+Answer **yes, data is collected**. Answer **no, data is not shared**.
+
+That second answer was wrong here until 3 September, and it mattered. This
+file used to say "yes, data is shared (the processors in §4)". Google's own
+definition excludes them. Quoting the Data safety help page:
+
+> The following types of data transfers do not need to be disclosed as
+> 'sharing': **Service providers.** Transferring user data to a 'service
+> provider' that processes it on behalf of the developer. 'Service provider'
+> means an entity that processes user data on behalf of the developer and
+> based on the developer's instructions.
+
+and, on analytics specifically:
+
+> an analytics provider that processes user data from your app solely on your
+> behalf or a cloud provider hosting user data from your app for your use
+> will typically qualify as 'service providers'.
+
+Supabase, Resend, Sentry and PostHog are all service providers under that
+definition. None of them builds profiles across customers from our data.
+So nothing here is "shared", and declaring otherwise would have put
+"shares data with third parties" on the store listing untruthfully.
+
+The activity leaderboard showing display names to other users is not
+"sharing" either: Play's definition is about transfer to a third-party
+*organisation*, not visibility between users of the app. It still has to be
+in the privacy policy, and it is, in Section 8.
 
 Encryption in transit: **yes**. Deletion: **yes, users can request their
-data be deleted** — Account → Account management → Delete account, which
-runs the `delete-account` function and needs no email to us.
+data be deleted**, both in-app at Account → Account management → Delete
+account and at https://citadelfitness.app/delete-account for anyone who has
+uninstalled. Partial deletion without deleting the account: **yes** (see the
+list at the end of this section).
 
-| Play category | Collected | Shared | Required | Purpose |
+### Per-type answers for "Data usage and handling"
+
+Nothing is processed ephemerally: every type below is written to the
+database, so answer **no** to the ephemeral question each time.
+
+| Data type | Collected | Shared | Required? | Purposes |
 |---|---|---|---|---|
-| Personal info → Name | Yes (optional) | Yes | No | App functionality |
-| Personal info → Email address | Yes | Yes | Yes | Account management |
-| Personal info → User IDs | Yes | Yes | Yes | App functionality, Analytics |
-| Photos and videos → Photos | Yes (optional) | No | No | App functionality |
-| Photos and videos → Videos | Yes (optional) | No | No | App functionality — form check |
-| Health and fitness → Health info | Yes | No | No | App functionality — body weight, height, dietary restrictions |
-| Health and fitness → Fitness info | Yes | No | Yes | App functionality — logged workouts |
-| Messages → Other in-app messages | Yes | No | No | App functionality — feedback and coaching notes |
-| App activity → App interactions | Yes | Yes | No | Analytics |
-| App activity → Other user-generated content | Yes | No | No | App functionality |
-| App info and performance → Crash logs | Yes | Yes | No | Crash prevention |
-| App info and performance → Diagnostics | Yes | Yes | No | Crash prevention |
+| Personal info → Name | Yes | No | **Optional** | App functionality, Account management |
+| Personal info → Email address | Yes | No | Required | Account management, App functionality, Developer communications |
+| Personal info → User IDs | Yes | No | Required | App functionality, Account management, Analytics |
+| Messages → Other in-app messages | Yes | No | **Optional** | App functionality |
+| Photos and videos → Photos | Yes | No | **Optional** | App functionality, Personalisation |
+| Photos and videos → Videos | Yes | No | **Optional** | App functionality |
+| Health and fitness → Health info | Yes | No | **Optional** | App functionality |
+| Health and fitness → Fitness info | Yes | No | Required | App functionality |
+| App info and performance → Crash logs | Yes | No | Required | App functionality, Analytics |
+| App info and performance → Diagnostics | Yes | No | Required | App functionality, Analytics |
+| App activity → App interactions | Yes | No | Required | Analytics |
+| App activity → Other user-generated content | Yes | No | **Optional** | App functionality |
 
-**Not collected, and say so:** location, financial info, contacts, calendar,
-SMS, call logs, files and docs, web browsing history, installed apps, device
-identifiers for advertising. The app has no ad network and no advertising ID.
+Why each "optional" is optional, since Play defines optional as the user
+being able to opt in or out:
+
+- **Name.** Sign-up asks for email and password only. A display name is
+  added later in profile settings, or never.
+- **Photos.** Setting a profile picture is a deliberate act, and removing it
+  deletes the stored file as well as clearing the column.
+- **Videos, Health info, Messages.** Form check, nutrition intake and
+  feedback are all things a person chooses to submit.
+- **Other user-generated content.** Goals, groups and notes.
+
+Why each "required" is required: there is no toggle that turns it off while
+continuing to use the app. Fitness info is the app's purpose; user IDs and
+email are what an account is; crash and analytics collection have no opt-out
+switch today. If an in-app analytics toggle is ever added, App interactions,
+crash logs and diagnostics become optional and this table changes.
+
+**Developer communications** is on email address because of the welcome
+email, the weekly digest and the newsletter. The newsletter and digest are
+both opt-in, defaulting to false.
+
+### Not collected, and say so
+
+Location, financial info, contacts, calendar, SMS, call logs, files and
+docs, web browsing history, installed apps, and any device or advertising
+identifier. There is no ad network and no advertising ID in this app.
+
+### Partial deletion without deleting the account: yes
+
+Six things can be deleted individually in the app, each verified as
+reachable from a screen rather than only existing in the data layer:
+workouts (cascading to their exercises and sets), lift goals, water logs,
+program enrolments, group membership, and the profile photo including its
+stored file.
+
+Withdrawing a form check or a nutrition intake is **not** deletion: it sets
+a status flag, and the row and the video both remain. Do not count it as
+one.
 
 > **Check before submitting:** if billing is live by then, add
-> *Financial info → Purchase history* (collected, shared with the payment
-> provider, for App functionality). It is not live today, so it is left off.
+> *Financial info → Purchase history*. Note the payment carve-out though:
+> Google says data the payment service collects directly from the user, that
+> the app never accesses, does not need declaring. Card numbers never reach
+> this app, so what would be declared is the subscription state we store,
+> not payment instruments.
 
 ---
 
