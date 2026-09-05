@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Delete your account: Citadel Fitness</title>
+<meta name="description" content="How to request that your Citadel Fitness account and all associated data be permanently deleted, what gets removed, and how long it takes." />
+<link rel="icon" href="favicon.png" />
+<style>
+  :root {
+    --paper: #F5F6F8;
+    --ink: #0B0E14;
+    --surface: #FFFFFF;
+    --border: #E2E5EC;
+    --ember: #FF5A36;
+    --slate: #4A5468;
+    --mist: #8A93A6;
+    --flag: #A5680C;
+    --flag-soft: #FBEFDA;
+    --flag-border: #E7C688;
+    --bad: #C7362C;
+    --bad-soft: #FCEAE8;
+    --bad-border: #F0BDB7;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0B0E14;
+      --ink: #F4F5F7;
+      --surface: #151A24;
+      --border: #262E3D;
+      --ember: #FF7A57;
+      --slate: #B7BECC;
+      --mist: #7C879A;
+      --flag: #E8B457;
+      --flag-soft: #2A2110;
+      --flag-border: #4A3A17;
+      --bad: #FF6B62;
+      --bad-soft: #2A1412;
+      --bad-border: #4C2320;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sans {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .mono {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+
+  header.doc-head {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ember);
+  }
+
+  h1 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 13px;
+    color: var(--mist);
+  }
+  .doc-meta strong { color: var(--slate); font-weight: 600; }
+
+  .lede {
+    max-width: 62ch;
+    color: var(--slate);
+    font-size: 18px;
+    margin: 4px 0 0;
+  }
+
+  h2 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 44px 0 12px;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin: 28px 0 8px;
+  }
+
+  p { margin: 0 0 16px; }
+  a { color: var(--ember); text-underline-offset: 3px; }
+  a:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ol.steps { margin: 0 0 16px; padding-left: 22px; }
+  ol.steps li { margin-bottom: 8px; }
+
+  .path {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 7px;
+  }
+
+  .callout {
+    border: 1px solid var(--flag-border);
+    background: var(--flag-soft);
+    border-left: 3px solid var(--flag);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+  }
+  .callout.stop {
+    border-color: var(--bad-border);
+    background: var(--bad-soft);
+    border-left-color: var(--bad);
+  }
+  .callout-label {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--flag);
+    margin-bottom: 6px;
+  }
+  .callout.stop .callout-label { color: var(--bad); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .data-table-wrap { overflow-x: auto; margin: 0 0 20px; }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  table.data-table th {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mist);
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.data-table tr:last-child td { border-bottom: none; }
+  .what { font-weight: 600; }
+  .why { color: var(--slate); font-size: 14px; }
+
+  .email-cta {
+    display: inline-block;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    background: var(--ember);
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 4px;
+    margin: 4px 0 8px;
+  }
+  .email-cta:hover { filter: brightness(1.06); }
+
+  .doc-foot {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--mist);
+  }
+  .doc-foot a { color: var(--slate); }
+
+  @media (max-width: 560px) {
+    .page { padding: 36px 20px 72px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-head">
+    <span class="eyebrow sans">Citadel Fitness</span>
+    <h1>Delete your account</h1>
+    <div class="doc-meta sans">
+      <span><strong>App:</strong> Citadel Fitness</span>
+      <span><strong>Package:</strong> <span class="mono">com.citadelfitness.app</span></span>
+      <span><strong>Last updated:</strong> 3 September 2026</span>
+    </div>
+    <p class="lede">You can delete your Citadel Fitness account and everything stored with it. There is no form to fill in and nobody to persuade. You can do it yourself from inside the app, and if you have already uninstalled it, you can ask us by email.</p>
+  </header>
+
+  <h2>Option 1: in the app, immediately</h2>
+
+  <p>This is the fastest route and it does not involve us at all. It runs the moment you confirm.</p>
+
+  <ol class="steps">
+    <li>Open Citadel Fitness and sign in.</li>
+    <li>Go to <span class="path">Account &rarr; Account management &rarr; Delete account</span>.</li>
+    <li>Confirm. Your account and all the data listed below are deleted straight away.</li>
+  </ol>
+
+  <div class="callout stop">
+    <span class="callout-label">This cannot be undone</span>
+    <p>Deletion is immediate and permanent. We keep no backup copy, there is no grace period, and no recovery is possible afterwards, not by us and not by asking. If you want to keep your training history, get a copy <strong>before</strong> you delete. See below.</p>
+  </div>
+
+  <h2>Option 2: by email, if you no longer have the app</h2>
+
+  <p>If you have uninstalled Citadel Fitness or cannot sign in, email us and we will delete the account for you.</p>
+
+  <p>
+    <a class="email-cta sans" href="mailto:tumi.citadel@gmail.com?subject=Account%20deletion%20request&amp;body=Please%20delete%20my%20Citadel%20Fitness%20account%20and%20all%20associated%20data.%0A%0AThe%20email%20address%20on%20the%20account%20is%3A%20">Request deletion by email</a>
+  </p>
+
+  <p>Send it <strong>from the email address on the account</strong>, so we can tell it is you asking. If you cannot, write from any address and we will ask a couple of questions to confirm the account is yours before deleting anything. A deletion request is exactly the sort of thing that should not be honoured on an unverified say-so.</p>
+
+  <p>We reply within <strong>7 days</strong> and complete the deletion within <strong>30 days</strong> of confirming the account is yours. In practice it is usually the same day.</p>
+
+  <h2>What gets deleted</h2>
+
+  <p>Everything below is removed permanently, whichever route you use.</p>
+
+  <div class="data-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Data</th><th>What that covers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="what">Your account</td><td class="why">Email address, password, and the sign-in record itself.</td></tr>
+        <tr><td class="what">Profile</td><td class="why">Display name, profile photo, units and all settings.</td></tr>
+        <tr><td class="what">Training history</td><td class="why">Every workout, exercise, set, rep, weight, distance, duration and effort rating you have logged.</td></tr>
+        <tr><td class="what">Goals and programs</td><td class="why">Lift goals, program enrolments and your progress through them.</td></tr>
+        <tr><td class="what">Water logs</td><td class="why">Everything recorded through hydration tracking.</td></tr>
+        <tr><td class="what">Groups</td><td class="why">Your membership of any group, and any group you created that has nobody else left in it.</td></tr>
+        <tr><td class="what">Saved articles</td><td class="why">Newsletter favourites and reading markers.</td></tr>
+        <tr><td class="what">Form check videos</td><td class="why">Both the submission and the <strong>video file itself</strong>, removed from storage.</td></tr>
+        <tr><td class="what">Nutrition intakes</td><td class="why">Body weight, height, dietary restrictions and anything else you sent to a coach.</td></tr>
+        <tr><td class="what">Messages to us</td><td class="why">Feedback, support requests and coaching notes tied to your account.</td></tr>
+        <tr><td class="what">Referrals</td><td class="why">Your referral code and any attribution recorded against it.</td></tr>
+        <tr><td class="what">Subscription record</td><td class="why">Our record of your plan. See the note on app stores below.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What we cannot delete for you</h2>
+
+  <p>Two honest exceptions, and neither is data you gave us.</p>
+
+  <h3>Your subscription with Google Play or Apple</h3>
+  <p>If you are ever subscribed, the payment relationship is between you and the app store, not us. Deleting your account removes <em>our</em> record of it but does not cancel the subscription or issue a refund. Only the store can do that. Cancel it in your Google Play or App Store subscription settings first, or you may keep being charged for an account that no longer exists.</p>
+
+  <h3>Crash diagnostics</h3>
+  <p>If the app has crashed on your device, our crash reporter holds a technical record of that crash. It is not linked to your name or email address, nothing in it identifies you, and it expires on the provider&rsquo;s own schedule.</p>
+
+  <h2>Getting your data, and partial deletion</h2>
+
+  <h3>Getting a copy of your data first</h3>
+  <p>On a Fortress plan, <span class="path">Account &rarr; Your data</span> downloads your full workout history as a CSV, whenever you want it.</p>
+  <p><strong>On the free plan, email us and we will send you a copy.</strong> The in-app export is a paid feature; your right to a copy of your own data is not, so ask and we will provide it whatever plan you are on. Same address as below, and the same 7-day reply.</p>
+
+  <h3>Deleting only part of it</h3>
+  <p>You do not have to delete everything. Individual workouts can be removed one at a time from the day they were logged, and that works on every plan.</p>
+
+  <p>Questions about any of this can go to <a href="mailto:tumi.citadel@gmail.com">tumi.citadel@gmail.com</a>.</p>
+
+  <div class="doc-foot sans">
+    <p>Citadel Fitness &middot; <a href="privacy.html">Privacy policy</a> &middot; <a href="index.html">Home</a></p>
+    <p>This page describes account deletion for the Citadel Fitness mobile app, package <span class="mono">com.citadelfitness.app</span>.</p>
+  </div>
+
+</div>
+</body>
+</html>

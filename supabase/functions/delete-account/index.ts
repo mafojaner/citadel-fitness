@@ -6,11 +6,16 @@
 // SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY are auto-injected into
 // every Edge Function's environment — no manual secret setup needed.
 //
-// Every table that stores user data (profiles, workouts, logged_exercises,
-// set_entries, article_favorites) already has "on delete cascade" back to
-// auth.users, so deleting the user cleans up everything except their
-// avatar file in storage, which isn't FK-linked and is removed explicitly
-// below.
+// Every table that stores user data has "on delete cascade" back to
+// auth.users -- checked across every migration, not assumed from this
+// comment, which listed five tables when there are now more than twenty.
+//
+// Storage is the exception and always will be: objects are not FK-linked,
+// so nothing cascades to them and every bucket has to be cleared by name.
+// There are two. Missing one is not a tidiness problem -- form-checks holds
+// video of someone training at home, and leaving those files behind after
+// an account is deleted makes the privacy policy and the Play data-deletion
+// declaration untrue. Add to BUCKETS when a bucket is added.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -57,9 +62,24 @@ Deno.serve(async (req) => {
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-  const { data: files } = await adminClient.storage.from('avatars').list(user.id);
-  if (files && files.length > 0) {
-    await adminClient.storage.from('avatars').remove(files.map((f) => `${user.id}/${f.name}`));
+  // Both buckets store objects under "{bucket}/{user_id}/...", so one loop
+  // covers them. Cleared before the auth row, deliberately: if deleting the
+  // user succeeded and this failed, the caller would be logged out of an
+  // account that no longer exists and could never retry, leaving the files
+  // stranded with nothing left to identify their owner.
+  const BUCKETS = ['avatars', 'form-checks'];
+  for (const bucket of BUCKETS) {
+    const { data: files } = await adminClient.storage.from(bucket).list(user.id);
+    if (files && files.length > 0) {
+      const { error: removeError } = await adminClient.storage
+        .from(bucket)
+        .remove(files.map((f) => `${user.id}/${f.name}`));
+      // Fail rather than continue. A partial delete that reports success is
+      // how someone ends up believing their video is gone when it is not.
+      if (removeError) {
+        return json({ error: `Could not remove ${bucket}: ${removeError.message}` }, 500);
+      }
+    }
   }
 
   const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
