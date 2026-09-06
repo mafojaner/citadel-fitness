@@ -613,6 +613,81 @@
     .priority { justify-self: start; }
   }
 
+
+  /* ---- chronological view ---- */
+  .block-head .tl-order {
+    margin-left: auto;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--mist);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    width: auto;
+    cursor: pointer;
+  }
+  .block-head .tl-order:hover { color: var(--ember); border-color: var(--ember); filter: none; }
+
+  /* Capped and scrolled internally. 49 entries at full height would push
+     every section on the page down by 1,300px to show an index. */
+  .tl-wrap {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .tl { list-style: none; margin: 0; padding: 4px 0; }
+  .tl a {
+    display: grid;
+    grid-template-columns: 56px 8px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    padding: 7px 16px;
+    text-decoration: none;
+    color: var(--slate);
+    font-size: 12.5px;
+    line-height: 1.45;
+    border-left: 2px solid transparent;
+  }
+  .tl a:hover { background: var(--paper); border-left-color: var(--st, var(--ember)); color: var(--ink); }
+  .tl-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mist);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .tl-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--st, var(--mist));
+    transform: translateY(-1px);
+  }
+  .tl-text { overflow: hidden; text-overflow: ellipsis; }
+  .tl-month {
+    padding: 9px 16px 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--mist);
+    border-top: 1px solid var(--border);
+  }
+  .tl li:first-child .tl-month { border-top: 0; padding-top: 4px; }
+  .tl-note { font-size: 11.5px; color: var(--mist); margin: 8px 2px 0; }
+
+  @media (max-width: 640px) {
+    .tl a { grid-template-columns: 46px 8px 1fr; gap: 8px; padding: 7px 12px; font-size: 12px; }
+    .tl-wrap { max-height: 300px; }
+  }
+
   /* ============ STATUS BOARD, TOOLBAR, SECTION NAV ============
      One colour per state, used everywhere: the board cards, the row rails,
      the filter chips. The old badges coloured by urgency and worded by
@@ -952,6 +1027,7 @@
 
       </section>
 
+
       <div class="ledger-bar" id="ledger-bar">
         <div class="ledger-bar-row">
           <label class="tb-search">
@@ -965,6 +1041,7 @@
             <button type="button" class="tb-chip" data-filter-owner="code" aria-pressed="false">Engineering</button>
           </div>
 
+
           <button type="button" class="tb-reset" id="tb-reset" hidden>Clear</button>
         </div>
 
@@ -975,6 +1052,25 @@
 
         <p class="tb-status" id="tb-status" role="status" aria-live="polite"></p>
       </div>
+
+      <!-- ============ CHRONOLOGICAL VIEW ============ -->
+      <!--
+        Filled by script from the dated rows below. Empty in the file on
+        purpose: two copies of the same 49 entries is exactly the drift this
+        page keeps getting caught by, where a fact is corrected in one place
+        and left stale in another.
+      -->
+      <section class="block" id="timeline">
+        <div class="block-head">
+          <span class="dot"></span>
+          <h3>The development timeline</h3>
+          <button type="button" class="tl-order" id="tl-order" aria-label="Reverse order">Newest first</button>
+        </div>
+        <div class="tl-wrap">
+          <ol class="tl" id="tl-list"></ol>
+        </div>
+        <p class="tl-note" id="tl-note"></p>
+      </section>
 
       <section class="block" id="does-anyone-actually-use">
         <div class="block-head"><span class="dot"></span><h3>Does anyone actually use it</h3></div>
@@ -1890,7 +1986,7 @@
     var rows = Array.prototype.slice.call(document.querySelectorAll('.agenda-day[data-state]'));
     if (!rows.length) return;
 
-    var toolbar = document.getElementById('ledger-bar');
+    var bar = document.getElementById('ledger-bar');
     var qInput = document.getElementById('tb-q');
     var statusEl = document.getElementById('tb-status');
     var resetBtn = document.getElementById('tb-reset');
@@ -1920,7 +2016,7 @@
 
     // ---- section nav ------------------------------------------------------
     var sections = Array.prototype.slice.call(document.querySelectorAll('section.block[id]'))
-      .filter(function (sec) { return sec.id !== 'board'; });
+      .filter(function (sec) { return sec.id !== 'board' && sec.id !== 'timeline'; });
 
     sections.forEach(function (sec) {
       sec.__rows = Array.prototype.slice.call(sec.querySelectorAll('.agenda-day[data-state]'));
@@ -1954,7 +2050,7 @@
     // it. Offsetting by the toolbar's own measured height keeps the heading
     // visible instead of hidden behind the thing you used to get there.
     function goTo(sec) {
-      var offset = toolbar.getBoundingClientRect().height + 12;
+      var offset = bar.getBoundingClientRect().height + 12;
       var y = sec.getBoundingClientRect().top + window.pageYOffset - offset;
       window.scrollTo({ top: y, behavior: prefersReduced() ? 'auto' : 'smooth' });
       if (history.replaceState) history.replaceState(null, '', '#' + sec.id);
@@ -2068,6 +2164,7 @@
       });
 
       resetBtn.hidden = !filtering;
+      syncTimeline();
       describe(filtering, shown);
     }
 
@@ -2091,6 +2188,114 @@
       return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+
+    // ---- chronological view ------------------------------------------------
+    // Built from the dated rows rather than duplicated in the file, so it
+    // cannot drift from what it indexes.
+    var MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+    var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                       'August', 'September', 'October', 'November', 'December'];
+
+    var tlList = document.getElementById('tl-list');
+    var tlNote = document.getElementById('tl-note');
+    var tlOrderBtn = document.getElementById('tl-order');
+    var tlSection = document.getElementById('timeline');
+    var newestFirst = true;
+
+    var dated = [];
+    rows.forEach(function (row, i) {
+      var dateEl = row.querySelector('.agenda-date');
+      if (!dateEl) return;
+      var dom = dateEl.querySelector('.dom');
+      if (!dom) return;
+      // Both parts live in .dom -- "Sep 1". The .dow span holds the weekday
+      // only ("Tue"), which is no use for sorting.
+      var stampText = (dom.textContent || '').trim();
+      var mon = stampText.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/);
+      var day = parseInt(stampText.replace(/\D/g, ''), 10);
+      if (!mon || !day) return;
+
+      // Year from the enclosing section's heading, so a 2027 section cannot
+      // silently sort into 2026.
+      var sec = row.closest('section.block');
+      var yr = sec ? ((sec.querySelector('h3') || {}).textContent || '').match(/\b(20\d\d)\b/) : null;
+      var year = yr ? parseInt(yr[1], 10) : new Date().getFullYear();
+
+      if (!row.id) row.id = 'item-' + i;
+      var strong = row.querySelector('.agenda-task strong');
+      var text = (strong ? strong.textContent : (row.querySelector('.agenda-task') || {}).textContent || '').trim();
+      dated.push({ row: row, m: MONTHS[mon[1]], d: day, y: year, key: year * 10000 + MONTHS[mon[1]] * 100 + day, text: text });
+    });
+
+    function renderTimeline() {
+      var items = dated.slice().sort(function (a, b) {
+        return newestFirst ? b.key - a.key : a.key - b.key;
+      });
+      tlList.textContent = '';
+      var lastMonth = null;
+      items.forEach(function (it) {
+        var li = document.createElement('li');
+        var stamp = it.y + '-' + it.m;
+        if (stamp !== lastMonth) {
+          var mh = document.createElement('div');
+          mh.className = 'tl-month';
+          mh.textContent = MONTH_NAMES[it.m] + ' ' + it.y;
+          li.appendChild(mh);
+          lastMonth = stamp;
+        }
+        var a = document.createElement('a');
+        a.href = '#' + it.row.id;
+        a.setAttribute('data-state', it.row.__state);
+        a.innerHTML = '<span class="tl-date"></span><span class="tl-dot"></span><span class="tl-text"></span>';
+        a.querySelector('.tl-date').textContent = MONTH_NAMES[it.m].slice(0, 3) + ' ' + it.d;
+        a.querySelector('.tl-text').textContent = it.text;
+        a.title = it.text;
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          jumpToRow(it.row);
+        });
+        li.appendChild(a);
+        li.__src = it.row;
+        tlList.appendChild(li);
+      });
+      syncTimeline();
+    }
+
+    // Jumping to a row inside a section that a filter has hidden would land
+    // on nothing, so the filter is cleared first and the reason said out loud.
+    function jumpToRow(row) {
+      if (row.hidden || row.closest('section.block').hidden) {
+        state = null; owner = 'all'; query = ''; qInput.value = '';
+        apply();
+      }
+      var offset = bar.getBoundingClientRect().height + 12;
+      var y = row.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: y, behavior: prefersReduced() ? 'auto' : 'smooth' });
+      row.classList.remove('scrolled-to');
+      void row.offsetWidth;
+      row.classList.add('scrolled-to');
+    }
+
+    function syncTimeline() {
+      var shown = 0;
+      Array.prototype.forEach.call(tlList.children, function (li) {
+        var hide = li.__src && li.__src.hidden;
+        li.hidden = hide;
+        if (!hide) shown++;
+      });
+      tlSection.hidden = shown === 0;
+      tlNote.textContent = shown === dated.length
+        ? shown + ' dated items. The undated ones are in the sections below.'
+        : shown + ' of ' + dated.length + ' dated items match the current filter.';
+    }
+
+    tlOrderBtn.addEventListener('click', function () {
+      newestFirst = !newestFirst;
+      tlOrderBtn.textContent = newestFirst ? 'Newest first' : 'Oldest first';
+      renderTimeline();
+    });
+
+    renderTimeline();
     apply();
 
     // A hash in the address bar has to be re-applied: the sections gained
