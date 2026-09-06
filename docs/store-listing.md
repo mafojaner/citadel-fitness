@@ -350,7 +350,59 @@ PNG; that is the whole reason the asset is generated rather than drawn.
 
 ---
 
-## 7. The wordmark — settled 3 September
+## 7. Sign-in details for review (Play "App access")
+
+Play asks for a working account because reviewers cannot create one, and it
+asks whether those credentials reach **all** features "including premium or
+paid content". They could not, until 3 September: the tier gate is live,
+billing is not, and a reviewer has no way to buy past it. Every Fortress and
+Valhalla screen would have been a dead end.
+
+`20260903120000_grant_reviewer_valhalla.sql` grants the reviewer account the
+top tier. Applied to production; the account moved from `free` to
+`valhalla`. Verified through the whole chain rather than at the column:
+`tier_rank` returns `greatest(subscription_rank, membership_tier)`, so the
+hand-granted column alone gives rank 2, and `my_tier()` maps 2 to
+`valhalla`. Screens and policies read the same function, so they cannot
+disagree.
+
+That migration fails loudly on purpose. The earlier owner grant
+(`20260820070001`) used a bare `update ... where id = (select ...)`, which
+updates zero rows and reports success if the address does not match. This
+one raises if there is no `auth.users` row, raises if there is no `profiles`
+row, and reads the tier back afterwards.
+
+**The password is not in this repository and should not be.** It lives in
+Play Console only.
+
+Paste this into "Any other information required to access your app"
+(484 of 500 characters):
+
+> Sign in with the email address and password above. Nothing further is
+> required: the app has no two-step verification, one-time PIN, biometric
+> login, QR code or location restriction.
+>
+> This account has been granted the Valhalla membership tier, so every
+> premium feature is unlocked without a purchase. Premium screens are
+> reached from the Activity tab (advanced analytics, goals, programs,
+> progressive overload) and from the Account screen (form check, nutrition
+> coaching, data export).
+
+Then tick **"Sign-in details in this declaration provide full access to all
+the features and content within this app, including premium or paid
+content"**. It is true now, and was not before the grant.
+
+Log a few workouts on the account before submitting. An empty account makes
+the app look like it does nothing, and the reviewer is forming an impression
+as well as checking access.
+
+**When billing goes live, revisit this.** A reviewer account holding a
+hand-granted tier will not exercise the purchase flow, so testing that needs
+a licence-tester account buying through Play instead.
+
+---
+
+## 8. The wordmark — settled 3 September
 
 `assets/logo-wordmark.png` read **“CITADEL SOCIETY”** while `app.json`, the
 bundle identifiers, this listing, the privacy policy and the app's own copy
