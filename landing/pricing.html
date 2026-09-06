@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pricing: Citadel Fitness</title>
+<meta name="description" content="Citadel Fitness is free to use. Fortress and Valhalla add more when you want it. Prices in six currencies, with the annual total shown in full." />
+<link rel="icon" href="/favicon.png" />
+<link rel="canonical" href="https://citadelfitness.app/pricing" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://citadelfitness.app/pricing" />
+<meta property="og:title" content="Pricing: Citadel Fitness" />
+<meta property="og:description" content="Free to use. Fortress and Valhalla add more when you want it, and the annual total is shown in full." />
+<meta property="og:image" content="https://citadelfitness.app/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/shell.css" />
+<style>
+  /* Marketing mode: dark ground, Sora, ember. Committed to one look rather
+     than theme-aware, like index.html, because this page persuades rather
+     than being read at length. Colour and motion come from tokens.css. */
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink900);
+    color: var(--ink100);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Head ---- */
+  .head { padding: 64px 0 12px; text-align: center; }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--primary); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: clamp(34px, 6vw, 56px);
+    line-height: 1.03; letter-spacing: -0.03em; color: var(--white);
+    margin: 0 0 16px; text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 19px; color: var(--ink300); margin: 0 auto;
+    max-width: 56ch; text-wrap: pretty;
+  }
+
+  /* ---- Not on sale notice ---- */
+  .notice {
+    max-width: 700px; margin: 30px auto 0;
+    background: var(--ink800); border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px; padding: 16px 20px; text-align: left;
+    font-size: 15px; color: var(--ink100);
+  }
+  .notice strong { color: var(--white); }
+
+  /* ---- Controls ---- */
+  .controls {
+    display: flex; justify-content: center; align-items: center;
+    gap: 12px 26px; flex-wrap: wrap; margin: 34px 0 30px;
+  }
+  .seg {
+    display: inline-flex; background: var(--ink800);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px;
+  }
+  .seg button {
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    color: var(--ink300); background: none; border: 0; cursor: pointer;
+    padding: 8px 18px; border-radius: 999px;
+    transition: color var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
+  }
+  .seg button[aria-pressed='true'] { background: var(--primary); color: var(--white); }
+  .seg button:hover:not([aria-pressed='true']) { color: var(--white); }
+
+  .cur-label { font-size: 13px; color: var(--ink500); }
+  .cur-select {
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    background: var(--ink800); color: var(--ink100);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; cursor: pointer;
+  }
+
+  /* ---- Tier cards ---- */
+  .tiers {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    gap: 16px; align-items: stretch; margin: 0 0 20px;
+  }
+  .tier {
+    display: flex; flex-direction: column;
+    background: var(--ink800); border: 1px solid var(--border);
+    border-radius: 12px; padding: 26px 24px;
+    transition: transform var(--dur-slow) var(--ease), border-color var(--dur-slow) var(--ease);
+  }
+  .tier:hover { transform: translateY(-3px); border-color: var(--ink500); }
+  .tier.featured { border-color: var(--primary); }
+
+  .tier-name {
+    font-family: var(--font-display); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--primary); margin: 0 0 8px;
+  }
+  .tier.free .tier-name { color: var(--ink300); }
+  .tier-tag { font-size: 15px; color: var(--ink300); margin: 0 0 20px; min-height: 3em; }
+
+  .price { display: flex; align-items: baseline; gap: 6px; margin: 0 0 4px; }
+  .price .amount {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: 40px; letter-spacing: -0.03em; color: var(--white);
+    font-variant-numeric: tabular-nums;
+  }
+  .price .per { font-size: 14px; color: var(--ink500); }
+  .billed { font-size: 13.5px; color: var(--ink300); margin: 0 0 22px; min-height: 2.6em; }
+  .billed .save { color: var(--primary); font-weight: 600; }
+
+  .tier ul { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  .tier li { font-size: 14.5px; color: var(--ink100); display: flex; gap: 9px; align-items: flex-start; }
+  .tier li svg { width: 15px; height: 15px; flex: 0 0 15px; margin-top: 4px; color: var(--primary); }
+  .tier.free li svg { color: var(--ink500); }
+
+  .tier-cta {
+    margin-top: auto; display: block; text-align: center;
+    font-weight: 600; font-size: 15px; text-decoration: none;
+    padding: 12px 18px; border-radius: 8px;
+    transition: filter var(--dur-base) var(--ease), background var(--dur-base) var(--ease);
+  }
+  .cta-solid { background: var(--primary); color: var(--white); }
+  .cta-solid:hover { filter: brightness(1.08); }
+  .cta-ghost { background: transparent; color: var(--ink100); border: 1px solid var(--border); }
+  .cta-ghost:hover { background: var(--ink700); }
+  .cta-off { background: var(--ink700); color: var(--ink300); cursor: default; }
+
+  .cap { font-size: 12.5px; color: var(--ink500); text-align: center; margin: 10px 0 0; }
+
+  /* ---- Comparison ---- */
+  .compare { padding: 56px 0 0; }
+  .compare h2 {
+    font-family: var(--font-display); font-weight: 800; font-size: 28px;
+    letter-spacing: -0.02em; color: var(--white); margin: 0 0 6px; text-align: center;
+  }
+  .compare .sub { font-size: 15px; color: var(--ink500); text-align: center; margin: 0 0 26px; }
+
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 14.5px;
+    background: var(--ink800); border: 1px solid var(--border); border-radius: 10px;
+  }
+  th {
+    font-family: var(--font-display); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink500);
+    padding: 14px 14px; border-bottom: 1px solid var(--border); text-align: center;
+  }
+  th:first-child { text-align: left; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: center; color: var(--ink300); }
+  td:first-child { text-align: left; color: var(--ink100); }
+  tbody tr:last-child td { border-bottom: none; }
+  td .yes { color: var(--primary); font-weight: 700; }
+  .tier-free-col { color: var(--ink500) !important; }
+
+  .group-row td {
+    font-family: var(--font-display); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink500);
+    background: var(--ink900); text-align: left;
+  }
+
+  /* ---- Foot ---- */
+  .faq-lite { padding: 52px 0 76px; max-width: 700px; margin: 0 auto; }
+  .faq-lite h3 {
+    font-family: var(--font-display); font-size: 16px; font-weight: 700;
+    color: var(--white); margin: 24px 0 6px;
+  }
+  .faq-lite h3:first-of-type { margin-top: 0; }
+  .faq-lite p { font-size: 15px; color: var(--ink300); margin: 0; }
+  .faq-lite a { color: var(--primary); }
+
+  a:focus-visible, button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px;
+  }
+
+  @media (max-width: 620px) {
+    .head { padding-top: 40px; }
+    .tier { padding: 22px 20px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tier, .seg button, .tier-cta { transition: none; }
+    .tier:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="28" height="28" />CITADEL</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/pricing" aria-current="page">Pricing</a>
+      <a href="/support">Support</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/delete-account">Delete account</a>
+      <a href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Live demo</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="head">
+    <p class="eyebrow">Pricing</p>
+    <h1>Free to use. Paid when it earns it.</h1>
+    <p class="standfirst">Logging, streaks, charts and the full exercise catalogue cost nothing and always will. The paid plans add depth, and one of them adds a person.</p>
+
+    <div class="notice">
+      <strong>Nothing is on sale yet.</strong> These are the prices the plans will launch at, published now so they are not a surprise later. No payment details are asked for anywhere in the app today, and nothing can be bought.
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Billing period">
+      <button type="button" id="btn-monthly" aria-pressed="true">Monthly</button>
+      <button type="button" id="btn-yearly" aria-pressed="false">Yearly</button>
+    </div>
+    <label class="cur-label" for="cur">Currency
+      <select class="cur-select" id="cur" aria-label="Currency">
+        <option value="USD">USD ($)</option>
+        <option value="ZAR">ZAR (R)</option>
+        <option value="GBP">GBP (£)</option>
+        <option value="EUR">EUR (€)</option>
+        <option value="AUD">AUD (A$)</option>
+        <option value="CAD">CAD (C$)</option>
+      </select>
+    </label>
+  </div>
+
+  <section class="tiers">
+
+    <article class="tier free">
+      <p class="tier-name">Free</p>
+      <p class="tier-tag">Log your training and watch it add up.</p>
+      <div class="price"><span class="amount">0</span><span class="per">forever</span></div>
+      <p class="billed">No card, no trial, no expiry.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Workout logging and the full catalogue</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Streaks and activity charts</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Friends and leaderboards</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>The newsletter</li>
+      </ul>
+      <a class="tier-cta cta-ghost" href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Try the live demo</a>
+    </article>
+
+    <article class="tier featured">
+      <p class="tier-name">Fortress</p>
+      <p class="tier-tag">Everything you did, measured and explained.</p>
+      <div class="price">
+        <span class="amount" data-price="fortress">4.99</span>
+        <span class="per" data-per>per month</span>
+      </div>
+      <p class="billed" data-billed="fortress">Billed monthly.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Advanced analytics and 1RM estimates</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Personal records vault</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Structured programs and goal forecasting</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Private groups and challenges</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>CSV export, offline sync, weekly digest</li>
+      </ul>
+      <a class="tier-cta cta-solid" href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Join the waitlist</a>
+    </article>
+
+    <article class="tier">
+      <p class="tier-name">Valhalla</p>
+      <p class="tier-tag">Everything Fortress has, plus people telling you what to do next.</p>
+      <div class="price">
+        <span class="amount" data-price="valhalla">79.99</span>
+        <span class="per" data-per>per month</span>
+      </div>
+      <p class="billed" data-billed="valhalla">Billed monthly.</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Everything in Fortress</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Form check: a person reviews your video</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Nutrition coaching, answered by a person</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Progressive overload suggestions</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Priority support and early access</li>
+      </ul>
+      <a class="tier-cta cta-solid" href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Join the waitlist</a>
+    </article>
+
+  </section>
+
+  <p class="cap">Valhalla has limited places, because a coach reviews every submission.</p>
+
+  <section class="compare">
+    <h2>What comes with what</h2>
+    <p class="sub">The same list the app reads, so nothing here is a feature the app does not have.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Feature</th><th>Free</th><th>Fortress</th><th>Valhalla</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="4">The basics</td></tr>
+          <tr><td>Workout logging and catalogue</td><td class="tier-free-col"><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Streaks and activity charts</td><td class="tier-free-col"><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Friends and leaderboards</td><td class="tier-free-col"><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+
+          <tr class="group-row"><td colspan="4">Measured and explained</td></tr>
+          <tr><td>Advanced analytics and 1RM</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Personal records vault</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Goal forecasting</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Structured programs</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Private groups and challenges</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>RPE and rest timer</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Weekly digest</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Exercise data export</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Offline mode and sync</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Refer and earn</td><td>&mdash;</td><td><span class="yes">&check;</span></td><td><span class="yes">&check;</span></td></tr>
+
+          <tr class="group-row"><td colspan="4">A person, not a formula</td></tr>
+          <tr><td>Form check reviews</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Nutrition coaching</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Progressive overload suggestions</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Priority support</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Expert guide library</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Video demonstrations</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Wearable sync</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+          <tr><td>Early access</td><td>&mdash;</td><td>&mdash;</td><td><span class="yes">&check;</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="faq-lite">
+    <h3>When do the paid plans open?</h3>
+    <p>No date yet. When they do, how billing, renewal and cancellation work is already written down in the <a href="/terms">terms of service</a>, so none of it will be new on the day.</p>
+
+    <h3>How will I be billed?</h3>
+    <p>Through Google Play or the App Store, not by us. The store holds your payment details and issues the receipt, and you cancel there too. We never see your card.</p>
+
+    <h3>What happens if I cancel?</h3>
+    <p>The paid features run to the end of the period you have already paid for, then stop. Cancelling never cuts a period short.</p>
+
+    <h3>Does the free tier expire?</h3>
+    <p>No. It is not a trial. Logging, streaks, charts and the catalogue are free permanently, and adding paid tiers has never removed anything from it.</p>
+
+    <h3>Why is Valhalla so much more?</h3>
+    <p>Because a person does the work. Form check and nutrition coaching are hours of someone&rsquo;s time rather than server capacity, which is also why places are limited.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-brand">
+      <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="26" height="26" />CITADEL</a>
+      <p class="site-footer-note">A workout tracker that stays out of your way. No ads, no trackers, and your data stays yours.</p>
+    </div>
+    <div class="site-footer-col">
+      <h2>Product</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/pricing" aria-current="page">Pricing</a></li>
+        <li><span class="soon">Download</span></li>
+        <li><a href="https://demo.citadelfitness.app">Live demo</a></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Company</h2>
+      <ul>
+        <li><span class="soon">About</span></li>
+        <li><span class="soon">Changelog</span></li>
+        <li><span class="soon">Guides</span></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Legal</h2>
+      <ul>
+        <li><a href="/privacy">Privacy policy</a></li>
+        <li><a href="/terms">Terms of service</a></li>
+        <li><a href="/delete-account">Delete your account</a></li>
+        <li><a href="/support">Support</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer-bottom">
+    <p class="site-copy">&copy; 2026 Citadel Fitness. All rights reserved.</p>
+    <div class="site-social">
+      <a href="https://www.instagram.com/citadelfitness.app/" target="_blank" rel="noopener" aria-label="Citadel Fitness on Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://x.com/CitadelFitness" target="_blank" rel="noopener" aria-label="Citadel Fitness on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@citadel.fitness.com" target="_blank" rel="noopener" aria-label="Citadel Fitness on TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-.98-.86-1.51-2.09-1.51-3.4h-3.09v13.02c0 1.43-1.17 2.6-2.6 2.6a2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.78-1.48z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Prices mirror TIER_PRICING in src/constants/featureCatalog.ts. The annual
+   figure here is the *total*, not the per-month equivalent: showing only the
+   per-month number for a yearly plan is how a pricing page ends up hiding
+   what actually leaves the account. */
+(function () {
+  var PRICING = {
+    USD: { sym: '$',   fortress: [4.99, 47.88],   valhalla: [79.99, 791.88] },
+    ZAR: { sym: 'R',   fortress: [89.99, 863.88], valhalla: [499.99, 4979.88] },
+    GBP: { sym: '£', fortress: [4.49, 43.08],   valhalla: [69.99, 695.88] },
+    EUR: { sym: '€', fortress: [5.49, 52.68],   valhalla: [84.99, 839.88] },
+    AUD: { sym: 'A$',  fortress: [7.99, 76.68],   valhalla: [124.99, 1235.88] },
+    CAD: { sym: 'C$',  fortress: [6.99, 67.08],   valhalla: [109.99, 1091.88] }
+  };
+
+  var cur = 'USD';
+  var yearly = false;
+
+  /* Grouped by hand rather than with toLocaleString, which formats to the
+     device's locale and would print a ZAR price with a US separator. */
+  function money(sym, n) {
+    var parts = n.toFixed(2).split('.');
+    var whole = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return sym + whole + '.' + parts[1];
+  }
+
+  function render() {
+    var p = PRICING[cur];
+    ['fortress', 'valhalla'].forEach(function (tier) {
+      var monthly = p[tier][0];
+      var annual = p[tier][1];
+      var amountEl = document.querySelector('[data-price="' + tier + '"]');
+      var billedEl = document.querySelector('[data-billed="' + tier + '"]');
+      if (!amountEl || !billedEl) return;
+
+      if (yearly) {
+        var perMonth = annual / 12;
+        var save = Math.floor((1 - annual / (monthly * 12)) * 100);
+        amountEl.textContent = money(p.sym, perMonth);
+        billedEl.innerHTML = money(p.sym, annual) + ' billed once a year. '
+          + '<span class="save">Save ' + save + '%</span>';
+      } else {
+        amountEl.textContent = money(p.sym, monthly);
+        billedEl.textContent = 'Billed monthly. Cancel any time.';
+      }
+    });
+    document.querySelectorAll('[data-per]').forEach(function (el) {
+      el.textContent = 'per month';
+    });
+  }
+
+  document.getElementById('cur').addEventListener('change', function (e) {
+    cur = e.target.value;
+    render();
+  });
+
+  var mBtn = document.getElementById('btn-monthly');
+  var yBtn = document.getElementById('btn-yearly');
+  function setPeriod(isYearly) {
+    yearly = isYearly;
+    mBtn.setAttribute('aria-pressed', String(!isYearly));
+    yBtn.setAttribute('aria-pressed', String(isYearly));
+    render();
+  }
+  mBtn.addEventListener('click', function () { setPeriod(false); });
+  yBtn.addEventListener('click', function () { setPeriod(true); });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
