@@ -612,6 +612,236 @@
     .agenda-date { display: flex; gap: 6px; align-items: baseline; }
     .priority { justify-self: start; }
   }
+
+  /* ============ STATUS BOARD, TOOLBAR, SECTION NAV ============
+     One colour per state, used everywhere: the board cards, the row rails,
+     the filter chips. The old badges coloured by urgency and worded by
+     state, so a "Critical" and a "Done" could look equally alarming. Colour
+     now means one thing only.
+
+     --st-* are set per state so a single rule can pick up the right hue
+     from an ancestor rather than repeating four variants of each rule. */
+  [data-state="done"],        [data-filter-state="done"]        { --st: var(--good); --st-soft: var(--good-soft); }
+  [data-state="partial"],     [data-filter-state="partial"]     { --st: var(--flag); --st-soft: var(--flag-soft); }
+  [data-state="blocked"],     [data-filter-state="blocked"]     { --st: var(--bad);  --st-soft: var(--bad-soft); }
+  [data-state="not-started"], [data-filter-state="not-started"] { --st: var(--mist); --st-soft: var(--paper); }
+  [data-state="context"]                                        { --st: var(--border); --st-soft: transparent; }
+
+  /* This stylesheet sets `button { width: 100% }` globally, with a single
+     escape hatch at `.toolbar button { width: auto }`. Anything new made of
+     buttons needs the same escape or every one of them stretches to the
+     full width of its row -- which is how three filter chips ended up
+     stacked vertically, each 235px wide. */
+  .ledger-bar button,
+  .board button { width: auto; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .board-card {
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--st);
+    border-radius: 10px;
+    padding: 14px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
+  }
+  .board-card:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--st) 45%, var(--border)); }
+  .board-card:active { transform: scale(0.985); }
+  .board-card[aria-pressed="true"] {
+    background: var(--st-soft);
+    border-color: color-mix(in srgb, var(--st) 55%, var(--border));
+  }
+  .board-n { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; color: var(--st); line-height: 1.1; }
+  .board-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .board-why { font-size: 11.5px; color: var(--mist); line-height: 1.4; }
+
+  .ledger-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    display: flex;
+    flex-direction: column;
+    /* Explicit. Without it the rows shrink-wrap their content instead of
+       filling the bar, and the search box ends up 467px wide inside an
+       806px bar with the filter chips wrapped underneath it. */
+    align-items: stretch;
+    gap: 8px;
+  }
+  /* min-width and max-width both matter here. Without them the row takes the
+     jump nav's max-content width -- twelve section names, 1355px -- and the
+     nav's own overflow-x never engages, because it was never squeezed. The
+     symptom is the whole page scrolling sideways, which is exactly what it
+     did. */
+  .ledger-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tb-search {
+    flex: 1 1 220px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 10px;
+    min-width: 0;
+  }
+  .tb-search:focus-within { border-color: color-mix(in srgb, var(--ember) 50%, var(--border)); }
+  .tb-search svg { width: 14px; height: 14px; color: var(--mist); flex: none; }
+  .tb-search input {
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    background: none;
+    border: 0;
+    outline: none;
+    padding: 8px 0;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tb-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tb-chip {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  }
+  .tb-chip:hover { border-color: color-mix(in srgb, var(--ember) 40%, var(--border)); }
+  .tb-chip.is-on { color: var(--ember); background: var(--ember-soft); border-color: color-mix(in srgb, var(--ember) 45%, var(--border)); }
+
+  .tb-reset {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mist);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 6px 4px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .tb-reset:hover { color: var(--ember); }
+
+  .ledger-bar-sections { gap: 8px; }
+  .tb-jump-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--mist);
+    flex: none;
+  }
+  /* Horizontal scroll rather than wrap: twelve section names would otherwise
+     take four lines on a laptop and push the search box off screen every
+     time the toolbar stuck to the top. */
+  .tb-jump {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    min-width: 0;
+    /* basis 0, not auto: an auto basis is the content width, which is the
+       thing being escaped from. */
+    flex: 1 1 0;
+    padding-bottom: 1px;
+  }
+  .tb-jump::-webkit-scrollbar { display: none; }
+  .tb-jump a {
+    font-size: 12px;
+    color: var(--slate);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .tb-jump a:hover { color: var(--ember); border-bottom-color: var(--ember); }
+  .tb-jump a .n { color: var(--mist); font-variant-numeric: tabular-nums; }
+
+  .tb-status { font-size: 11.5px; color: var(--mist); margin: 0; }
+  .tb-status b { color: var(--ink); font-weight: 700; }
+
+  /* Filtering hides rows. Anything hidden must not be findable by ctrl-F or
+     by a screen reader either, which is why this is `display: none` on a
+     [hidden] attribute rather than opacity or height. */
+  .agenda-day[hidden], section.block[hidden], .card-body[hidden] { display: none !important; }
+
+  /* The state rail. Four pixels on the left of every row, so state is
+     readable while scrolling without reading a single word. Context rows
+     get no rail: they are not work and should not look like work. */
+  .agenda-day[data-state] { position: relative; }
+  .agenda-day[data-state]:not([data-state="context"])::before {
+    content: "";
+    position: absolute;
+    left: -18px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--st);
+    opacity: 0.55;
+  }
+  .agenda-day.weekend[data-state]:not([data-state="context"])::before { left: 0; }
+
+  .scrolled-to { animation: flash 1200ms ease; }
+  @keyframes flash {
+    0%, 30% { background: var(--ember-soft); }
+    100% { background: transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .board-card, .tb-chip { transition: none; }
+    .scrolled-to { animation: none; }
+  }
+
+  /* There is no "/" to press on a phone, so the hint is a line of wasted
+     height on the screen that can least afford it. */
+  @media (hover: none) and (pointer: coarse) {
+    .tb-kbd-hint { display: none; }
+  }
+
+  @media (max-width: 640px) {
+    /* The label is redundant next to a row of section names, and dropping it
+       gives the scrolling nav the full width. */
+    .tb-jump-label { display: none; }
+
+    /* The rail sits in the card's own padding on a phone, where the negative
+       offset would put it outside the card entirely. */
+    .agenda-day[data-state]:not([data-state="context"])::before { left: -12px; }
+    .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .board-n { font-size: 22px; }
+    .ledger-bar { padding: 9px 10px; border-radius: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -687,7 +917,66 @@
         </div>
       </div>
 
-      <section class="block">
+
+      <!-- ============ STATUS BOARD + TOOLBAR ============ -->
+      <!--
+        Steps 2 to 4 of the dashboard plan. Every count here is computed from
+        the data-state attributes at load, never typed: the hand-maintained
+        summary sentence this replaces has been wrong twice.
+      -->
+      <section class="block" id="board">
+        <div class="block-head"><span class="dot"></span><h3>Where everything stands</h3></div>
+
+        <div class="board" role="group" aria-label="Filter by state">
+          <button type="button" class="board-card" data-filter-state="done" aria-pressed="false">
+            <span class="board-n" data-count-state="done">0</span>
+            <span class="board-label">Done</span>
+            <span class="board-why">Built and verified</span>
+          </button>
+          <button type="button" class="board-card" data-filter-state="partial" aria-pressed="false">
+            <span class="board-n" data-count-state="partial">0</span>
+            <span class="board-label">Half complete</span>
+            <span class="board-why">Works in part, something missing</span>
+          </button>
+          <button type="button" class="board-card" data-filter-state="blocked" aria-pressed="false">
+            <span class="board-n" data-count-state="blocked">0</span>
+            <span class="board-label">Blocked</span>
+            <span class="board-why">Waiting on someone or something</span>
+          </button>
+          <button type="button" class="board-card" data-filter-state="not-started" aria-pressed="false">
+            <span class="board-n" data-count-state="not-started">0</span>
+            <span class="board-label">Not started</span>
+            <span class="board-why">Nothing done yet</span>
+          </button>
+        </div>
+
+      </section>
+
+      <div class="ledger-bar" id="ledger-bar">
+        <div class="ledger-bar-row">
+          <label class="tb-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="tb-q" placeholder="Search every item&hellip;" aria-label="Search items" autocomplete="off" />
+          </label>
+
+          <div class="tb-group" role="group" aria-label="Filter by owner">
+            <button type="button" class="tb-chip is-on" data-filter-owner="all" aria-pressed="true">Everyone</button>
+            <button type="button" class="tb-chip" data-filter-owner="you" aria-pressed="false">Yours</button>
+            <button type="button" class="tb-chip" data-filter-owner="code" aria-pressed="false">Engineering</button>
+          </div>
+
+          <button type="button" class="tb-reset" id="tb-reset" hidden>Clear</button>
+        </div>
+
+        <div class="ledger-bar-row ledger-bar-sections">
+          <span class="tb-jump-label">Jump to</span>
+          <nav class="tb-jump" id="tb-jump" aria-label="Sections"></nav>
+        </div>
+
+        <p class="tb-status" id="tb-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <section class="block" id="does-anyone-actually-use">
         <div class="block-head"><span class="dot"></span><h3>Does anyone actually use it</h3></div>
         <div class="chart-grid-2">
 
@@ -744,7 +1033,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="what-people-train-30d">
         <div class="block-head"><span class="dot"></span><h3>What people train (30d)</h3></div>
         <div class="card-body">
           <p class="chart-note" style="margin-top:0;">Share of everything logged in the last 30 days. The table below carries the same numbers, so the chart is never the only way to read them.</p>
@@ -759,7 +1048,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="most-favorited-articles">
         <div class="block-head"><span class="dot"></span><h3>Most-favorited articles</h3></div>
         <div class="card-body">
           <div class="data-table-wrap">
@@ -772,7 +1061,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="support-queue">
         <div class="block-head"><span class="dot"></span><h3>Support queue</h3></div>
         <div class="card-body">
           <p class="chart-note" style="margin-top:0;">Ordered by entitlement, then oldest first, outstanding above answered &mdash; not by recency. Priority support is sold as &ldquo;skip the queue&rdquo;, and a reverse-chronological list is the one sort that lets a paying member's message sink under newer free-tier ones every day. <span id="support-summary"></span></p>
@@ -786,7 +1075,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="nutrition-queue">
         <div class="block-head"><span class="dot"></span><h3>Nutrition queue</h3></div>
         <div class="card-body">
           <p class="chart-note" style="margin-top:0;">Oldest first, unanswered above answered. One open intake per member is enforced by the database, so this list is people waiting rather than questions stacked up. <span id="nutrition-summary"></span></p>
@@ -796,7 +1085,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="form-check-queue">
         <div class="block-head"><span class="dot"></span><h3>Form check queue</h3></div>
         <div class="card-body">
           <p class="chart-note" style="margin-top:0;">Oldest first, unanswered above answered. Video links are signed and expire in thirty minutes &mdash; the bucket is private because these are videos of someone training at home, so a link that worked forever would be the same as a public bucket the moment it is pasted anywhere. <span id="formcheck-summary"></span></p>
@@ -806,7 +1095,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="app-health">
         <div class="block-head"><span class="dot"></span><h3>App health</h3></div>
 
         <div id="health-not-configured" class="callout" style="display:none;">
@@ -849,7 +1138,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="still-open-everything-not">
         <div class="block-head"><span class="dot"></span><h3>Still open &mdash; everything not finished, in one place</h3></div>
 
         <div class="callout bad" style="margin-bottom:16px;">
@@ -869,29 +1158,40 @@
 
         <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Only the account owner can do these</h4>
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Decide whether the guides library is public.</strong> <code>/guides</code> was the seventh page in the site plan and is the only one that would bring anyone to the site who was not already coming. It cannot be built until this is answered, and the answer is a product call rather than an engineering one.
+              <br><br>The blocker is exact: the <code>articles</code> read policy is <code>to authenticated</code>, so an anonymous visitor reads nothing at all. Publishing a public guides page needs either a new policy granting <code>anon</code> read on published free-tier rows, or an edge function serving them with the service role. Both mean putting content on the open web that is members-only today, which is why it is yours.
+              <br><br>Note the trap if it goes ahead: <code>articles</code> gained <code>min_tier</code> on 27 August, so a public page must filter on it or it will hand paid guides to everyone.</div>
+            <span class="priority medium">Product call</span>
+          </div>
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The download section, waiting on a public listing.</strong> The site plan's download route is written and unbuildable: the Play store page for <code>com.citadelfitness.app</code> returns 404 to the public, which is correct for internal testing and means a store badge would link nowhere. The footer lists it as &ldquo;soon&rdquo; rather than promising a dead link.
+              <br><br>It becomes ten minutes of work the day the listing is public. Requirements are already known from the build: Android 7.0 and up, which is the API 24 floor Play reported for bundle 3.</div>
+            <span class="priority medium">Waits on the listing</span>
+          </div>
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Six screenshots. The last thing standing between here and a finished Play listing.</strong> Nothing else on the store listing is missing: the copy is written, the 512&times;512 icon and the 1024&times;500 feature graphic are generated and dimension-checked. There is no <code>assets/screenshots/</code> directory and there cannot be one until the build is installed on a device, which is the only reason this is still open.
               <br><br>The set is listed in <code>docs/store-listing.md</code> &sect;6: home with a visible streak, add workout mid-entry, the 30-day chart, the catalogue grid, the newsletter, plans. Take them on the reviewer account <em>after</em> logging a few sessions on it. An empty-state screenshot is honest and sells nothing, and the reviewer is forming an impression as well as checking access.</div>
             <span class="priority critical">Blocks the listing</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Finish the App content questionnaires, and confirm the internal testing rollout landed.</strong> As of 6 September nothing in this repository can tell you where Play Console stands &mdash; the app is correctly not public (its store page 404s, which is what internal testing looks like), and beyond that the console is the only source of truth.
               <br><br>Every answer is written down, so none of it needs re-deriving: Data safety per-type answers in &sect;2 (collected only, never shared, nothing ephemeral), target audience 18 and over, the reviewer sign-in text and the full-access checkbox in &sect;7. The checkbox is true as of 3 September and was not before.
               <br><br>The one to verify first is whether the rollout actually completed. It was left on the review screen with two warnings, both benign &mdash; no testers configured yet, and no deobfuscation file, which does not apply because <code>minifyReleaseWithR8</code> never runs in this build. Checked in the Gradle log rather than assumed, and it is a relief given source maps are off: a native stack trace from this build still carries real names.</div>
             <span class="priority high">Yours &mdash; console only</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Store enrollments &mdash; Google Play approved 3 September. Apple still outstanding.</strong> This was the single blocker under the whole last third of the August plan, unconfirmed since Aug 17. Half of it is now settled, and usefully so: Android is a complete path to a tester on its own, so the Aug 21&ndash;31 chain can run end to end without Apple &mdash; build, internal testing track, install, feedback.
               <br><br>What is left on this row is the Apple Developer Program. Three of <code>eas.json</code>'s placeholders are Apple's and stay placeholders until it clears; the fourth, Google's, is filled. Nothing in the repo can confirm an Apple application has been started, which was true of Play until today.</div>
             <span class="priority high">Play done &mdash; Apple open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Three credentials left in <code>eas.json</code>, all Apple's.</strong> <code>REPLACE_WITH_YOUR_APPLE_ID_EMAIL</code>, <code>REPLACE_WITH_YOUR_APP_STORE_CONNECT_APP_ID</code> and <code>REPLACE_WITH_YOUR_APPLE_TEAM_ID</code>. The build profiles were always complete and point at the right projects; only the submit block was placeholders.
               <br><br><strong>Google's is no longer a placeholder</strong>, and that change was about safety rather than convenience. It now reads <code>./certs/play-service-account.json</code>, a path <code>.gitignore</code> covers, with a tracked <code>certs/README.md</code> saying what goes there and how to create it &mdash; Play Console &rarr; Setup &rarr; API access, a service account with the Release manager role, then a JSON key from Google Cloud. Following the config now leads somewhere safe by default instead of depending on the reader thinking about it, and a missing file fails the submit loudly rather than doing something silently wrong.
               <br><br>Grant that account the narrowest role that can publish to the track you submit to. It is a key that can ship code to your users under your name, and if it is ever committed the remedy is rotation in Google Cloud, not a rewritten history &mdash; a public repo serves the file to anyone watching before the revert lands.</div>
             <span class="priority high">3 Apple placeholders</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Sentry source maps &mdash; the config half is done (3 September). The token is yours.</strong> <code>@sentry/react-native</code> was a bare string plugin in <code>app.json</code> with no <code>organization</code> or <code>project</code>, and the plugin said so on every build: <em>&ldquo;Missing config for organization, project. Environment variables will be used as a fallback&rdquo;</em> &mdash; with neither variable set. Without them a production build uploads no source maps, so the first crash from a real phone arrives as minified frames through <code>index-9cb4215f&hellip;.js</code>, with no file or line in your own code. Crash reporting that appears to work and tells you nothing. It had never mattered because there had never been a production build.
               <br><br>The slugs did not have to be guessed: <code>admin-sentry-health</code> already carried them as <code>DEFAULT_SENTRY_ORG</code> and <code>DEFAULT_SENTRY_PROJECT</code>, so the plugin now names <code>reitumetse-mafojane</code> / <code>citadel-fitness</code> explicitly. Confirmed by running the same config evaluation before and after: the warning appears once, then zero times.
               <br><br>The DSN reads <code>ingest.<strong>de</strong>.sentry.io</code>, which suggests an EU-region org and a <code>url</code> override. It does not need one. An unauthenticated probe distinguishes the two: on <code>sentry.io</code> a nonsense org returns 404 and this org returns 401, so it resolves there; <code>de.sentry.io</code> returns 401 for everything and proves nothing. The plugin's default <code>https://sentry.io/</code> is right, and matches what the health function already uses. Setting <code>de.sentry.io</code> on the strength of the DSN would have broken the upload while looking like diligence.
@@ -901,38 +1201,38 @@
               <br><br><strong>The cost, so it is not quietly forgotten:</strong> crashes from builds made this way arrive as minified frames, which is the exact gap this row was opened to close. The <code>app.json</code> config and the EAS secret both stay; re-enabling is deleting one line from <code>eas.json</code> once the 400 is understood.</div>
             <span class="priority high">Upload disabled</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Create the PostHog project and set <code>EXPO_PUBLIC_POSTHOG_KEY</code>.</strong> Telemetry has been wired since Aug 19 and has recorded nothing in the week since, because the wrapper is deliberately inert without a key. Every screen view and event from the beta is being dropped on the floor until this exists &mdash; which matters most precisely during a beta.</div>
             <span class="priority high">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Branch protection on <code>main</code>.</strong> CI blocks on typecheck, lint, tests and the control-character scan, and a pre-push hook now runs the same four locally &mdash; but the hook is opt-in per clone and skippable with <code>--no-verify</code>, and CI itself runs <em>after</em> the push, so a red build lands on <code>main</code> before anyone sees it. A protection rule is the only version of this that cannot be forgotten. It needs repository settings, which is yours: Settings &rarr; Branches &rarr; Add rule for <code>main</code>, require a pull request, and require status checks to pass.
               <br><br><strong>The status check is named <code>verify</code>, not <code>CI</code>.</strong> That is the job id in <code>ci.yml</code>; <code>CI</code> is the workflow name and selecting it matches nothing. A required check that matches nothing passes vacuously, which would leave the rule looking enabled while gating nothing &mdash; the same shape as every other silent guard this project has been caught by. Verify after enabling by pushing a deliberately broken branch and confirming the merge is actually blocked.
               <br><br>The repository is public, so this is available on the free plan.</div>
             <span class="priority high">Yours &mdash; needs repo settings</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Set <code>SUPABASE_FUNCTIONS_URL</code> and <code>WEBHOOK_SECRET</code> as repo secrets.</strong> The weekly digest workflow reads both. Until they are set the Sunday schedule fires into a failure, and Phase 3 of the Fortress plan cannot begin. The function itself is deployed and live.</div>
             <span class="priority high">Blocks Phase 3</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Create the RevenueCat account and its four products.</strong> The webhook's <code>PRODUCT_TIERS</code> map is deliberately explicit rather than parsed, so the ids must match exactly: <code>fortress_monthly</code>, <code>fortress_annual</code>, <code>valhalla_monthly</code>, <code>valhalla_annual</code>. Anything else grants nothing. Then set <code>REVENUECAT_WEBHOOK_SECRET</code>. Financial account setup is yours by rule, not by preference.</div>
             <span class="priority high">Blocks billing</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Sign in on the dev server &mdash; closed 2 September.</strong> The dev server has run on a signed-in Fortress account with real training history throughout, and every Fortress surface has now been opened and walked. Two things that were previously correct only by test are confirmed on screen: the progression sparkline and the new-record marker, both written against an account that had no logged history at the time. What this row described was around twenty interface changes across 26&ndash;27 August that had shipped without anyone looking at them: the account centre as master-detail, the desktop rail, the appearance and units tiles, the newsletter restyle, the flattened premium elements, the condensed pricing flow, and two entirely new screens &mdash; progressive overload and form check. All pass typecheck, lint and the suite, which stood at 371 tests over 31 suites on 3 September.
           <br><br>That combination has now been green over <strong>five</strong> real bugs here, two of them found today and both silent: a save path that could not save, and a digest that skipped everyone who had paid for it. Render tests added on 27 August close part of the gap &mdash; they catch a screen that fails to mount &mdash; but nothing automated can tell you whether any of it looks right.</div>
             <span class="priority done">Closed</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Restore the paused staging project.</strong> Every probe run since Aug 20 has therefore been against production. They were written to roll back and each one did, but &ldquo;we tested it in production and were careful&rdquo; is a habit worth ending before billing writes land there.</div>
             <span class="priority medium">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Decide who delivers Valhalla's human work.</strong> Four of its seven features are a person, not a deploy. This decision sets the capacity cap, and the cap sets the price floor &mdash; so it blocks the tier's pricing as much as its engineering. Fifteen minutes a review and four a month means ten members is an evening a week and fifty is a job.</div>
             <span class="priority medium">Blocks Valhalla</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="you" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>App Privacy questionnaire and Play Data Safety form.</strong> Both need answering against what the app actually collects: the RLS-scoped tables and the PostHog telemetry, whose <code>TrackedEvent</code> union is deliberately the complete reviewable list of what leaves the device. Store-console work, so it cannot be done from the repo.</div>
             <span class="priority high">Open</span>
           </div>
@@ -940,55 +1240,60 @@
 
         <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Engineering still to do</h4>
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Two legal pages still carry their own copy of the document styles.</strong> <code>doc.css</code> became the canonical reading treatment on 6 September and <code>terms</code>, <code>support</code> and <code>changelog</code> use it. <code>privacy.html</code> and <code>delete-account.html</code> predate it and still hold inline stylesheets of 54 and 35 selectors, sharing only 13 between them. They look alike and have quietly diverged.
+              <br><br>Not done in the same pass, deliberately. Their inline CSS uses different token names &mdash; <code>--surface-raised</code>, <code>--ember</code>, <code>--ink</code> against doc.css's <code>--surface</code>, <code>--doc-accent</code>, <code>--doc-ink</code> &mdash; so it is a rename across a whole stylesheet on the two pages Play is reading, not a swap. It prevents future drift rather than fixing a present bug, which is exactly the kind of work that should be its own change with before-and-after checks rather than folded into a page that did not exist yet.</div>
+            <span class="priority medium">Owed refactor</span>
+          </div>
+          <div class="agenda-day" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Withdrawing a form check does not delete the video.</strong> <code>withdrawFormCheck</code> sets <code>status = 'withdrawn'</code>. The row stays and the file stays in the bucket. Someone who withdraws a submission has almost certainly concluded their video is gone, and it is not &mdash; on the most sensitive data in the app, video of a person training at home. The same is true of nutrition intakes.
               <br><br>Found on 3 September while checking what could honestly be claimed on the Play question about partial deletion. It does not make that answer wrong: six things genuinely are deletable in-app without deleting the account, each verified as reachable from a screen rather than only existing in the data layer. But withdrawal is not one of them and must not be counted as one.
               <br><br>Deliberately not fixed on the spot, because it is a product decision rather than a bug: a coach may need the record, and the monthly cap counts submissions. The options are a hard delete on withdraw, or a retention window, or saying plainly in the interface that withdrawing hides rather than deletes. Any of the three is fine. The current state, where the word implies one thing and the system does another, is the one that is not.</div>
             <span class="priority high">Product call</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>The 18+ age requirement is stated and unenforced.</strong> The privacy policy now says you must be 18 to create an account, and the Play target audience says 18 and over. Nothing checks. Sign-up asks for an email address and a password, with no date of birth and no gate.
               <br><br>This is how most apps in this category work, and it was left alone deliberately rather than slipped into a policy commit: an age gate is another sign-up field and another drop-off point, which is a product decision. Recorded because the gap between what the policy says and what the code does is exactly the kind of thing that reads badly later, and because the three features that argued for 18 in the first place &mdash; a leaderboard showing real names, video upload, and dietary advice &mdash; are all still on by default.</div>
             <span class="priority medium">Stated, not enforced</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>The purchase flow &mdash; written 2 September, behind one flag.</strong> This row said &ldquo;no buy button, no restore-purchases, no cancellation path&rdquo;. All three now exist. <code>src/lib/billing.ts</code> holds the product ids, a <code>billingAvailability()</code> that returns a <em>reason</em> rather than a boolean, and <code>purchase()</code> / <code>restore()</code> with the SDK call marked and guarded. <code>planAction</code> gained <code>buy</code> and <code>manage</code>; the plans page renders a purchase button, a <strong>Restore purchases</strong> button Apple requires, and a <strong>Manage subscription</strong> deep link out to the platform's own settings &mdash; a link rather than an in-app cancel, because both stores own cancellation and a button that appears to cancel and does not is worse than none.
               <br><br><strong>What is genuinely left is one line and two call sites.</strong> <code>const SDK_INSTALLED = false</code>. It is a constant rather than a <code>try/require</code> so the honest state of the feature is readable without running it, and so a failed require is a disabled button rather than a crash on the plans page.
               <br><br>The product ids are now enforced across the boundary rather than trusted. A test parses <code>PRODUCT_TIERS</code> out of the webhook source and checks both directions &mdash; nothing sellable the webhook cannot grant, nothing in the webhook the app cannot sell, and each id mapped to the tier actually sold. It also asserts the regex matched something, because a regex that matches nothing would let every other assertion pass against an empty object. The failure being guarded against is the worst one available here: a rename takes someone's money and grants them nothing, silently, and the first report is a person saying they paid and have no features.
               <br><br>Installing <code>react-native-purchases</code> is deliberately still not done. It is a native module and there is no <code>expo-dev-client</code>, so it removes the way the app runs on a phone today. Play approval means a dev build is now <em>possible</em>, which it was not on 26 August &mdash; but the RevenueCat account still does not exist, so installing early would cost the current workflow and buy nothing. It goes in with the first dev build.</div>
             <span class="priority high">One flag from live</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Deploy <code>revenuecat-webhook</code> &mdash; done 2 September.</strong> Live at version 1 with <code>verify_jwt: false</code>, bringing the project to eleven deployed functions. Proved rather than assumed: a payload attempting to grant <code>valhalla_annual</code> was posted twice, once with no <code>Authorization</code> header and once with a wrong one, and both returned 401 &mdash; after which a rolled-back probe confirmed <code>subscriptions</code> still holds zero rows and the table still has zero client write policies. <strong>It is inert until you set <code>REVENUECAT_WEBHOOK_SECRET</code></strong>, and that is the correct failure direction: with the secret unset the check is <code>header !== undefined</code>, which no HTTP request can satisfy. The value has to match what you configure in RevenueCat's dashboard, so only you can choose it.</div>
             <span class="priority done">Deployed</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Watch the weekly digest fire, end to end &mdash; the numbers half is now proven (27 August).</strong> Probing what it would send, rather than waiting for the secrets, settled two of the three questions on this row and turned up a third nobody had asked. The figures are right: two days, three sets, 2000&nbsp;kg from a deliberately mixed lb/kg week, so the unit normalisation holds. Opting out does suppress.
             <br><br><strong>And it was skipping everyone who had paid.</strong> The recipient query gated on <code>fortress_since is not null</code>, written six days before subscriptions existed. Since 26 August a store subscriber is Fortress to every policy, every gated RPC and <code>my_tier()</code> &mdash; and was invisible to this. Silent, and affecting only people who had paid. Fixed to <code>tier_rank</code>.
             <br><br><strong>What is left is the send itself:</strong> trigger the workflow by hand, watch the run, confirm the email lands, then leave the schedule alone for a week. That still needs the two repo secrets.</div>
             <span class="priority high">Unproven</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Exercise offline sync on a real device with the radio off.</strong> Fifteen tests cover the queue's decisions and none of them can cover the thing that actually goes wrong: a phone that loses signal mid-save, is backgrounded, and comes back an hour later. This is the code that decides whether someone's training data survives, so it is the one place where passing tests are least reassuring.</div>
             <span class="priority critical">Unverified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>The Aug 14 performance pass &mdash; half of it had never been done (27 August).</strong> The entry said &ldquo;a shared fetch hook and memoized list rows were written&rdquo;. The fetch hook was; the memoized rows were not. There was no <code>React.memo</code> anywhere in the codebase, and the exercise catalogue's rows were inline JSX inside <code>FlatList</code>'s <code>renderItem</code> &mdash; so every keystroke in the search field rebuilt every visible row, each one drawing a <code>LinearGradient</code>. The data was memoised, which is what made the claim look true.
             <br><br>Rows are now a memoised component with <code>useCallback</code>'d handlers that take the exercise as an argument &mdash; passing <code>() =&gt; onSelect(exercise)</code> would have defeated the memo while looking identical. <strong>And it is measured rather than asserted:</strong> a test counts renders through the badge and fails if the memo is removed, which was confirmed by removing it. Three keystrokes now rebuild zero rows where they rebuilt every visible one.
             <br><br><strong>What a profiler would still add:</strong> how many milliseconds any of this costs on a real phone, and whether anything else on the board is slow. This closes the specific claim, not the general question.</div>
             <span class="priority done">Measured</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Screen-reader pass &mdash; the roles half is done (27 August), the listening half is not.</strong> Fifteen pressables had no <code>accessibilityRole</code>, which React Native does not infer: a date-range calendar read as thirty bare numbers, the category filter gave no hint it was a pick-one list, and both modal scrims &mdash; the thing you tap to escape &mdash; announced nothing at all. Roles now match what each control is rather than defaulting to button, the calendar cells carry the full date, and two wrappers that only swallow taps are explicitly <code>accessible={false}</code> so the real controls inside them stay focusable. A test enforces it rather than another one-off audit.
             <br><br><strong>What is still open is the part that needs a device.</strong> Reading order, where focus lands after navigation, and whether the tab bar can be escaped cannot be settled from a source file &mdash; only by listening with TalkBack or VoiceOver.</div>
             <span class="priority medium">Needs a device</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Privacy policy content &mdash; rewritten 27 August.</strong> This was filed as two missing disclosures. Reading it against the app found something worse: two statements had become <em>false</em>. It said the app has &ldquo;no analytics-tracking SDK embedded in it&rdquo; (PostHog went in 19 August) and that a display name and photo are &ldquo;not shared with other users, since Citadel Fitness has no social features&rdquo; &mdash; while <code>get_activity_leaderboard</code> shows the display name, photo and days-trained of the top fifty accounts to <strong>every signed-in user</strong>, and private groups do the same within a group. Both features are on by default. Section 8 now separates processors from other users and gives the second its own table. Billing is deliberately still absent: nothing can be bought, so describing a payment flow would be inventing behaviour.
             <br><br><strong>Still a product call for you:</strong> whether an app-wide leaderboard showing real names should be opt-in rather than on by default, and whether to add an in-app analytics toggle. Disclosure is now correct either way.</div>
             <span class="priority done">Done</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Dependency audit &mdash; the one runtime finding is fixed (27 August).</strong> The previous entry here said these were &ldquo;all in the build-tooling chain, no runtime path in the shipped bundle&rdquo;. That was wrong. <code>nanoid</code> reaches the app through <code>@react-navigation/native</code>, which uses it for route keys at runtime, so it shipped in every bundle. The advisory needs a custom generator called with size zero and React Navigation calls <code>nanoid()</code> bare, so exposure was low &mdash; but &ldquo;the vulnerable path is unreachable&rdquo; and &ldquo;it isn't in the bundle&rdquo; are different claims and only one was true. Bumped to 3.3.18 in the lockfile; React Navigation's range already allowed it. Verified by exporting the web bundle, not just by re-running audit.
             <br><br>Seven high advisories remain and this time it is traced rather than assumed: every one reaches the tree only through <code>eslint</code>, <code>jest</code>, or the Metro bundler inside <code>expo</code>/<code>react-native</code>. They want the planned SDK bump, which is its own work.
               <br><br><strong>The seven were cleared on 1 September, not on the 3rd, and this row credited the wrong day's work.</strong> Commit <code>2a8ff29</code> did it with a patch move plus three overrides. The 3 September SDK alignment moved the audit not at all &mdash; running <code>npm audit</code> against the lockfile as it stood before that change returns the same zero high and twenty-two moderate it returns after. Checked that way round on purpose, because &ldquo;the numbers are good now&rdquo; and &ldquo;my change made them good&rdquo; are different claims and only the first was ever tested.
@@ -997,11 +1302,11 @@
               <br><br>It is conditional, which is worth writing down. Adding deep-link routing later &mdash; a <code>linking</code> config, so a notification can open a screen &mdash; activates this advisory, and there is no upstream fix available. That is a thing to re-check at the time, not to assume.</div>
             <span class="priority done">0 high, 22 moderate</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Target SDK and permissions review &mdash; checked 27 August.</strong> Expo SDK 57 compiles and targets Android API 36, which clears Play's current requirement with room. The app declares no dangerous permissions of its own: <code>expo-image-picker</code> is configured <code>cameraPermission: false</code> and <code>microphonePermission: false</code>, which per the SDK 57 docs blocks <code>CAMERA</code> and <code>RECORD_AUDIO</code> in the manifest rather than merely changing the prompt text &mdash; and no code path calls the camera, so the privacy policy's claim that the app never requests it holds.</div>
             <span class="priority done">Verified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Valhalla: four of eight built, four to go (updated 2 September).</strong> Both numbers in this row were wrong &mdash; the tier is eight features, not seven, and four have landed rather than two. <em>Form check</em> and <em>nutrition coaching</em> were built on 27 August and this row was never updated for them; both have a real screen and a gated submission path, and both still wait on a person to do the reviewing, which is the actual gate on selling the tier. The four outstanding are wearable sync (a native integration), expert guides and video demonstrations (content budgets), and early access (which is a status rather than a screen). The two originally named here are the two that needed no person at all.
             <br><br><strong>AI progressive overload</strong> is done: double progression with an RPE brake and a stall deload, computed in <code>get_overload_suggestions</code> behind a Valhalla check, with every row carrying the sentence explaining it. It is called AI and it is a readable heuristic, which the code says out loud &mdash; a suggestion about what to put over your own chest should be one you can argue with.
             <br><br><strong>Priority support</strong> has its app half: <code>feedback.answered_at</code>, and a queue ordered by entitlement then oldest-first with outstanding above answered. A person still writes the reply and always will; what the app owed was a queue that could actually be skipped.
@@ -1012,7 +1317,7 @@
             <br><br><strong>Every coached feature now has its app half.</strong> Form check, priority support and nutrition coaching all have a member-facing surface, a queue ordered for whoever answers, and a reply that lands back in the app. What none of them has is the person. That was always the gate and it still is &mdash; but it is no longer waiting on code, which is what Phase 4 was for.</div>
             <span class="priority medium">4 of 8 built</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Refer &amp; earn is half-shipped by design.</strong> Attribution works and is probed &mdash; self-referral, duplicates and bogus codes all refused. The reward cannot exist before billing does, and the catalogue copy says so plainly rather than promising it. Listed here so it is not mistaken for finished when billing lands.</div>
             <span class="priority medium">Waits on billing</span>
           </div>
@@ -1020,7 +1325,7 @@
 
         <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Standing hazard &mdash; inserting an article emails everyone</h4>
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="context" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong><code>on_article_created</code> fires <code>notify_newsletter_email()</code> on every INSERT into <code>public.articles</code>.</strong> It calls <code>net.http_post</code> to the send-newsletter-email function, so any row added to that table sends a real newsletter to every opted-in user.
             <br><br>This is worth a heading because the last migration to touch that table checked for it and found nothing. <code>20260101000026</code> says in its own comments: &ldquo;no Database Webhook is currently live on public.articles (queried pg_trigger directly &mdash; zero rows), so these seed rows will NOT trigger any real email&rdquo;. That was true then. The trigger was wired in <code>20260101000028</code> and it is live now, so the check has to be repeated rather than inherited.
             <br><br><strong>The near miss:</strong> the first draft of <code>20260827150000</code> self-tested by inserting a test article and deleting it in the same transaction. The delete would have removed the article and still committed the pg_net queue row &mdash; a &ldquo;SELF TEST GUIDE&rdquo; newsletter to every subscriber, with nothing left in the table to explain it. The migration now writes nothing and asserts the policy's shape; the behavioural test runs as a rolled-back probe, where the queue row rolls back too. That probe reports it queued 2 rows, which is how we know this is real and not a theory.</div>
@@ -1030,7 +1335,7 @@
 
         <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Incident &mdash; logging was broken for six days</h4>
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Every workout save failed, on every tier, from 20 to 27 August.</strong> <code>20260820020000</code> added <code>rpe</code> to <code>save_workout</code>'s <code>set_entries</code> insert: the column went into the target list, no expression went into the VALUES list. Nine targets, eight expressions, with rpe's expression sitting in <code>distance_unit</code>'s slot. Postgres refuses the statement with <code>42601</code>, which aborts the function and fails the save. Nothing was written, so no data was lost or corrupted &mdash; saves people believed had worked simply never landed, and anything from those six days needs re-entering.
             <br><br><strong>Three gates were green over it.</strong> <code>db push</code> reported success, because Postgres does not validate an INSERT's shape against its table at <code>CREATE FUNCTION</code> time. The suite is all pure functions and cannot see inside a <code>.sql</code> file. And the 25 August walk recorded RPE as verified &mdash; but what was checked was that the input <em>renders</em> in the logging flow, not that a save carrying one succeeds. A field can render perfectly and still be unsaveable, and that distinction is the whole lesson.
             <br><br>Fixed and confirmed against production before and after by calling the deployed function as a free account in a transaction that rolled back. The migration now ends by running itself for real and checking the row. A jest guard counts insert columns against values across every migration, and a smoke test since run against all eleven client-called RPCs found no other broken one.</div>
@@ -1040,37 +1345,37 @@
 
         <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">The store column that never started</h4>
         <div class="card-body">
-          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day slipped" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Aug 21 &mdash; done for Android on 3 September, on the second attempt.</strong> A signed <code>.aab</code> exists. The first run created the project's signing keystore &mdash; the key that signs <code>com.citadelfitness.app</code> for the life of the app &mdash; and then died on the Sentry source-map upload. The second, with that upload disabled, was <code>BUILD SUCCESSFUL in 12m 37s</code>.
               <br><br>Confirmed from the log rather than from the status field: <code>SentryUploadCleanUp SKIPPED</code>, <code>signReleaseBundle</code> and <code>packageReleaseBundle</code> both executed, and no <code>FAILURE</code> anywhere in the run. A green status and a bundle that actually got signed are different claims.
               <br><br><code>versionCode</code> is <strong>3</strong>, not 1. The failed attempt consumed 2 and <code>autoIncrement</code> against a remote version source does not hand it back, so the first thing Play ever sees from this project is build 3. Harmless, and worth knowing before it reads as a mistake.
               <br><br>iOS is untouched: it needs the Apple enrolment, and the three <code>REPLACE_WITH_*</code> placeholders left in <code>eas.json</code> are all Apple's.</div>
             <span class="priority done">Built 3 Sep</span>
           </div>
-          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day slipped" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Aug 22 &mdash; store listings.</strong> Screenshots, description, icon and feature graphic, alongside the two privacy forms.</div>
             <span class="priority medium">Drafted</span>
           </div>
-          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day slipped" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Aug 24 &mdash; submit to TestFlight and Play Internal Testing.</strong> Nothing to submit &mdash; <strong>Play Internal Testing is now reachable.</strong> <code>eas submit -p android --profile production</code>, which reads only the android half of the submit block, so the three Apple placeholders do not stand in its way. It needs <code>certs/play-service-account.json</code> in place. TestFlight still waits on the Apple enrollment.</div>
             <span class="priority medium">Android unblocked</span>
           </div>
-          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day slipped" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Aug 26 &mdash; invite 5&ndash;10 trusted testers, finish the content pass.</strong> Was unreachable because there was no build to install. <strong>Reachable on Android from 3 September.</strong> The content pass is a separate matter and still open: articles are drafted and not published, and publishing one fires <code>on_article_created</code>, which sends a real email to a real subscriber &mdash; so it wants a deliberate decision rather than a quiet merge.</div>
             <span class="priority medium">After the build</span>
           </div>
-          <div class="agenda-day slipped" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day slipped" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Aug 27&ndash;29 &mdash; triage feedback, fix true blockers, open the public testing links.</strong> All downstream of a build existing, which on Android it now can. The support queue on this page is already ordered for exactly this: entitlement first, then oldest, outstanding above answered.</div>
             <span class="priority medium">After the build</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="context" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>What was built in that window instead.</strong> Not nothing, but not this: thirty-one commits covering the Fortress gate and its verification, offline sync, billing's database half, the plans page, the account centre, the desktop rail and the privacy policy's move onto the real domain. That is September's plan and the post-launch plan pulled forward. Useful work that bought no ground on the thing the schedule was actually gated on, which is worth naming rather than letting the commit count read as progress against this column.</div>
             <span class="priority medium">Context</span>
           </div>
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="security-hardening-production-release">
         <div class="block-head"><span class="dot"></span><h3>Security hardening &amp; production release — September 2026</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
@@ -1079,43 +1384,43 @@
         </div>
 
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>profiles privilege lockdown</strong> — applied to production Aug 17 via <code>db push</code> and confirmed by querying the live database, not by report: <code>authenticated</code> holds UPDATE on <code>[avatar_url, name, preferences]</code> only, the guard trigger is present, and the UPDATE policy now carries both <code>using</code> and <code>with check</code>. <code>fortress_since</code> is no longer client-writable.</div>
             <span class="priority done">Verified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="context" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Entitlement writes stay server-only:</strong> once billing exists, the entitlement column/table must only ever be written by a verified webhook or service role — never the client, even indirectly. Already true today via <code>migration_036</code>; this is the rule to hold when billing lands.</div>
             <span class="priority medium">Standing</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>backfill-welcome-emails &mdash; confirmed 2026-08-26.</strong> The concern was that nothing in the function body blocks an unauthenticated call, so it depended entirely on the platform default being left on. Checked against the live project rather than assumed: it is deployed at version 1 with <code>verify_jwt: true</code>. For contrast, the three functions that legitimately run without a JWT &mdash; the two Resend senders and <code>send-weekly-digest</code> &mdash; report <code>false</code>, which is what makes the true here meaningful rather than a default nobody chose.</div>
             <span class="priority done">Verified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Dependency audit &mdash; corrected 27 August.</strong> The &ldquo;no runtime path in the shipped bundle&rdquo; claim here was wrong: <code>nanoid</code> reached the app through React Navigation and is now patched to 3.3.18. <strong>All seven remaining high advisories were cleared on 1 September</strong>, without the Expo SDK bump they were thought to need &mdash; a patch move inside SDK 57 plus three lockfile overrides. <code>npm audit</code> now reports 0 high. The build-time-only claim was checked against an exported bundle this time rather than against the dependency tree. See Sep 2 below.</div>
             <span class="priority medium">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Play Data Safety form:</strong> fill it out against what the app actually collects and shares. Now covers two things, not one: the RLS-scoped tables, and the PostHog telemetry added Aug 19 — its <code>TrackedEvent</code> union is deliberately the complete, reviewable list of what leaves the device.</div>
             <span class="priority high">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Target SDK / permissions review &mdash; checked 27 August.</strong> SDK 57 targets Android API 36, clearing Play's current requirement. <code>CAMERA</code> and <code>RECORD_AUDIO</code> are blocked in the manifest by the image-picker plugin config, and no code path calls the camera.</div>
             <span class="priority medium">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Walk the Fortress screens against real data &mdash; mostly cleared 2026-08-25.</strong> This row used to read &ldquo;not one of these screens has been opened by anyone&rdquo;, which stopped being true on Aug 25: eight of the nine were walked against a real signed-in account, and offline sync was built the day after. Analytics, goal forecasting, the PR vault, private groups, data export, structured programs, RPE and the referral code all render and read the right rows. <strong>What is left of this row is two things:</strong> the weekly digest has never been seen sending, and offline sync has never been exercised on a device with the radio off. Both are tracked in the open ledger at the top of this page.</div>
             <span class="priority high">Two left</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Screen-reader pass on a real device:</strong> the Aug 20 work was verified in the web accessibility tree, which proves names and states exist but says nothing about how a TalkBack or VoiceOver user actually moves through a screen. Reading order, focus after navigation, and whether the tab bar is escapable can only be judged by listening. Roughly 18 pressables also still lack an explicit role — they have names, so they're usable, just announced as content rather than controls.</div>
             <span class="priority medium">Open</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Restore purchases + cancellation:</strong> tested end to end in sandbox before anyone can pay for real. Not a v1 gate — carried forward to whenever billing is built.</div>
             <span class="priority medium">Deferred</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Privacy policy &mdash; rewritten 27 August.</strong> Two statements in it had become false, not merely incomplete: &ldquo;no analytics-tracking SDK&rdquo; and name/photo &ldquo;not shared with other users&rdquo;. PostHog and the app-wide activity leaderboard are both now described, the latter in its own table saying exactly who sees what. Whether the leaderboard should be opt-in, and whether to add an in-app analytics toggle, remain product calls.</div>
             <span class="priority high">Open</span>
           </div>
@@ -1139,7 +1444,7 @@
         </div>
 
         <div class="card-body">
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 1</span></div>
             <div class="agenda-task"><strong>Security sprint &mdash; three of four checks done, the fourth is yours (1 September).</strong>
               <br><br><strong>1. <code>backfill-welcome-emails</code> auth: confirmed, and not by reading the file.</strong> The function carries a comment claiming it is deployed with JWT verification on. The deployment itself reports <code>verify_jwt: true</code>, which is the claim that actually matters. It was deliberately not probed over HTTP: that function ignores its request body entirely, so an unauthenticated call to test whether the gate is open would <em>be</em> the backfill, mailing every user still missing a welcome email.
@@ -1148,7 +1453,7 @@
               <br><br><strong>4. Rotate long-lived secrets &mdash; still open, and only you can do it.</strong> Two are worth rotating and nine are not: <code>RESEND_API_KEY</code> (set 5 Aug, 27 days old, can send mail as the domain) and <code>WEBHOOK_SECRET</code> (set 8 Aug, and the only thing standing in front of the three open endpoints above). The rest are either not secrets at all (<code>ADMIN_EMAIL</code>, <code>EMAIL_FROM</code>) or platform-managed and auto-injected. <strong>One coupling to watch:</strong> <code>WEBHOOK_SECRET</code> exists in two places &mdash; as a Supabase function secret, and as a GitHub repo secret the weekly-digest workflow sends. Rotating one without the other silently breaks the digest, which fails closed and therefore looks like nothing happening at all.</div>
             <span class="priority done">3 of 4</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 2</span></div>
             <div class="agenda-task"><strong>Dependency audit &mdash; done, and it never needed the SDK bump (1 September).</strong> Cleared a day early: <strong>7 high &rarr; 0</strong>, with 21 moderate unchanged. (It reads 22 as of 3 September against the same lockfile &mdash; advisory databases gain entries over time, so an audit count moves without any dependency moving.)
               <br><br><strong>Two numbers in this row were wrong.</strong> There were seven findings, not fourteen &mdash; that count predates the 27 August pass and was never updated here. And the chain does not need a major bump: <code>metro</code> 0.84.5 drops its <code>image-size</code> dependency outright, which alone accounts for five of the seven (<code>@expo/metro</code>, <code>metro</code>, <code>metro-config</code>, <code>metro-transform-worker</code>, and <code>image-size</code> itself).
@@ -1180,7 +1485,7 @@
               <br><br><strong>One thing this exposed about the page you are reading:</strong> the 28 August expansion (125 &rarr; 183, and the entire missing <code>shoulders</code> category) was never recorded here at all, so two entries below still quoted 125 as the catalogue size. Both now say 273 &mdash; which matters most for video demonstrations, where the production budget is not the same conversation at 273 exercises as it was at 125.</div>
             <span class="priority done">Done</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 3</span></div>
             <div class="agenda-task"><strong>Play approved. The target-SDK half of this day was already done; the Data Safety half is now unblocked and is yours.</strong> The permissions review was checked on 27 August &mdash; SDK 57 targets Android API 36, and <code>expo-image-picker</code> is configured <code>cameraPermission: false</code> / <code>microphonePermission: false</code>, which keeps <code>CAMERA</code> and <code>RECORD_AUDIO</code> out of the manifest rather than merely changing the prompt. The Data Safety answers are written line by line in <code>docs/store-listing.md</code>, generated by querying production for every column in <code>public</code> plus the storage buckets &mdash; which matters, because <code>form_check_submissions</code> makes this an app that collects <strong>video</strong> and <code>nutrition_intakes</code> one that collects <strong>health data</strong>. Copy them across; do not re-derive them from memory.
               <br><br><strong>Shipped today, all of it prompted by the approval.</strong> The Play service account key was going to land in a public repository, so <code>.gitignore</code> gained Google's half and <code>eas.json</code> now points at an ignored <code>certs/</code> path. <code>expo-doctor</code> was failing two of twenty-one checks, one of them a Hermes V1 regression in React Native 0.86.0 that would have shipped in the first Android build; <code>expo install --fix</code> took it to 0.86.3 and doctor to 21/21. <strong>It did not touch the audit</strong>, though this row said it did: the seven high advisories were cleared on 1 September by <code>2a8ff29</code>, and running <code>npm audit</code> against the lockfile as it stood before the 3 September bump returns the same numbers as after. Corrected in the dependency row on the day and missed here, which is the second time one claim has been fixed in one place and left standing in another. And the Sentry source-map gap above was found while checking what else a production build would need.
@@ -1192,96 +1497,96 @@
               <br><br><strong>Two smaller ones.</strong> The 512&times;512 listing icon did not exist &mdash; <code>icon.png</code> is 1024&times;1024 and Play's field rejects it, which would have surfaced as a form error mid-sitting. And the privacy policy said under 13 while the Play declaration says 18 and over; it now says 18, and says why: the leaderboard shows a name and photo to every signed-in user, form check takes video, nutrition coaching asks for weight and height.</div>
             <span class="priority done">Play approved</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 4</span></div>
             <div class="agenda-task"><strong>Fortress v1 scope — decided Aug 20: ship free, no billing before launch.</strong> The original reasoning was that there was nothing to sell. <strong>That half has since been overtaken</strong> &mdash; nine features were built on Aug 20 and there is now a real tier behind the flag. The decision stands on what's left: billing plumbing (provider SDK, entitlement table, verified webhook, purchase and restore flows) is still two-plus weeks and entirely unbuilt, and it is the largest attack surface available to add against a launch gated on being confident the app is secure. Telemetry also still has no usage data, so any paywall line drawn now remains a guess. Selling gets easier having built the thing first; that was the point of building it.</div>
             <span class="priority done">Decided</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 5</span></div>
             <div class="agenda-task">Buffer.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 6</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 7</span></div>
             <div class="agenda-task"><strong>Screen-reader pass on a real device</strong> — TalkBack and VoiceOver. The Aug 20 work proved names and states exist; only listening shows whether reading order, focus after navigation and escaping the tab bar actually work.</div>
             <span class="priority high">High</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 8</span></div>
             <div class="agenda-task"><strong>Expo SDK bump &mdash; no longer needed, and the premise was wrong (1 September).</strong> This day existed to absorb a breaking major bump, deferred until after the beta for exactly that reason. The findings turned out to clear inside SDK 57 on a patch move plus three overrides, so they were taken on 1 September instead and this slot is free. Nothing about it was breaking and no regression was required beyond the usual gates. <strong>The day is now buffer</strong> &mdash; the nearest real work is the four remaining teasers on Sep 9.
               <br><br><strong>A patch-level move did happen on 3 September</strong>, and it is not the bump this day was reserved for. <code>expo install --fix</code> took React Native 0.86.0 to 0.86.3 to clear a Hermes V1 regression that would otherwise have shipped in the first production build. Inside SDK 57, nothing breaking, and unrelated to the audit findings that closed on the 1st.</div>
             <span class="priority done">Not needed</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 9</span></div>
             <div class="agenda-task"><strong>Thin the remaining teasers</strong> — down from 17 to 4 as of 27 August, and none of them are Fortress. Every one of Fortress's ten features is built and its card opens the feature rather than a waitlist, and three of Valhalla's now do the same: progressive overload, priority support and form check. The four still advertising nothing are wearable sync, nutrition coaching, expert guides and video demonstrations &mdash; a native integration and three content budgets. A reviewer seeing four locked placeholders is a much smaller problem than seventeen, but it is not zero.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 10</span></div>
             <div class="agenda-task"><strong>Act on the first real usage data.</strong> By now telemetry has two weeks of beta sessions: which screens people actually reach, whether onboarding completes, whether anyone logs a second workout. That's what should decide the Fortress paywall line later — not a guess made before launch.</div>
             <span class="priority high">High</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 11</span></div>
             <div class="agenda-task">Buffer &mdash; freed by deferring billing. The five days this block used to hold were the whole reason the release sat on Sep 21.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 12</span></div>
             <div class="agenda-task">Buffer &mdash; regression on the billing flow.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 13</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 14</span></div>
             <div class="agenda-task"><strong>Full regression:</strong> sandbox purchases, restore, cancellation, expiry, and the free-tier experience unaffected.</div>
             <span class="priority high">High</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Sep 15</span></div>
             <div class="agenda-task"><strong>Re-run the security checklist above end to end</strong> with fresh eyes &mdash; this is the actual launch gate.</div>
             <span class="priority critical">Critical</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Sep 16</span></div>
             <div class="agenda-task">Buffer.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Sep 17</span></div>
             <div class="agenda-task"><strong>Final production builds:</strong> <code>eas build --profile production</code> for iOS and Android.</div>
             <span class="priority critical">Critical</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Sep 18</span></div>
             <div class="agenda-task"><strong>Store listing refresh:</strong> update screenshots/description if billing changed the UI; confirm the privacy policy discloses subscriptions.</div>
             <span class="priority high">High</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Sep 19</span></div>
             <div class="agenda-task">Buffer.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Sep 20</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Sep 21</span></div>
             <div class="agenda-task"><strong>Submit the Play Console production release</strong> &mdash; only once every row in the checklist above is checked.</div>
             <span class="priority critical">Critical</span>
@@ -1289,7 +1594,7 @@
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="making-the-tiers-sellable">
         <div class="block-head"><span class="dot"></span><h3>Making the tiers sellable</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
@@ -1298,34 +1603,34 @@
         </div>
 
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 1 — Billing. Started 2026-08-26, and moved ahead of launch rather than after it.</strong> The original entry argued this belonged after a launch gated on security, because it is the largest security surface the app will ever add. That was reversed deliberately. <strong>Done and applied to production:</strong> the <code>subscriptions</code> table carrying provider, product, status and period, with no client write policy of any kind; <code>subscription_rank</code> composed into <code>tier_rank</code> via <code>greatest</code>, so a paid subscription and a hand-granted column cannot disagree; <code>my_tier()</code> so screens and policies read one source; and the webhook itself, with an explicit product-to-tier map rather than a parsed id, and an ordering guard repeated in its update clause so a cancellation delivered late cannot revoke a renewal. <strong>Not done:</strong> deploying that webhook, the RevenueCat account and its four products, and the entire purchase flow &mdash; SDK, buy button, restore, cancellation, sandbox testing.</div>
             <span class="priority high">Half built</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 2 — Fortress goes on sale.</strong> It can, the moment billing works: all ten of its features are built, live in production and demonstrable. Nothing else is needed. Entitlement flips from the hand-granted column to whatever the webhook writes, and <code>migration_036</code>'s column allowlist already prevents a client touching it.</div>
             <span class="priority ready">Ready</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 3 — Valhalla cannot go on sale yet, and still not for a code reason.</strong> Two of its seven features are now built (progressive overload, and priority support's app half). The remaining reason is unchanged and is not engineering: form check, nutrition coaching, the reply behind priority support, and the guides written monthly all need a person, not a deploy. <strong>Selling it before a coach exists would be taking money for nothing.</strong> The gate is: decide who delivers the human work, set a hard cap on reviews per member per month, and close enrollment when that cap is reached &mdash; a waitlist here is the feature, not the failure. At fifteen minutes a review and four a month, ten members is an evening a week and fifty is a job.</div>
             <span class="priority blocks">Blocked on people</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="blocked" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 4 — build what Valhalla actually sells. Mostly done, 27 August.</strong> <em>Form check</em> is built: submissions table, private bucket with signed URLs, a server-enforced monthly cap, and a review queue with claim and reply. <em>Priority support</em> is built on the app's side &mdash; <code>answered_at</code> plus a queue ordered by entitlement then age. <em>Nutrition coaching</em> is the one left, and it is the same shape as form check: an intake form and a reply surface. <em>Expert guides</em> reuses the articles infrastructure already shipped, so it is writing rather than engineering. What none of this changes is Phase 3: a queue with nobody answering it is still nobody answering it.</div>
             <span class="priority high">After 3</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="not-started" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 5 — one of the four is done.</strong> <em>AI progressive overload</em> was built on 27 August exactly as this entry proposed: a readable heuristic over logged history rather than a model, which turned out to be the right call for a reason the entry did not give &mdash; every row can state its own reasoning, and advice about loading a barbell should be arguable. <em>Wearable sync</em> still means HealthKit and Whoop, native permissions, a fresh Data Safety declaration and a device. <em>Offline sync</em> is built and no longer on this list. <em>Video demonstrations</em> is filming <strong>273</strong> exercises: a production budget, not a sprint. That figure was 125 here until 2 September &mdash; the catalogue has more than doubled across two expansions since, and neither was recorded on this page until now.</div>
             <span class="priority medium">Unscheduled</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="context" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Standing rule — the catalogue is the contract.</strong> <code>featureCatalog.ts</code> drives every feature card, the tier grid and the comparison table, so a feature's tier and its wording move together or the pitch outruns the product. Three descriptions have already been corrected this way (tempo, challenges, and nutrition's &ldquo;automatically&rdquo;), and tests now pin the tier split, the no-automation promise, and that no shipped feature drifts out of Fortress. <strong>The challenges case was corrected the other way on 2 September:</strong> rather than soften the copy again, the feature was built, so &ldquo;Private groups &amp; challenges&rdquo; now describes something that exists.</div>
             <span class="priority medium">Standing</span>
           </div>
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="fortress-scope-to-operational">
         <div class="block-head"><span class="dot"></span><h3>Fortress: scope to operational</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
@@ -1358,33 +1663,33 @@
         </div>
 
         <div class="card-body" style="margin-bottom:16px;">
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 1 &mdash; make the gate real.</strong> A <code>security definer</code> helper returning the caller's tier rank (definer so the policy can read <code>profiles</code> without recursing through its own RLS &mdash; the trap that already bit <code>group_members</code>), then an RLS policy requiring that rank on every table behind a paid feature: records, goals, programs, groups, and the RPE columns on sets. The same check inside Edge Functions, which run with the service key and bypass RLS entirely. Each table gets an abort-probe run against production proving a free account gets zero rows. Two things already help: tier is one ordered column rather than scattered booleans, and <code>migration_036</code>'s column allowlist already stops a member promoting themselves.</div>
             <span class="priority ready">Applied &amp; verified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 2 &mdash; verify the nine.</strong> Walk each feature against real history with two accounts, one paid and one free, to check both sides of every gate: does the number agree with what the app shows elsewhere, does the empty state appear for a lift never performed, does the error state appear with the network off. The cheapest phase and the one skipped every time so far &mdash; hours of work that could surface days of it. It has to come after Phase 1, because verification done before the policies land would have to be redone after them.</div>
             <span class="priority ready">8 of 9 verified</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="partial" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 3 &mdash; prove the weekly digest fires. Partly done, 27 August.</strong> Real code on a real schedule: <code>.github/workflows/weekly-digest.yml</code>, Sundays 17:00 UTC, calling <code>send-weekly-digest</code> through Resend. Scheduled in Actions rather than <code>pg_cron</code> on purpose, so no secret lives inside a scheduled SQL statement. The correctness half is now settled by probing what it would send: the figures are right including mixed-unit weeks, opting out suppresses, and a bug that made it skip every paying subscriber is fixed. The <code>WEBHOOK_SECRET</code> and Resend key are set on the Supabase side; the two <em>repo</em> secrets are not, which is all that stands between here and watching a real send.</div>
             <span class="priority high">Unproven</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 4 &mdash; offline sync. Built.</strong> Workout saves that cannot reach the server are queued, persisted and retried; the decisions live in <code>lib/offlineQueue.ts</code> as pure functions with fifteen tests, because this is the code that decides whether someone's data survives. Conflict resolution falls out of the server rather than being invented: <code>save_workout</code> replaces a day wholesale, so of two queued saves for one date only the later can win, and the queue collapses them by date. <code>p_logged_same_day</code> is captured when the person hits save rather than recomputed at flush, so a workout logged tonight and synced tomorrow keeps the reward eligibility it earned. Only failures that never reached the server are retried &mdash; a permission denial fails identically forever, and retrying it would hide a real bug behind an indicator that never clears. No connectivity library on purpose: a reachability flag lies on captive portals, so attempting the request is the only honest test. Free accounts are not queued but lose nothing either, since the draft store is persisted and they retry by hand.</div>
             <span class="priority ready">Built</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="done" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Phase 5 &mdash; video demonstrations. Decided: moved to Valhalla.</strong> Filming <strong>273</strong> exercises &mdash; 125 when this was written, and more than doubled since &mdash; is a production budget nobody has committed, and Fortress is the tier about to go on sale &mdash; a tier advertising something with no date attached earns refunds. It now sits with the expert guide library, the other unfunded content promise, in the tier that is not being sold yet. Worth recording that the old argument for keeping it in Fortress was sound and simply answered the wrong question: video is cheap to serve, but that was never what made it undeliverable.</div>
             <span class="priority ready">Decided</span>
           </div>
-          <div class="agenda-day" style="grid-template-columns: 1fr auto;">
+          <div class="agenda-day" data-state="context" data-owner="code" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Half-shipped, and honest about it.</strong> <em>Refer &amp; earn</em> tracks attribution today and stores a <code>reward_status</code>; self-referral, duplicates and bogus codes are all blocked and probed. The reward itself cannot exist before billing does, and the catalogue copy already says so rather than promising it. <em>Private groups</em> enforces group membership at the row level and was probed, but not tier &mdash; a free account inside a group can still read it, which Phase 1 closes.</div>
             <span class="priority medium">Standing</span>
           </div>
         </div>
       </section>
-      <section class="block">
+      <section class="block" id="beta-launch-plan-august">
         <div class="block-head"><span class="dot"></span><h3>Beta launch plan — August 2026</h3></div>
 
         <div class="callout" style="margin-bottom:16px;">
@@ -1411,99 +1716,99 @@
         </div>
 
         <div class="card-body">
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 4</span></div>
             <div class="agenda-task"><strong>Sentry crash reporting</strong> at the ErrorBoundary and for unhandled promise rejections.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 5</span></div>
             <div class="agenda-task"><strong>GitHub Actions CI</strong> — lint + typecheck gate on every push/PR.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 6</span></div>
             <div class="agenda-task"><strong>Finish the email system:</strong> Resend SMTP, deploy the three Edge Functions, wire the two database webhooks, run <code>migration_021</code>.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 7</span></div>
             <div class="agenda-task"><strong>Staging environment:</strong> second free-tier Supabase project; point EAS's development/preview profiles at it.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 8</span></div>
             <div class="agenda-task">Buffer — verify this week's work end to end.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 9</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 10</span></div>
             <div class="agenda-task"><strong>Analytics:</strong> screen views + key events. Slipped nine days, delivered Aug 19. Still needs a PostHog project and key before it records anything.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 11</span></div>
             <div class="agenda-task"><strong>Unit tests:</strong> unit conversion and password/email validation. Slipped a week, delivered Aug 18.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 12</span></div>
             <div class="agenda-task"><strong>Unit tests:</strong> streak and date math in <code>analytics.ts</code>. Slipped, delivered Aug 18.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 13</span></div>
             <div class="agenda-task"><strong>Unit tests:</strong> weekly reward calculation in <code>rewards.ts</code>. Slipped, delivered Aug 18.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 14</span></div>
             <div class="agenda-task"><strong>Performance pass &mdash; the memoization half landed 27 August.</strong> It had never actually been done: no <code>React.memo</code> existed anywhere, and the catalogue rebuilt every visible row on every keystroke. Now memoised, and covered by a render-counting test that fails without it. A profiling session is still the only thing that can price it in milliseconds on a device.</div>
             <span class="priority medium">Measured</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 15</span></div>
             <div class="agenda-task"><strong>Move to tracked migrations:</strong> slipped four days, delivered Aug 19.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 16</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 17</span></div>
             <div class="agenda-task"><strong>Store enrollments — Google Play approved 3 September; Apple still unconfirmed.</strong> Apple Developer Program and Google Play Developer account. <code>eas.json</code> still carries four <code>REPLACE_WITH_*</code> placeholders, so nothing is wired up yet; whether the applications have been *started* can't be told from the repo. Approval isn't instant and it blocks the Aug 21 builds. Shipped this day instead: the <code>profiles</code> privilege lockdown. The accessibility pass carried to Aug 20 and shipped there.</div>
             <span class="priority high">Play done</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 18</span></div>
             <div class="agenda-task"><strong>Test framework + all three planned suites</strong> — <code>jest-expo</code> per the SDK 57 docs, wired into CI so it gates pushes alongside lint and typecheck. 89 tests over <code>units.ts</code>, <code>email.ts</code>, <code>password.ts</code>, <code>analytics.ts</code> and <code>rewards.ts</code>. Aug 19's work landed here too, so testing is a day ahead. Each suite was confirmed to fail against a deliberately broken copy of the code before being committed — a passing suite isn't the same as a working one.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 19</span></div>
             <div class="agenda-task"><strong>Telemetry + the migrations port</strong>, both landed. PostHog wired for screen views and four events, inert until <code>EXPO_PUBLIC_POSTHOG_KEY</code> is set — no PII, no session replay, EU host to match Supabase and Sentry. And all 35 historical migrations moved under <code>supabase/migrations/</code>, each verified present in production by probing for the artifact it creates before being marked applied. <code>db push</code> now reports the remote up to date; applied state is recorded instead of assumed.</div>
             <span class="priority done">Shipped</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 20</span></div>
             <div class="agenda-task"><strong>Accessibility pass shipped.</strong> Audited all 66 pressables: four were icon-only with no accessible name, including both destructive controls in Add Workout, where a screen reader announced only &ldquo;button&rdquo; before deleting something. Fixed in the shared components where one change covers every screen &mdash; <code>GradientButton</code> lost its name entirely while loading (label swapped for a spinner), <code>GradientPill</code> never said which option was selected, and calendar cells read a bare number with the logged/eligible dots existing only as colour. Small icon targets went to 44px. Verified in the live accessibility tree, not just in code.<br><br><strong>Then: nine Fortress features built</strong>, taking the tier from scaffolding to a real product &mdash; PR vault, advanced analytics, data export, goal forecasting, RPE &amp; rest timer, weekly digest, structured programs, private groups, referrals. Seven migrations applied to production, one Edge Function deployed, 182 tests. <code>FortressFeatureCard</code> gained an <code>onOpen</code> prop, so a feature graduates from teaser to entry point by passing one callback.<br><br><strong>Still outstanding, and only you can do them:</strong> confirm the store enrollments are filed, and create the PostHog project so telemetry records anything at all.</div>
             <span class="priority check">Check</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="done" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 21</span></div>
             <div class="agenda-task"><strong>First real production builds &mdash; the Android one started 3 September.</strong> <code>eas build -p android --profile production</code> is queued on EAS, and the run created the project's signing keystore and took <code>versionCode</code> to 2. Google's credential slot in <code>eas.json</code> is filled; the three <code>REPLACE_WITH_*</code> placeholders that remain are all Apple's, and iOS still needs that enrollment.</div>
             <span class="priority done">Built 3 Sep</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 22</span></div>
             <div class="agenda-task"><strong>Store listings &mdash; drafted 27 August, in <code>docs/store-listing.md</code>.</strong> Both privacy questionnaires are answered line by line, the listing copy is written, and the keyword string is inside Apple's 100-character limit. The answers were generated by querying production for every column in <code>public</code> plus the storage buckets, rather than summarised from a design doc &mdash; which matters, because two of the answers only became true today: <code>form_check_submissions</code> makes this an app that collects <strong>video</strong>, and <code>nutrition_intakes</code> makes it one that collects <strong>health data</strong> (body weight, height, dietary restrictions). Filling either form from an older understanding of the app would have been a false declaration.
             <br><br>Also caught while writing it: the <code>avatars</code> bucket is public, so a profile photo is fetchable at a known URL without signing in. That is by design and listing was closed off in <code>20260101000015</code>, but it is a disclosure, and it is now written down as one.
@@ -1514,49 +1819,49 @@
             <br><br><strong>Still needs you:</strong> entering all of it in both consoles, and screenshots &mdash; the one part of this day that genuinely needs a build.</div>
             <span class="priority high">Drafted, needs entering</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 23</span></div>
             <div class="agenda-task">Buffer — absorbs enrollment approval or build failures, the two things most likely to slip this week.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 24</span></div>
             <div class="agenda-task"><strong>Submit:</strong> TestFlight and Play Console Internal Testing. <strong>The Play half is reachable as of 3 September</strong> &mdash; <code>eas submit -p android --profile production</code> reads only the android block, so Apple's placeholders do not hold it up. It needs <code>certs/play-service-account.json</code> in place. TestFlight still waits on the Apple enrollment.</div>
             <span class="priority high">Android unblocked</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Tue</span><span class="dom">Aug 25</span></div>
             <div class="agenda-task">Buffer — reserved when analytics moved up to Aug 19. Absorbs submission-review or tester-onboarding friction, which is where this week actually tends to slip.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="blocked" data-owner="code">
             <div class="agenda-date"><span class="dow">Wed</span><span class="dom">Aug 26</span></div>
             <div class="agenda-task"><strong>Invite 5–10 trusted testers;</strong> finish the content pass.</div>
             <span class="priority medium">After the build</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Thu</span><span class="dom">Aug 27</span></div>
             <div class="agenda-task"><strong>Collect and triage</strong> tester feedback through the Help &amp; Feedback inbox — the same one feeding this dashboard.</div>
             <span class="priority high">High</span>
           </div>
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Fri</span><span class="dom">Aug 28</span></div>
             <div class="agenda-task"><strong>Fix true blockers only</strong> — crashes, data loss.</div>
             <span class="priority critical">Critical</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="not-started" data-owner="code">
             <div class="agenda-date"><span class="dow">Sat</span><span class="dom">Aug 29</span></div>
             <div class="agenda-task"><strong>Public testing links:</strong> TestFlight public link; Play Console Closed/Open testing opt-in link. Then watch the dashboards live — this page, plus Sentry.</div>
             <span class="priority medium">Medium</span>
           </div>
-          <div class="agenda-day weekend">
+          <div class="agenda-day weekend" data-state="context" data-owner="code">
             <div class="agenda-date"><span class="dow">Sun</span><span class="dom">Aug 30</span></div>
             <div class="agenda-task">Rest.</div>
             <span class="priority rest">Rest</span>
           </div>
 
-          <div class="agenda-day">
+          <div class="agenda-day" data-state="partial" data-owner="code">
             <div class="agenda-date"><span class="dow">Mon</span><span class="dom">Aug 31</span></div>
             <div class="agenda-task"><strong>Wrap-up &mdash; done as far as it can be (2 September).</strong> This asked for a backlog compiled from two sources, and only one of them exists.
               <br><br><strong>What could not be done, and why it is not a scheduling excuse.</strong> There is no tester feedback, because there are no testers: the store enrollments never completed, so there was never a build to install. And there is no usage data, because <code>EXPO_PUBLIC_POSTHOG_KEY</code> has never been set, so the telemetry wired on 19 August has recorded nothing in the fortnight since. Both are the same root cause the whole Aug 21&ndash;31 column has, and neither is fixable from inside the repository.
@@ -1569,6 +1874,234 @@
 
     </div>
   </div>
+
+
+  <!-- ============ BOARD, FILTERS, SECTION NAV ============ -->
+  <!--
+    Deliberately not a module and not behind the login: the ledger below is
+    static HTML that renders for anyone who can open the file, so its
+    navigation must not wait on Supabase. The module script that follows
+    owns the live stats and nothing here.
+  -->
+  <script id="dashboard-filters">
+  (function () {
+    'use strict';
+
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.agenda-day[data-state]'));
+    if (!rows.length) return;
+
+    var toolbar = document.getElementById('ledger-bar');
+    var qInput = document.getElementById('tb-q');
+    var statusEl = document.getElementById('tb-status');
+    var resetBtn = document.getElementById('tb-reset');
+    var jumpNav = document.getElementById('tb-jump');
+
+    var STATES = ['done', 'partial', 'blocked', 'not-started'];
+    var LABELS = { 'done': 'done', 'partial': 'half complete', 'blocked': 'blocked', 'not-started': 'not started' };
+
+    // Search text is read once. Doing it per keystroke means walking 200 KB
+    // of DOM on every character, which is the difference between a filter
+    // that feels instant and one that feels broken.
+    rows.forEach(function (row) {
+      row.__text = (row.textContent || '').toLowerCase().replace(/\s+/g, ' ');
+      row.__state = row.getAttribute('data-state');
+      row.__owner = row.getAttribute('data-owner');
+    });
+
+    // ---- counts, computed, never typed -----------------------------------
+    var totals = {};
+    rows.forEach(function (r) { totals[r.__state] = (totals[r.__state] || 0) + 1; });
+    STATES.forEach(function (st) {
+      var el = document.querySelector('[data-count-state="' + st + '"]');
+      if (el) el.textContent = totals[st] || 0;
+    });
+    var workTotal = STATES.reduce(function (a, st) { return a + (totals[st] || 0); }, 0);
+    var contextTotal = totals['context'] || 0;
+
+    // ---- section nav ------------------------------------------------------
+    var sections = Array.prototype.slice.call(document.querySelectorAll('section.block[id]'))
+      .filter(function (sec) { return sec.id !== 'board'; });
+
+    sections.forEach(function (sec) {
+      sec.__rows = Array.prototype.slice.call(sec.querySelectorAll('.agenda-day[data-state]'));
+      sec.__bodies = Array.prototype.slice.call(sec.querySelectorAll('.card-body')).filter(function (b) {
+        return b.querySelector('.agenda-day[data-state]');
+      });
+
+      var h = sec.querySelector('h3');
+      var label = h ? (h.textContent || '').trim() : sec.id;
+      label = label.split(/[—–:(]/)[0].trim();
+      if (label.length > 26) label = label.slice(0, 25).trim() + '…';
+
+      var a = document.createElement('a');
+      a.href = '#' + sec.id;
+      a.textContent = label;
+      if (sec.__rows.length) {
+        var n = document.createElement('span');
+        n.className = 'n';
+        n.textContent = ' ' + sec.__rows.length;
+        a.appendChild(n);
+      }
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        goTo(sec);
+      });
+      sec.__navLink = a;
+      jumpNav.appendChild(a);
+    });
+
+    // The toolbar is sticky, so scrollIntoView leaves the heading underneath
+    // it. Offsetting by the toolbar's own measured height keeps the heading
+    // visible instead of hidden behind the thing you used to get there.
+    function goTo(sec) {
+      var offset = toolbar.getBoundingClientRect().height + 12;
+      var y = sec.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: y, behavior: prefersReduced() ? 'auto' : 'smooth' });
+      if (history.replaceState) history.replaceState(null, '', '#' + sec.id);
+      sec.classList.remove('scrolled-to');
+      void sec.offsetWidth;
+      sec.classList.add('scrolled-to');
+    }
+
+    function prefersReduced() {
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    // ---- filter state -----------------------------------------------------
+    var state = null;
+    var owner = 'all';
+    var query = '';
+
+    var stateBtns = Array.prototype.slice.call(document.querySelectorAll('[data-filter-state]'));
+    var ownerBtns = Array.prototype.slice.call(document.querySelectorAll('[data-filter-owner]'));
+
+    stateBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var st = btn.getAttribute('data-filter-state');
+        state = (state === st) ? null : st;
+        apply();
+      });
+    });
+
+    ownerBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        owner = btn.getAttribute('data-filter-owner');
+        apply();
+      });
+    });
+
+    var timer = null;
+    qInput.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        query = qInput.value.trim().toLowerCase();
+        apply();
+      }, 120);
+    });
+    qInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && qInput.value) { qInput.value = ''; query = ''; apply(); }
+    });
+
+    resetBtn.addEventListener('click', function () {
+      state = null; owner = 'all'; query = ''; qInput.value = '';
+      apply();
+    });
+
+    // "/" focuses search, the one shortcut worth having on a page this long.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      e.preventDefault();
+      qInput.focus();
+      qInput.select();
+    });
+
+    function matches(row) {
+      if (state && row.__state !== state) return false;
+      if (owner !== 'all' && row.__owner !== owner) return false;
+      if (query && row.__text.indexOf(query) === -1) return false;
+      return true;
+    }
+
+    function apply() {
+      var filtering = !!(state || query || owner !== 'all');
+      var shown = 0;
+
+      rows.forEach(function (row) {
+        // Context rows are notes, not work. A state filter is a question
+        // about work, so they drop out of it; a search is a question about
+        // words, so they stay searchable.
+        var ok;
+        if (!filtering) {
+          ok = true;
+        } else if (row.__state === 'context') {
+          ok = !state && owner === 'all' && !!query && row.__text.indexOf(query) !== -1;
+        } else {
+          ok = matches(row);
+        }
+        row.hidden = !ok;
+        if (ok && row.__state !== 'context') shown++;
+      });
+
+      sections.forEach(function (sec) {
+        var visible = sec.__rows.filter(function (r) { return !r.hidden; }).length;
+        // A section with no ledger rows at all is a live-data panel. It has
+        // no state and no text to match, so it cannot satisfy a filter --
+        // hide it while one is on rather than leave it stranded at the top
+        // of a filtered page.
+        sec.hidden = filtering && (sec.__rows.length ? visible === 0 : true);
+        sec.__bodies.forEach(function (b) {
+          b.hidden = filtering && !b.querySelector('.agenda-day[data-state]:not([hidden])');
+        });
+        if (sec.__navLink) sec.__navLink.hidden = sec.hidden;
+      });
+
+      stateBtns.forEach(function (btn) {
+        var on = btn.getAttribute('data-filter-state') === state;
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      ownerBtns.forEach(function (btn) {
+        var on = btn.getAttribute('data-filter-owner') === owner;
+        btn.classList.toggle('is-on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+
+      resetBtn.hidden = !filtering;
+      describe(filtering, shown);
+    }
+
+    function describe(filtering, shown) {
+      if (!filtering) {
+        statusEl.innerHTML = 'Showing all <b>' + workTotal + '</b> items, plus <b>' + contextTotal +
+          '</b> notes that are not work.<span class="tb-kbd-hint"> Press <b>/</b> to search.</span>';
+        return;
+      }
+      var bits = [];
+      if (state) bits.push(LABELS[state]);
+      if (owner === 'you') bits.push('yours');
+      if (owner === 'code') bits.push('engineering');
+      if (query) bits.push('matching “' + escapeHtml(qInput.value.trim()) + '”');
+      statusEl.innerHTML = '<b>' + shown + '</b> of ' + workTotal + ' items' +
+        (bits.length ? ', ' + bits.join(', ') : '') +
+        (shown === 0 ? '. Nothing matches; try <b>Clear</b>.' : '.');
+    }
+
+    function escapeHtml(t) {
+      return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    apply();
+
+    // A hash in the address bar has to be re-applied: the sections gained
+    // their ids before this ran, but the sticky toolbar means the browser's
+    // own jump lands too high.
+    if (location.hash) {
+      var target = document.getElementById(location.hash.slice(1));
+      if (target && target.matches('section.block')) setTimeout(function () { goTo(target); }, 60);
+    }
+  })();
+  </script>
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
