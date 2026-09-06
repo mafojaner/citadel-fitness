@@ -1,0 +1,195 @@
+/* ==========================================================================
+   Citadel Fitness: site shell
+   The header and footer every page carries, marketing and document alike.
+
+   The chrome is always dark, on every page, in every colour scheme. That is
+   the deliberate seam described in the site plan: a document page can sit on
+   a light ground and still be visibly the same site, because the frame
+   around it never changes. It also means these rules need no theme handling
+   of their own, which is why they can be shared at all.
+
+   Requires tokens.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------------- header -- */
+
+.site-header {
+  background: var(--ink900);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.site-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.site-wordmark img { display: block; border-radius: 6px; }
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink300);
+  text-decoration: none;
+  transition: color var(--dur-base) var(--ease);
+}
+
+.site-nav a:hover { color: var(--white); }
+
+/* The current page names itself rather than being a link to here. */
+.site-nav [aria-current='page'] { color: var(--white); }
+
+/* -------------------------------------------------------------- footer -- */
+
+.site-footer {
+  background: var(--ink900);
+  border-top: 1px solid var(--border);
+  color: var(--ink300);
+  font-family: var(--font-body);
+}
+
+.site-footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 44px 24px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) repeat(auto-fit, minmax(140px, 1fr));
+  gap: 32px;
+  align-items: start;
+}
+
+.site-footer-brand { display: flex; flex-direction: column; gap: 12px; }
+
+.site-footer-brand .site-wordmark { font-size: 14px; }
+
+.site-footer-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink500);
+  max-width: 34ch;
+  margin: 0;
+}
+
+.site-footer-col h2 {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink500);
+  margin: 0 0 12px;
+}
+
+.site-footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.site-footer-col a {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink300);
+  text-decoration: none;
+  transition: color var(--dur-base) var(--ease);
+}
+
+.site-footer-col a:hover { color: var(--primary); }
+
+/* Pages that do not exist yet are listed but not linked, so the footer shows
+   the shape of the site without promising a 404. Remove the attribute and
+   swap the span for an anchor as each one lands. */
+.site-footer-col .soon {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink700);
+  cursor: default;
+}
+
+.site-footer-col .soon::after {
+  content: 'soon';
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-left: 7px;
+  padding: 1px 5px;
+  border: 1px solid var(--ink700);
+  border-radius: 3px;
+  vertical-align: 1px;
+}
+
+.site-footer-bottom {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.site-copy { font-size: 12.5px; color: var(--ink500); margin: 0; }
+
+.site-social { display: flex; align-items: center; gap: 14px; }
+
+.site-social a {
+  color: var(--ink300);
+  display: grid;
+  place-items: center;
+  transition: color var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+}
+
+.site-social a:hover { color: var(--primary); transform: translateY(-2px); }
+.site-social svg { width: 18px; height: 18px; display: block; }
+
+/* ------------------------------------------------------------- shared --- */
+
+/* One focus treatment for the whole site, chrome and content alike. */
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media (max-width: 680px) {
+  .site-header-inner { padding: 12px 20px; }
+  .site-nav { gap: 16px; }
+  .site-nav a { font-size: 13px; }
+  .site-footer-inner { padding: 34px 20px 30px; gap: 26px; }
+  .site-footer-bottom { padding: 0 20px 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header a,
+  .site-footer a { transition: none; }
+  .site-social a:hover { transform: none; }
+}

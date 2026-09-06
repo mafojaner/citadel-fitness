@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Citadel Fitness: brand tokens
+   The single source for colour, type and motion across every page on the
+   site. Marketing pages and document pages differ in how much they use of
+   this, never in what the values are.
+
+   Loaded before every other stylesheet. Nothing here is page-specific: a
+   value that only one page needs belongs in that page's own styles.
+   ========================================================================== */
+
+:root {
+  /* ---- Ink scale -------------------------------------------------------
+     Mirrored from the app's own theme (src/theme/tokens.ts) so the site and
+     the app are the same colours rather than similar ones. */
+  --ink900: #0B0E14;
+  --ink800: #10141d;
+  --ink700: #1C2230;
+  --ink500: #4A5468;
+  --ink300: #8A93A6;
+  --ink100: #D8DCE4;
+  --white:  #FFFFFF;
+  --border: #2A3140;
+
+  /* ---- Accent ----------------------------------------------------------
+     One ember, spent deliberately. The three gradient partners are for
+     feature artwork only and never for text or interactive states. */
+  --primary:    #FF5A36;
+  --primary-2:  #FF3D81;
+  --calendar-2: #8B5CF6;
+  --pulse-2:    #22D3EE;
+
+  /* ---- Type ------------------------------------------------------------
+     Sora carries the marketing voice. Georgia carries the document voice:
+     legal and support pages are read sentence by sentence, sometimes under
+     stress, and a serif holds long instructional text better than a second
+     grotesque would. */
+  --font-display: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-doc:     Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-mono:    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Consolas, monospace;
+
+  /* ---- Motion ----------------------------------------------------------
+     Durations are the app's, from src/theme/motion.ts, not invented for the
+     web: a button on this site should feel like a button in the app.
+
+     The two curves were already here. --ease decelerates into rest and suits
+     anything arriving; --fly-ease overshoots slightly and suits anything
+     that should feel thrown rather than placed.
+
+     Marketing and document pages share all of this. What differs is how
+     much motion each one spends, not how that motion behaves. Set pieces
+     get --dur-scene, kept well clear of the interaction scale so a hero
+     sequence is never mistaken for a hover response. */
+  --dur-fast:  150ms;
+  --dur-base:  220ms;
+  --dur-slow:  320ms;
+  --dur-scene: 850ms;
+
+  --ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --fly-ease: cubic-bezier(0.16, 1.36, 0.34, 1);
+
+  /* The app presses its buttons to 0.96. So does the site. */
+  --press: 0.96;
+}
