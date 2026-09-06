@@ -1,0 +1,302 @@
+/* ==========================================================================
+   Citadel Fitness: document mode
+   The reading treatment, for pages that are read sentence by sentence and
+   sometimes under stress: terms, support, and anything legal.
+
+   Georgia body against sans headings, one measured column, numbered
+   sections, a sticky contents rail on wide screens. Theme-aware, unlike the
+   marketing pages, because these are read at length and a reader's own
+   preference matters more here than a committed brand look.
+
+   Requires tokens.css. The dark header and footer come from shell.css and
+   deliberately do not change with the theme, which is the seam that keeps a
+   light document visibly part of the same site.
+
+   privacy.html and delete-account.html still carry their own inline copies
+   of most of this and should be moved onto this file; they predate it.
+   ========================================================================== */
+
+/* ---- Semantic layer -------------------------------------------------------
+   The brand tokens are fixed values. These map them to roles that flip with
+   the theme, so every rule below reads a role and never a literal. */
+:root {
+  --paper:      #F5F6F8;
+  --surface:    #FFFFFF;
+  --doc-ink:    #0B0E14;
+  --doc-slate:  #4A5468;
+  --doc-mist:   #6B7488;
+  --doc-border: #E2E5EC;
+  --doc-accent: #D8360F;
+  --note:       #8A5606;
+  --note-bg:    #FBEFDA;
+  --note-edge:  #E7C688;
+  --stop:       #C7362C;
+  --stop-bg:    #FCEAE8;
+  --stop-edge:  #F0BDB7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper:      #0B0E14;
+    --surface:    #151A24;
+    --doc-ink:    #F4F5F7;
+    --doc-slate:  #B7BECC;
+    --doc-mist:   #7C879A;
+    --doc-border: #262E3D;
+    --doc-accent: #FF7A57;
+    --note:       #E8B457;
+    --note-bg:    #2A2110;
+    --note-edge:  #4A3A17;
+    --stop:       #FF6B62;
+    --stop-bg:    #2A1412;
+    --stop-edge:  #4C2320;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--doc-ink);
+  font-family: var(--font-doc);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sans { font-family: var(--font-body); }
+.mono { font-family: var(--font-mono); }
+
+/* ---- Page frame -------------------------------------------------------- */
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 52px 24px 96px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 680px);
+  gap: 64px;
+  align-items: start;
+}
+
+header.doc-head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--doc-border);
+  margin-bottom: 8px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--doc-accent);
+}
+
+.doc-head h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: clamp(32px, 5vw, 46px);
+  line-height: 1.06;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 13px;
+  color: var(--doc-mist);
+}
+.doc-meta strong { color: var(--doc-slate); font-weight: 600; }
+
+.lede {
+  max-width: 62ch;
+  color: var(--doc-slate);
+  font-size: 18px;
+  margin: 4px 0 0;
+}
+
+/* ---- Contents rail ----------------------------------------------------- */
+
+nav.toc {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+nav.toc a {
+  display: flex;
+  gap: 10px;
+  padding: 5px 0;
+  color: var(--doc-mist);
+  text-decoration: none;
+  transition: color var(--dur-base) var(--ease);
+}
+nav.toc a:hover { color: var(--doc-accent); }
+nav.toc .n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--doc-border);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Sections ---------------------------------------------------------- */
+
+main { min-width: 0; }
+
+.doc-section { scroll-margin-top: 24px; margin-bottom: 44px; }
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.section-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--doc-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-section h2 {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.doc-section h3 {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 24px 0 8px;
+}
+
+p { margin: 0 0 16px; }
+.doc-section > p:last-child { margin-bottom: 0; }
+
+a { color: var(--doc-accent); text-underline-offset: 3px; }
+:where(a, [tabindex]):focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 7px; }
+
+.path, code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+/* ---- Callouts ---------------------------------------------------------- */
+
+.callout {
+  border: 1px solid var(--note-edge);
+  background: var(--note-bg);
+  border-left: 3px solid var(--note);
+  border-radius: 4px;
+  padding: 18px 20px;
+  margin: 0 0 20px;
+}
+.callout.stop {
+  border-color: var(--stop-edge);
+  background: var(--stop-bg);
+  border-left-color: var(--stop);
+}
+.callout-label {
+  display: block;
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--note);
+  margin-bottom: 6px;
+}
+.callout.stop .callout-label { color: var(--stop); }
+.callout p:last-child { margin-bottom: 0; }
+
+/* ---- Tables ------------------------------------------------------------ */
+
+.data-table-wrap { overflow-x: auto; margin: 0 0 20px; }
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  background: var(--surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 4px;
+}
+table.data-table th {
+  font-family: var(--font-body);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--doc-mist);
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--doc-border);
+}
+table.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--doc-border);
+  vertical-align: top;
+}
+table.data-table tr:last-child td { border-bottom: none; }
+.what { font-weight: 600; }
+.why { color: var(--doc-slate); font-size: 14px; }
+
+/* ---- Foot -------------------------------------------------------------- */
+
+.doc-foot {
+  grid-column: 1 / -1;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--doc-border);
+  font-size: 14px;
+  color: var(--doc-mist);
+}
+.doc-foot a { color: var(--doc-slate); }
+
+/* ---- Narrow ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 36px 20px 72px; }
+  nav.toc {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--doc-border);
+  }
+  nav.toc .n { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav.toc a { transition: none; }
+}

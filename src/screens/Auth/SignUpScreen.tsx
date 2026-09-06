@@ -9,7 +9,7 @@ import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { PasswordInput } from '../../components/PasswordInput';
 import { PasswordRequirementsList } from '../../components/PasswordRequirementsList';
-import { PRIVACY_POLICY_URL } from '../../constants/legal';
+import { PRIVACY_POLICY_URL, TERMS_URL } from '../../constants/legal';
 import { isEmailValid } from '../../lib/email';
 import { isPasswordValid } from '../../lib/password';
 import { supabase } from '../../lib/supabase';
@@ -80,7 +80,15 @@ export function SignUpScreen() {
         {info ? <Text style={{ color: colors.success }}>{info}</Text> : null}
 
         <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center' }}>
+          {/* You agree to terms; a privacy policy is a notice, not an
+              agreement. Both are named because the terms say acceptance
+              happens here, and because the policy is what someone actually
+              wants to read before handing over training data. */}
           By creating an account, you agree to our{' '}
+          <Text style={{ color: colors.primary }} onPress={() => Linking.openURL(TERMS_URL)}>
+            Terms of Service
+          </Text>
+          {' '}and{' '}
           <Text style={{ color: colors.primary }} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
             Privacy Policy
           </Text>

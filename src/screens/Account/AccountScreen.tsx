@@ -8,7 +8,7 @@ import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
-import { PRIVACY_POLICY_URL } from '../../constants/legal';
+import { PRIVACY_POLICY_URL, TERMS_URL } from '../../constants/legal';
 import { useDataExport } from '../../hooks/useDataExport';
 import { useMembershipTier } from '../../hooks/useMembership';
 import { useIsDesktop } from '../../hooks/useResponsiveLayout';
@@ -416,6 +416,11 @@ export function AccountScreen() {
           icon="shield-checkmark"
           title="Privacy policy"
           onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+        />
+        <SettingsRow
+          icon="document-text"
+          title="Terms of service"
+          onPress={() => Linking.openURL(TERMS_URL)}
         />
         <SettingsRow icon="information-circle" title="Version" value={appJson.expo.version} />
       </SettingsSection>

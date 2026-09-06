@@ -13,3 +13,14 @@
  * added, not a placeholder that still needs data.
  */
 export const PRIVACY_POLICY_URL = 'https://citadelfitness.app/privacy';
+
+/**
+ * The agreement itself, as opposed to the data notice.
+ *
+ * Separate from the policy because they answer different questions, and
+ * because both stores expect terms covering auto-renewal and cancellation
+ * before a subscription is sold. Section 01 says acceptance happens by
+ * creating an account, which is why sign-up links it and not only the
+ * account screen.
+ */
+export const TERMS_URL = 'https://citadelfitness.app/terms';
