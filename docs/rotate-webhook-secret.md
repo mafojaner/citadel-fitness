@@ -63,14 +63,14 @@ only step that stops this document being needed a second time.
 ### 1. Set the new secret on the Supabase functions
 
 ```bash
-npx supabase secrets set WEBHOOK_SECRET=<new-value> --project-ref ulyduorkvikeyxtpshoq
+supabase secrets set WEBHOOK_SECRET=<new-value>
 ```
 
 Verify the write landed. This prints digests, never values, so the thing to
 look at is the timestamp:
 
 ```bash
-npx supabase secrets list
+supabase secrets list
 ```
 
 `WEBHOOK_SECRET` should show today's date in `updated_at`.
@@ -82,17 +82,29 @@ the two `__WEBHOOK_SECRET__` placeholders with the new value, and apply the
 substituted copy. **Do not commit the substituted copy.** The repository is
 public and a secret in version history outlives any later fix.
 
-Either route works:
+**Apply it through the SQL Editor**, not the CLI. `supabase db query` does
+not exist in CLI 2.x (the `db` subcommands are diff, dump, push, pull, reset
+and lint), and `db push` is the wrong tool here because it would apply the
+committed file with the placeholder still in it. The SQL Editor also keeps
+the substituted text out of your shell history and off disk.
 
-```bash
-npx supabase db query --linked -f <substituted-file>
+Supabase dashboard, your project, SQL Editor, New query. Paste the
+substituted file, press Run. You want `Success. No rows returned`.
+
+The file guards itself before it changes anything: if the placeholder is
+still there, it raises and nothing is replaced.
+
+One side effect to know about. Because this file lives in
+`supabase/migrations/` but is applied by hand, a future `supabase db push`
+will try to apply it, hit the guard and fail. That failure is safe, it
+changes nothing, but it is confusing if you have forgotten why. If it gets
+in the way, record the version as already applied:
+
+```sql
+insert into supabase_migrations.schema_migrations (version)
+values ('20260907120000')
+on conflict do nothing;
 ```
-
-or paste it into Project, SQL Editor, New query.
-
-The migration ends with a check that aborts the transaction if either
-function still contains the placeholder, so applying it unsubstituted rolls
-back instead of quietly breaking both emails.
 
 ### 3. Verify the database half before touching GitHub
 
