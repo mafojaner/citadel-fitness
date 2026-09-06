@@ -155,6 +155,60 @@
     </div>
   </section>
 
+
+  <!-- ============ THE WEEK (scroll-driven set piece) ============ -->
+  <!--
+    The one ambitious moment on the page, and it argues rather than
+    decorates: a week of training assembling itself, which is the thing the
+    app actually does. Figures are a worked example and say so.
+
+    Everything here renders in its finished state without JavaScript. The
+    animation is opt-in via the `js` class, same guard as the reveals, so a
+    blocked script leaves a filled-in week rather than an empty frame.
+  -->
+  <section class="week" id="week">
+    <div class="section-glow section-glow--pulse" aria-hidden="true"></div>
+
+    <div class="week-inner">
+      <div class="week-copy">
+        <h2 class="reveal-up">A week, adding up.</h2>
+        <p class="reveal-up" style="--delay:1">
+          Every set you log lands in one place. The totals, the streak and the
+          charts are worked out from what you actually did, not estimated and
+          not rounded in your favour.
+        </p>
+        <p class="week-note reveal-up" style="--delay:2">An example week, not real data.</p>
+      </div>
+
+      <div class="week-panel reveal-up" style="--delay:1" data-week>
+        <div class="week-days" role="img" aria-label="Example week: five of seven days trained">
+          <div class="day" data-day style="--i:0"><span class="day-bar"></span><span class="day-label">M</span></div>
+          <div class="day" data-day style="--i:1"><span class="day-bar"></span><span class="day-label">T</span></div>
+          <div class="day is-rest" data-day style="--i:2"><span class="day-bar"></span><span class="day-label">W</span></div>
+          <div class="day" data-day style="--i:3"><span class="day-bar"></span><span class="day-label">T</span></div>
+          <div class="day" data-day style="--i:4"><span class="day-bar"></span><span class="day-label">F</span></div>
+          <div class="day is-rest" data-day style="--i:5"><span class="day-bar"></span><span class="day-label">S</span></div>
+          <div class="day" data-day style="--i:6"><span class="day-bar"></span><span class="day-label">S</span></div>
+        </div>
+
+        <dl class="week-stats">
+          <div>
+            <dt>Volume</dt>
+            <dd><span data-count data-to="9240">9,240</span><span class="unit">kg</span></dd>
+          </div>
+          <div>
+            <dt>Sets</dt>
+            <dd><span data-count data-to="61">61</span></dd>
+          </div>
+          <div>
+            <dt>Streak</dt>
+            <dd><span data-count data-to="5">5</span><span class="unit">days</span></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ PREMIUM TEASER ============ -->
   <section class="premium">
     <div class="section-glow section-glow--identity" aria-hidden="true"></div>

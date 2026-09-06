@@ -46,6 +46,95 @@
   document.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
+  // ---- the week: bars grow, then the figures count -------------------
+  // Plays once, when it is actually on screen. The finished state is what
+  // the CSS renders by default, so nothing here is load-bearing for
+  // legibility -- it only winds the panel back and lets it play.
+  var week = document.querySelector('[data-week]');
+  if (week) {
+    var playWeek = function () {
+      week.classList.add('is-playing');
+
+      // Counting is skipped entirely under reduced motion: the numbers are
+      // already correct in the markup, and a number ticking upward is
+      // exactly the kind of movement that setting asks us not to make.
+      if (reduceMotion) return;
+
+      // The bars finish at 6 * 100ms of stagger plus the scene duration.
+      // The figures start as the last bar lands rather than racing it.
+      var LEAD = 900;
+      var RUN = 900;
+
+      week.querySelectorAll('[data-count]').forEach(function (el) {
+        var to = parseInt(el.getAttribute('data-to'), 10);
+        if (!isFinite(to)) return;
+        var started = null;
+        el.textContent = '0';
+
+        var tick = function (now) {
+          if (started === null) started = now;
+          var t = Math.min(1, (now - started) / RUN);
+          // Ease out: fast at first, settling into the real figure, so the
+          // final value is legible for most of the animation.
+          var eased = 1 - Math.pow(1 - t, 3);
+          el.textContent = Math.round(to * eased).toLocaleString('en-GB');
+          if (t < 1) requestAnimationFrame(tick);
+          else el.textContent = to.toLocaleString('en-GB');
+        };
+
+        setTimeout(function () { requestAnimationFrame(tick); }, LEAD);
+      });
+    };
+
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      playWeek();
+    } else {
+      var weekObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              playWeek();
+              weekObserver.disconnect();
+            }
+          });
+        },
+        { threshold: 0.35 }
+      );
+      weekObserver.observe(week);
+    }
+  }
+
+  // ---- stop ambient loops nobody is looking at ------------------------
+  // Six infinite keyframe animations run on this page. Left alone they keep
+  // running under a hero that has scrolled away, and in a background tab,
+  // which is battery spent on nothing. `animation-play-state` is the whole
+  // mechanism; the class is toggled rather than each element touched.
+  var ambient = document.querySelectorAll(
+    '.hero-glow, .section-glow, .nav-logo, .live-dot, .mock-float, .btn-pulse'
+  );
+  var setAmbient = function (running) {
+    ambient.forEach(function (el) {
+      el.style.animationPlayState = running ? '' : 'paused';
+    });
+  };
+
+  document.addEventListener('visibilitychange', function () {
+    setAmbient(!document.hidden);
+  });
+
+  if ('IntersectionObserver' in window) {
+    var ambientObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          entry.target.style.animationPlayState =
+            entry.isIntersecting && !document.hidden ? '' : 'paused';
+        });
+      },
+      { threshold: 0 }
+    );
+    ambient.forEach(function (el) { ambientObserver.observe(el); });
+  }
+
   // ---- scroll progress bar: the "journey" motif, always live ----
   var progressBar = document.getElementById('progress-bar');
   var onProgress = function () {

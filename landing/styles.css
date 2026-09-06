@@ -644,3 +644,155 @@ section:not(.hero) {
   .nav-inner { padding: 8px 8px 8px 16px; }
   section:not(.hero) { padding: 72px 20px; }
 }
+
+/* ==========================================================================
+   The week: the page's one scroll-driven set piece
+   Bars grow, then the figures count. Finished state is the default; the
+   `js` class is what winds it back so it can play, which means a blocked
+   script leaves a filled-in week rather than an empty box.
+   ========================================================================== */
+
+.week { position: relative; padding: 96px 20px; overflow: hidden; }
+
+.week-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 56px;
+  align-items: center;
+}
+
+.week-copy h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+  color: var(--white);
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+.week-copy p { font-size: 17px; color: var(--ink300); margin: 0 0 14px; text-wrap: pretty; }
+.week-note { font-size: 13px; color: var(--ink500); }
+
+.week-panel {
+  background: var(--ink800);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 26px 24px;
+}
+
+/* ---- Seven days ---- */
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 148px;
+  margin-bottom: 26px;
+}
+
+.day { display: flex; flex-direction: column; align-items: center; gap: 9px; height: 100%; justify-content: flex-end; }
+
+.day-bar {
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-2));
+  /* Trained days differ in height so the week reads as training rather than
+     as a progress bar. Rest days keep a stub, because a missing bar and a
+     rest day should not look the same. */
+  height: 74%;
+  transform-origin: bottom center;
+}
+.day:nth-child(2) .day-bar { height: 92%; }
+.day:nth-child(4) .day-bar { height: 61%; }
+.day:nth-child(5) .day-bar { height: 100%; }
+.day:nth-child(7) .day-bar { height: 83%; }
+
+.day.is-rest .day-bar {
+  height: 12%;
+  background: var(--ink700);
+}
+
+.day-label { font-size: 11.5px; font-weight: 600; color: var(--ink500); }
+.day.is-rest .day-label { color: var(--ink700); }
+
+/* ---- Figures ---- */
+.week-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.week-stats div { display: flex; flex-direction: column; gap: 5px; }
+.week-stats dt {
+  font-family: var(--font-display);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink500);
+}
+.week-stats dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 27px;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.week-stats .unit { font-size: 13px; font-weight: 600; color: var(--ink500); letter-spacing: 0; }
+
+/* ---- Wound back only when the script is there to play it ---- */
+.js .week-panel[data-week] .day-bar {
+  transform: scaleY(0);
+  transition: transform var(--dur-scene) var(--fly-ease);
+  /* Left to right, a tenth of a second apart: the week assembles in the
+     order it happened rather than all at once. */
+  transition-delay: calc(var(--i) * 100ms);
+}
+.js .week-panel[data-week].is-playing .day-bar { transform: scaleY(1); }
+
+@media (max-width: 860px) {
+  .week { padding: 72px 20px; }
+  .week-inner { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+  .week-days { height: 120px; gap: 7px; }
+  .week-panel { padding: 22px 18px 20px; }
+  .week-stats dd { font-size: 23px; }
+}
+
+@media (max-width: 420px) {
+  .week-stats { gap: 8px; }
+  .week-stats dd { font-size: 20px; }
+  .week-stats dt { font-size: 9.5px; letter-spacing: 0.08em; }
+}
+
+/* Someone who has asked for less motion gets the finished week, instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .js .week-panel[data-week] .day-bar {
+    transform: scaleY(1);
+    transition: none;
+    transition-delay: 0s;
+  }
+}
+
+/* ==========================================================================
+   Press feedback, borrowed from the app
+   --press is the app's own 0.96 from src/theme/motion.ts, so a button here
+   feels like a button there.
+   ========================================================================== */
+.btn:active,
+.nav-cta:active,
+.feature-card:active { transform: scale(var(--press)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active,
+  .nav-cta:active,
+  .feature-card:active { transform: none; }
+}
