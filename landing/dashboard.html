@@ -1580,6 +1580,107 @@
         </div>
       </div>
 
+
+      <!-- ============ SECURITY CHECKLIST ============ -->
+      <!--
+        Filed 6 September. Six rows are marked done because they were checked
+        against the repository while writing, and each says how it was
+        checked. Everything else is open on purpose: the value of a checklist
+        is the part nobody has looked at.
+      -->
+      <section class="block" id="security-checklist" data-view="work">
+        <div class="block-head"><span class="dot"></span><h3>Security checklist</h3></div>
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span><strong>This list does not say the app is secure.</strong> It says which questions have been asked. Six rows were
+          checked against the repository on 6 September and say how. The rest have never been looked at, and two of them are
+          findings rather than tasks: the avatars bucket is public-read, and the deep link scheme is unverified.</span>
+        </div>
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Data access</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="sec-rls" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Row level security is enabled on all 23 tables.</strong> Checked by parsing every migration rather than by reading a summary: 23 <code>create table public.*</code> against 23 matching <code>enable row level security</code>, with no table left out. Enabling RLS is not the same as the policies being right, which is the next row.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-probe" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>No table-by-table probe of the policies from an anonymous client.</strong> Individual abort-probes exist for the Fortress tables and for <code>profiles</code>, and they are recorded above. What does not exist is one pass that walks every table with a signed-out client and a second account’s token and records what each returns. RLS being on is a setting; a policy that returns another member’s rows is still a policy.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" id="sec-formchecks" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The form-check bucket is private, size-capped and type-limited.</strong> <code>public</code> is <code>false</code>, the cap is 200&nbsp;MB, and the MIME allowlist is mp4, quicktime and webm. This is the most sensitive data the app holds, video of a person training at home, and the bucket config is the right shape for it.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-avatars" data-state="not-started" data-owner="you" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The avatars bucket is public-read, and that is a decision nobody has recorded making.</strong> <code>storage.buckets</code> has <code>(’avatars’, ’avatars’, true)</code>: anyone holding the URL can fetch the file without signing in. The paths are account-scoped and unguessable, so this is closer to an unlisted link than to an open directory, and it is how most apps serve avatars.<br><br>It is filed because the app already shows display names and photos to every signed-in user through the leaderboard, and the privacy policy describes that. What it does not say is that a profile photo is reachable from outside the app entirely. Either make the bucket private and serve signed URLs, or keep it and say so in the policy. The current state is the one that is neither.</div>
+            <span class="priority high">Product call</span>
+          </div>
+          <div class="agenda-day" id="sec-crossread" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Nobody has tried to read another account’s form-check video.</strong> The storage policies for <code>form-checks</code> exist and are scoped by user id. The test is to take a real object path from account A and request it with account B’s token, and with no token. Until that has been run and the refusal recorded, the policy is unproven in exactly the way the <code>membership_tier</code> gate was unproven before August.</div>
+            <span class="priority medium">Open</span>
+          </div>
+        </div>
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Secrets</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="sec-nokeys" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>No service-role key or server secret reaches the shipped bundle.</strong> Grepped <code>src/</code> and the app config for <code>SERVICE_ROLE</code> and its variants: nothing. Every server key lives in Edge Function environment variables, which never ship to a device.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-gitsecrets" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The repository is public and carries no secrets.</strong> <code>git ls-files</code> matching env, key, pem, credential and service-account patterns returns exactly one file, <code>.env.example</code>. <code>.gitignore</code> covers <code>*.key</code>, every <code>.env</code> form, and the Play service-account JSON by three separate patterns, which is there because that file gets dropped in the repo root to fill in <code>eas.json</code>.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-publicvars" data-state="partial" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Seven <code>EXPO_PUBLIC_</code> values ship inside the app and none has been audited individually.</strong> They are the Supabase URL and anon key, the Sentry DSN, the PostHog key and host, and the two RevenueCat SDK keys. Every one of them is designed to be public, and the anon key in particular is why the server-side tier gate had to exist.<br><br>The check that has not been done is confirming that each is the publishable half rather than the secret half. RevenueCat and PostHog both issue two kinds of key and both look alike at a glance.</div>
+            <span class="priority check">Listed, not audited</span>
+          </div>
+          <div class="agenda-day" id="sec-rotation" data-state="not-started" data-owner="you" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>There is no rotation procedure for anything.</strong> The webhook secret, the service-role key, the Play service account and the Sentry token all exist, and none has a written answer to what happens if one leaks: where it is stored, what reads it, what breaks while it is being replaced, and in what order. A rotation plan is worth writing before it is needed rather than during.</div>
+            <span class="priority medium">Open</span>
+          </div>
+        </div>
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Server functions</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="sec-webhookauth" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>All four functions that run without a JWT authenticate on a shared secret instead.</strong> <code>revenuecat-webhook</code>, <code>send-welcome-email</code>, <code>send-newsletter-email</code> and <code>send-weekly-digest</code> deploy with <code>--no-verify-jwt</code>, because a database webhook and a scheduler carry no user token and the platform gateway would reject them before the code ran. Three check an <code>x-webhook-secret</code> header and <code>revenuecat-webhook</code> checks <code>Authorization</code>, which is worth knowing before anyone goes looking for a header that is not there. All four return 401 and stop before doing any work, so they fail closed. Read in all four rather than counted: a grep proves the string is present, not that the code rejects.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-admingate" data-state="partial" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The four admin functions gate on a single environment variable, and none has been probed with a non-admin token.</strong> <code>admin-dashboard-stats</code>, <code>admin-form-check-review</code>, <code>admin-nutrition-review</code> and <code>admin-sentry-health</code> compare the caller’s email against <code>ADMIN_EMAIL</code>. That is a reasonable gate and it is one string comparison away from being no gate at all.<br><br>What is missing is the negative test: call each one with a valid token from an ordinary account and record the refusal. The same probe that proved the tier gate on both sides applies here and has never been run.</div>
+            <span class="priority check">Unproven</span>
+          </div>
+          <div class="agenda-day" id="sec-ratelimit" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>No rate limiting anywhere the app can be hit from outside.</strong> Sign-in, password reset, feedback submission and the public functions all accept as many requests as arrive. Supabase applies some platform limits; what those are, and whether they are enough for password reset in particular, has never been looked up. Password reset is the one that matters, because it sends mail to an address the caller supplies.</div>
+            <span class="priority medium">Open</span>
+          </div>
+        </div>
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Private data</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="sec-sentrypii" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Crash reports do not carry personal data by default.</strong> <code>src/lib/sentry.ts</code> sets <code>sendDefaultPii: false</code>, so IP addresses and user identifiers are not attached automatically. Separately, <code>tracesSampleRate</code> is <code>1.0</code>, which is a volume and cost question rather than a security one, but it is worth knowing that every transaction is being sent.</div>
+            <span class="priority done">Verified</span>
+          </div>
+          <div class="agenda-day" id="sec-piiinventory" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>There is no inventory of what personal data the app holds.</strong> The Play Data safety form was answered per question and correctly, which is not the same as one list saying: this column holds this kind of data, it is kept for this long, these people can read it, and it is deleted by this path. Weight, height, training history, video, display name, photo and email are all in there. The disclosure exists; the inventory behind it does not.</div>
+            <span class="priority medium">Open</span>
+          </div>
+          <div class="agenda-day" id="sec-deletion" data-state="partial" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Account deletion removes rows and files; withdrawal does not.</strong> <code>delete-account</code> was fixed on 6 September to empty both the <code>avatars</code> and <code>form-checks</code> prefixes for the account, so deleting an account no longer leaves orphaned video behind. That path is closed.<br><br>The gap recorded above stands: withdrawing a single form check sets a status and leaves the file in the bucket. That is one product decision away from being consistent, and until it is made, the word withdraw promises something the system does not do.</div>
+            <span class="priority check">One known gap</span>
+          </div>
+          <div class="agenda-day" id="sec-authrules" data-state="not-started" data-owner="you" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The Supabase Auth settings have never been reviewed.</strong> Minimum password length, the leaked-password check against Have I Been Pwned, whether email confirmation is required before an account works, session lifetime and refresh behaviour are all configured in the Supabase dashboard rather than in this repository, so nothing in a migration or a commit shows their current values. They are console-only, which makes them yours.</div>
+            <span class="priority high">Console only</span>
+          </div>
+        </div>
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Client</h4>
+        <div class="card-body">
+          <div class="agenda-day" id="sec-deeplink" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>The deep link scheme is unverified.</strong> <code>app.json</code> registers <code>citadelfitness://</code>. A custom scheme is first-come on Android, so another installed app can register the same one and receive links intended for this app. It matters most for anything carrying a token in a link, which today means password reset and email confirmation. The fix is Android App Links and iOS Universal Links, verified against <code>citadelfitness.app</code>, which the domain already exists to serve.</div>
+            <span class="priority medium">Open</span>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ CHRONOLOGICAL VIEW ============ -->
       <!--
         Filled by script from the dated rows below. Empty in the file on
