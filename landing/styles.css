@@ -7,6 +7,13 @@
 
 /* Colour, type and motion now live in tokens.css, loaded before this. */
 
+/* This page is dark in every colour scheme, deliberately rather than by
+   omission: it is a marketing page that commits to one look, unlike the
+   document pages which follow the reader's preference. color-scheme makes
+   that choice real to the browser, so scrollbars and form controls render
+   dark instead of defaulting to light against a black ground. */
+:root { color-scheme: dark; }
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
@@ -23,7 +30,12 @@ img, svg { display: block; max-width: 100%; }
 a { text-decoration: none; color: inherit; }
 
 /* ---------- reveal-on-scroll: fly-in variants ---------- */
-.reveal-up, .reveal-left, .reveal-right {
+/* The hidden start is gated on a class the script adds to <html> as its
+   first act. Without it every reveal stays visible, so a script that fails
+   to load, errors, or is blocked leaves a readable page rather than a blank
+   one -- and the first painted frame, which is what a link preview and a
+   crawler get, is never empty. */
+.js .reveal-up, .js .reveal-left, .js .reveal-right {
   opacity: 0;
   transition: opacity 0.85s var(--fly-ease), transform 0.85s var(--fly-ease);
   transition-delay: calc(var(--delay, 0) * 110ms);
@@ -171,7 +183,7 @@ a { text-decoration: none; color: inherit; }
 }
 .nav-inner {
   width: 100%;
-  max-width: 640px;
+  max-width: 860px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -205,6 +217,20 @@ a { text-decoration: none; color: inherit; }
   box-shadow: 0 0 0 1.5px rgba(255,255,255,0.4), 0 0 10px rgba(255,90,54,0.5);
   animation: icon-glow 4.5s ease-in-out infinite;
 }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.nav-links a {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink300);
+  transition: color var(--dur-base) var(--ease);
+}
+.nav-links a:hover { color: var(--white); }
+
 .nav-cta {
   display: inline-flex;
   align-items: center;
@@ -218,6 +244,16 @@ a { text-decoration: none; color: inherit; }
   transition: filter 0.2s ease, transform 0.2s ease;
 }
 .nav-cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+@media (max-width: 720px) {
+  .nav-inner { padding: 8px 8px 8px 16px; }
+  .nav-links { gap: 14px; }
+  .nav-links a { font-size: 13px; }
+  .nav-links a:nth-child(n + 2) { display: none; }
+  .nav-cta { font-size: 12.5px; padding: 8px 13px; }
+  .wordmark { font-size: 13px; }
+  .nav-logo { width: 24px; height: 24px; }
+}
 .arrow { display: inline-block; transition: transform 0.25s var(--ease); }
 a:hover .arrow, .nav-cta:hover .arrow { transform: translateX(3px); }
 

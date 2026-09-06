@@ -2,6 +2,11 @@
 // No framework, no build step: this is a static page served as-is by Vercel.
 
 (function () {
+  // Tell the stylesheet the script is running. Everything that starts
+  // hidden is scoped to this class, so if this file never executes the page
+  // renders in full rather than blank.
+  document.documentElement.classList.add('js');
+
   // ---- single source of truth for the demo link ----
   // TODO: confirm this matches the subdomain you point at your existing
   // Vercel deployment (see project instructions). Change it here once and
