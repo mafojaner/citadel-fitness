@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Support: Citadel Fitness</title>
+<meta name="description" content="Help with Citadel Fitness: how to reach a person, answers to the questions we get most, and what to include when something is broken." />
+<link rel="icon" href="/favicon.png" />
+<link rel="canonical" href="https://citadelfitness.app/support" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://citadelfitness.app/support" />
+<meta property="og:title" content="Support: Citadel Fitness" />
+<meta property="og:description" content="How to reach a person, answers to the questions we get most, and what to include when something is broken." />
+<meta property="og:image" content="https://citadelfitness.app/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/shell.css" />
+<link rel="stylesheet" href="/doc.css" />
+<style>
+  /* Support-only: the questions read better as a list of small blocks than
+     as running prose, and the contact route needs to be the most prominent
+     thing above the fold. */
+  .faq { margin: 0 0 8px; }
+  .faq h3 {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 22px 0 6px;
+  }
+  .faq h3:first-child { margin-top: 0; }
+  .faq p { margin: 0 0 4px; }
+
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--doc-border);
+    border-radius: 4px;
+    padding: 20px 22px;
+    margin: 0 0 18px;
+  }
+  .contact-card h3 {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .contact-card p:last-child { margin-bottom: 0; }
+
+  .email-cta {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 16px;
+    background: var(--doc-accent);
+    color: #fff;
+    text-decoration: none;
+    padding: 11px 20px;
+    border-radius: 4px;
+    margin: 6px 0 2px;
+    transition: filter var(--dur-base) var(--ease);
+  }
+  .email-cta:hover { filter: brightness(1.08); }
+
+  @media (prefers-reduced-motion: reduce) { .email-cta { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="28" height="28" />CITADEL</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/support" aria-current="page">Support</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/delete-account">Delete account</a>
+      <a href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Live demo</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+
+  <header class="doc-head">
+    <span class="eyebrow sans">Help &middot; a person reads these</span>
+    <h1>Support</h1>
+    <div class="doc-meta sans">
+      <span><strong>App</strong> Citadel Fitness</span>
+      <span><strong>Reply within</strong> 7 days, usually sooner</span>
+      <span><strong>Updated</strong> September 6, 2026</span>
+    </div>
+    <p class="lede">There is no ticket system and no bot. Mail goes to a person who works on the app. Below is how to reach them, and the questions that come up most often, in case one of them saves you the wait.</p>
+  </header>
+
+  <nav class="toc sans" aria-label="Sections">
+    <a href="#reach"><span class="n">01</span>Getting in touch</a>
+    <a href="#broken"><span class="n">02</span>When something is broken</a>
+    <a href="#using"><span class="n">03</span>Using the app</a>
+    <a href="#plans"><span class="n">04</span>Plans and payment</a>
+    <a href="#account"><span class="n">05</span>Account and data</a>
+    <a href="#elsewhere"><span class="n">06</span>Elsewhere</a>
+  </nav>
+
+  <main>
+
+    <section class="doc-section" id="reach">
+      <div class="section-head"><span class="section-num">01</span><h2>Getting in touch</h2></div>
+
+      <div class="contact-card">
+        <h3>From inside the app</h3>
+        <p>Go to <span class="path">Account &rarr; Help &amp; feedback</span>. This is the better route when you can still open the app: it arrives with your account attached, so nobody has to ask which account you mean, and we can reply to the address you are signed in with.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>By email</h3>
+        <p>If you cannot sign in, have uninstalled the app, or are asking before you install anything:</p>
+        <p><a class="email-cta" href="mailto:tumi.citadel@gmail.com">tumi.citadel@gmail.com</a></p>
+      </div>
+
+      <p>Either way you will hear back <strong>within 7 days</strong>, and in practice usually the same day. If a week passes with nothing, assume the mail went astray and send it again rather than waiting.</p>
+    </section>
+
+    <section class="doc-section" id="broken">
+      <div class="section-head"><span class="section-num">02</span><h2>When something is broken</h2></div>
+      <p>Bug reports get fixed faster when they arrive with enough to reproduce the problem. If you can, include:</p>
+      <ul>
+        <li><strong>What you were doing</strong> when it went wrong, in the order you did it.</li>
+        <li><strong>What you expected</strong> and what happened instead. &ldquo;The save button did nothing&rdquo; is more useful than &ldquo;it broke&rdquo;.</li>
+        <li><strong>Your phone and Android version</strong>, and the app version from <span class="path">Account &rarr; Version</span>.</li>
+        <li><strong>A screenshot</strong>, if there was anything on screen worth seeing.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">If data seems to have gone missing</span>
+        <p>Say so first and in as much detail as you can, including the dates involved. That is the one category of problem we treat as urgent, and the sooner it is described the more likely it is recoverable.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="using">
+      <div class="section-head"><span class="section-num">03</span><h2>Using the app</h2></div>
+      <div class="faq">
+        <h3>How do I log a workout?</h3>
+        <p>Tap &ldquo;Log workout&rdquo; on Home, or open the Workouts tab, add exercises from the catalogue, fill in your sets, then tap Confirm.</p>
+
+        <h3>Can I edit or delete a past workout?</h3>
+        <p>Yes. Open any day on the Workouts calendar to edit or remove what you logged for that day.</p>
+
+        <h3>How do streaks work?</h3>
+        <p>Your current streak counts consecutive days with at least one logged workout containing real values. It resets if a day is missed.</p>
+
+        <h3>How do I change my units (lb/kg, mi/km)?</h3>
+        <p>Go to <span class="path">Account &rarr; Units</span> and choose your preferred weight and distance units. This updates how weights and distances are shown throughout the app.</p>
+
+        <h3>How do I turn on notifications?</h3>
+        <p>Go to <span class="path">Account &rarr; Notifications</span> to enable workout reminders, per-category newsletter alerts, and email updates.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="plans">
+      <div class="section-head"><span class="section-num">04</span><h2>Plans and payment</h2></div>
+      <div class="faq">
+        <h3>What are Fortress and Valhalla?</h3>
+        <p>They are Citadel Fitness&rsquo;s two paid plans, on top of the free tier everyone has. Fortress covers what you did: records, analytics, export, programs and groups. Valhalla covers what to do next &mdash; weight and rep suggestions worked out from your own logged sessions, plus form check and nutrition coaching, which a real person answers. Neither is on sale yet. Open <span class="path">Account &rarr; Plans</span> to compare them and join a waitlist.</p>
+
+        <h3>Is anything actually charged for right now?</h3>
+        <p>No. Nothing in the app can be bought, and no payment details are asked for anywhere. The plan pages exist so you can see what is coming and put your name down. If a plan is ever switched on for your account it is because we did it by hand, not because you paid.</p>
+        <p>When plans do open, how billing and cancellation work is set out in the <a href="/terms">terms of service</a>.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="account">
+      <div class="section-head"><span class="section-num">05</span><h2>Account and data</h2></div>
+      <div class="faq">
+        <h3>How do I reset my password?</h3>
+        <p>From the sign-in screen, tap &ldquo;Forgot password?&rdquo; and follow the link emailed to you.</p>
+
+        <h3>Is my data private?</h3>
+        <p>Yes. The <a href="/privacy">privacy policy</a> sets out exactly what is collected, why, and who it reaches, and it is also linked from <span class="path">Account &rarr; Privacy policy</span> in the app.</p>
+        <p>One thing worth knowing without reading the whole document: the activity leaderboard shows your display name, photo and days trained to every signed-in user. It never shows what you lifted. If you would rather not appear, do not set a display name or photo.</p>
+
+        <h3>How do I delete my account?</h3>
+        <p>Go to <span class="path">Account &rarr; Account management &rarr; Delete account</span>. This permanently removes your account, workout history and profile, and there is no way to undo it.</p>
+        <p>If you have already uninstalled the app, <a href="/delete-account">the deletion page</a> explains how to ask us instead, and lists exactly what gets removed.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="elsewhere">
+      <div class="section-head"><span class="section-num">06</span><h2>Elsewhere</h2></div>
+      <p>Several questions have a whole page rather than a paragraph:</p>
+      <ul>
+        <li><a href="/privacy">Privacy policy</a> &mdash; what is collected, where it is stored, and who it reaches.</li>
+        <li><a href="/terms">Terms of service</a> &mdash; the agreement, including how paid plans will work.</li>
+        <li><a href="/delete-account">Delete your account</a> &mdash; both routes, and exactly what goes.</li>
+      </ul>
+      <p>Anything not covered here is worth writing in about. Questions that keep arriving end up on this page.</p>
+    </section>
+
+  </main>
+
+  <div class="doc-foot sans">
+    <p>Citadel Fitness &middot; <a href="/privacy">Privacy policy</a> &middot; <a href="/terms">Terms of service</a> &middot; <a href="/delete-account">Delete your account</a> &middot; <a href="/">Home</a></p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-brand">
+      <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="26" height="26" />CITADEL</a>
+      <p class="site-footer-note">A workout tracker that stays out of your way. No ads, no trackers, and your data stays yours.</p>
+    </div>
+    <div class="site-footer-col">
+      <h2>Product</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><span class="soon">Pricing</span></li>
+        <li><span class="soon">Download</span></li>
+        <li><a href="https://demo.citadelfitness.app">Live demo</a></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Company</h2>
+      <ul>
+        <li><span class="soon">About</span></li>
+        <li><span class="soon">Changelog</span></li>
+        <li><span class="soon">Guides</span></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Legal</h2>
+      <ul>
+        <li><a href="/privacy">Privacy policy</a></li>
+        <li><a href="/terms">Terms of service</a></li>
+        <li><a href="/delete-account">Delete your account</a></li>
+        <li><a href="/support" aria-current="page">Support</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer-bottom">
+    <p class="site-copy">&copy; 2026 Citadel Fitness. All rights reserved.</p>
+    <div class="site-social">
+      <a href="https://www.instagram.com/citadelfitness.app/" target="_blank" rel="noopener" aria-label="Citadel Fitness on Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://x.com/CitadelFitness" target="_blank" rel="noopener" aria-label="Citadel Fitness on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@citadel.fitness.com" target="_blank" rel="noopener" aria-label="Citadel Fitness on TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-.98-.86-1.51-2.09-1.51-3.4h-3.09v13.02c0 1.43-1.17 2.6-2.6 2.6a2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.78-1.48z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
