@@ -186,8 +186,52 @@
   }
 
   @media (max-width: 620px) {
-    .head { padding-top: 40px; }
+    .head { padding-top: 34px; }
+    .standfirst { font-size: 17px; }
+    .notice { margin-top: 24px; padding: 14px 16px; font-size: 14.5px; }
+
     .tier { padding: 22px 20px; }
+
+    /* Those min-heights exist to keep three cards aligned in a row. Stacked
+       on a phone there is no row to align to, so they only add dead space. */
+    .tier-tag { min-height: 0; margin-bottom: 16px; }
+    .billed { min-height: 0; margin-bottom: 18px; }
+
+    .controls { gap: 12px; margin: 26px 0 22px; }
+    .seg { width: 100%; }
+    .seg button { flex: 1; padding: 12px 10px; }
+    .cur-label { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .cur-select { flex: 1; padding: 12px; }
+
+    .compare { padding-top: 44px; }
+    .compare h2 { font-size: 23px; }
+    .faq-lite { padding: 40px 0 60px; }
+  }
+
+  /* The comparison table has four columns and cannot fit a phone, so it
+     scrolls inside its own container. Scrolling a table sideways loses the
+     row label, which is the one column you need to keep, so the first cell
+     of every row is pinned. Backgrounds are opaque because a sticky cell
+     with a transparent one would show the scrolling content underneath. */
+  @media (max-width: 760px) {
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    table { border: 0; border-radius: 0; min-width: 460px; }
+
+    th:first-child,
+    td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--ink800);
+      border-right: 1px solid var(--border);
+      min-width: 168px;
+    }
+    .group-row td:first-child { background: var(--ink900); }
   }
 
   @media (prefers-reduced-motion: reduce) {
