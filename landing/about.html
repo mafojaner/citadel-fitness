@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>About: Citadel Fitness</title>
+<meta name="description" content="Who makes Citadel Fitness, why it exists, and the things it deliberately refuses to do: no ads, no advertising identifier, and no numbers that flatter you." />
+<link rel="icon" href="/favicon.png" />
+<link rel="canonical" href="https://citadelfitness.app/about" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://citadelfitness.app/about" />
+<meta property="og:title" content="About: Citadel Fitness" />
+<meta property="og:description" content="Why it exists, and the things it deliberately refuses to do." />
+<meta property="og:image" content="https://citadelfitness.app/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/shell.css" />
+<style>
+  /* Marketing mode: dark ground, Sora, ember. Same commitment as index and
+     pricing. Colour and motion from tokens.css. */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink900);
+    color: var(--ink100);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  .head { padding: 64px 0 8px; }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--primary); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: clamp(34px, 6vw, 52px);
+    line-height: 1.04; letter-spacing: -0.03em; color: var(--white);
+    margin: 0 0 18px; text-wrap: balance;
+  }
+  .standfirst { font-size: 19px; color: var(--ink300); margin: 0; text-wrap: pretty; }
+
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 25px; letter-spacing: -0.02em;
+    color: var(--white); margin: 52px 0 12px; text-wrap: balance;
+  }
+
+  p { margin: 0 0 17px; text-wrap: pretty; }
+  strong { color: var(--white); font-weight: 600; }
+  a { color: var(--primary); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 3px; }
+
+  /* The refusals are the distinctive part, so they get the one structural
+     device on the page: a rule down the left, and the claim in white with
+     the evidence beneath it in grey. Every one is checkable in the app. */
+  .refusals { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+  .refusals li { border-left: 2px solid var(--border); padding-left: 18px; }
+  .refusals b {
+    display: block; font-family: var(--font-display); font-weight: 700;
+    font-size: 17px; color: var(--white); letter-spacing: -0.01em; margin-bottom: 4px;
+  }
+  .refusals span { color: var(--ink300); font-size: 15.5px; }
+
+  .pull {
+    border-left: 3px solid var(--primary);
+    background: var(--ink800);
+    border-radius: 0 8px 8px 0;
+    padding: 20px 22px;
+    margin: 0 0 20px;
+    font-size: 17px;
+  }
+  .pull p:last-child { margin-bottom: 0; }
+
+  .ends { padding: 12px 0 80px; }
+  .ends p { color: var(--ink300); }
+
+  @media (max-width: 620px) {
+    .head { padding-top: 34px; }
+    .standfirst { font-size: 17px; }
+    h2 { font-size: 22px; margin-top: 42px; }
+    .refusals li { padding-left: 15px; }
+    .pull { padding: 16px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="28" height="28" />CITADEL</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/pricing">Pricing</a>
+      <a href="/about" aria-current="page">About</a>
+      <a href="/support">Support</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/delete-account">Delete account</a>
+      <a href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Live demo</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="head">
+    <p class="eyebrow">About</p>
+    <h1>A training log that tells you the truth.</h1>
+    <p class="standfirst">Citadel Fitness records what you actually did, works out what it adds up to, and does not dress up either. Most of what makes it different is what it refuses to do.</p>
+  </section>
+
+  <h2>Why it exists</h2>
+  <p>Most training apps are built to keep you opening them. Streaks that forgive a missed day, numbers that only go up, a nudge every evening. That is a good way to build a habit of using an app, and a poor way to build a habit of training.</p>
+  <p>This one is built the other way round. If you missed a day, the streak says so. If you logged a session three days late, it is marked as logged late and does not count toward the weekly reward, because logging as you train is the habit worth having. If you lifted in pounds on Monday and kilos on Thursday, the weekly total converts them properly rather than adding two different numbers together.</p>
+
+  <div class="pull">
+    <p>The point of a training log is that you can trust it a year from now. Everything else is downstream of that.</p>
+  </div>
+
+  <h2>What it refuses to do</h2>
+  <p>These are not aspirations. Each one is a decision already in the code, and you can check every one of them from inside the app.</p>
+
+  <ul class="refusals">
+    <li>
+      <b>No ads, and no advertising identifier</b>
+      <span>There is no ad network in the app and nothing that reads an advertising ID. That is not a plan for later &mdash; there is no ad SDK to switch on.</span>
+    </li>
+    <li>
+      <b>Nothing estimated is presented as measured</b>
+      <span>A backdated workout is marked as backdated. An unreadable answer on a coaching form is sent as blank rather than guessed at, because a coach reading &ldquo;about 80ish&rdquo; as 80 is worse than reading nothing and asking.</span>
+    </li>
+    <li>
+      <b>Your data leaves whenever you want</b>
+      <span>Export the whole history as a CSV. Delete your account and everything in it from inside the app, immediately, without emailing anyone for permission.</span>
+    </li>
+    <li>
+      <b>Suggestions you can argue with</b>
+      <span>The load suggestions are a readable rule &mdash; add reps, then weight, with a brake when you report a hard set and a deload when you stall. It is called AI in the app and the code says out loud that it is a heuristic. A suggestion about what to put over your own chest should be one you can disagree with.</span>
+    </li>
+    <li>
+      <b>Free stays free</b>
+      <span>Logging, the full catalogue, streaks, charts and the leaderboard cost nothing and are not a trial. Paid plans have only ever added things, never fenced off something that was already free.</span>
+    </li>
+  </ul>
+
+  <h2>Who builds it</h2>
+  <p>Citadel Fitness is an independent project, not a company with a support department. Mail sent to it reaches the person who writes the code, which is why the <a href="/support">support page</a> promises a reply within seven days rather than a ticket number.</p>
+  <p>That is also the honest limit. Form check and nutrition coaching are answered by a person, so they have caps and waiting times built in rather than bolted on. Valhalla has limited places for the same reason: an hour is an hour.</p>
+
+  <h2>Where it is up to</h2>
+  <p>The app is live and free. The paid plans are built, priced and not yet on sale &mdash; the <a href="/pricing">pricing page</a> shows what they will cost, published in advance so nothing about them is a surprise later.</p>
+  <p>What it collects and why is set out in the <a href="/privacy">privacy policy</a>, and the agreement itself in the <a href="/terms">terms</a>. Both are written to be read rather than to be clicked past.</p>
+
+  <section class="ends">
+    <p>Questions, bug reports and disagreements are all welcome at <a href="mailto:tumi.citadel@gmail.com">tumi.citadel@gmail.com</a>.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-brand">
+      <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="26" height="26" />CITADEL</a>
+      <p class="site-footer-note">A workout tracker that stays out of your way. No ads, no trackers, and your data stays yours.</p>
+    </div>
+    <div class="site-footer-col">
+      <h2>Product</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span class="soon">Download</span></li>
+        <li><a href="https://demo.citadelfitness.app">Live demo</a></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Company</h2>
+      <ul>
+        <li><a href="/about" aria-current="page">About</a></li>
+        <li><span class="soon">Changelog</span></li>
+        <li><span class="soon">Guides</span></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Legal</h2>
+      <ul>
+        <li><a href="/privacy">Privacy policy</a></li>
+        <li><a href="/terms">Terms of service</a></li>
+        <li><a href="/delete-account">Delete your account</a></li>
+        <li><a href="/support">Support</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer-bottom">
+    <p class="site-copy">&copy; 2026 Citadel Fitness. All rights reserved.</p>
+    <div class="site-social">
+      <a href="https://www.instagram.com/citadelfitness.app/" target="_blank" rel="noopener" aria-label="Citadel Fitness on Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://x.com/CitadelFitness" target="_blank" rel="noopener" aria-label="Citadel Fitness on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@citadel.fitness.com" target="_blank" rel="noopener" aria-label="Citadel Fitness on TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-.98-.86-1.51-2.09-1.51-3.4h-3.09v13.02c0 1.43-1.17 2.6-2.6 2.6a2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.78-1.48z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
