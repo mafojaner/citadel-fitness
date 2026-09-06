@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Changelog: Citadel Fitness</title>
+<meta name="description" content="What changed in each release of Citadel Fitness, including what is still in testing and what has not shipped yet." />
+<link rel="icon" href="/favicon.png" />
+<link rel="canonical" href="https://citadelfitness.app/changelog" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://citadelfitness.app/changelog" />
+<meta property="og:title" content="Changelog: Citadel Fitness" />
+<meta property="og:description" content="What changed in each release, including what is still in testing." />
+<meta property="og:image" content="https://citadelfitness.app/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/shell.css" />
+<link rel="stylesheet" href="/doc.css" />
+<style>
+  /* A changelog is a dated list, so the structure is a spine: releases down
+     the left with their version and date, entries to the right. Numbering
+     would be wrong here -- the order is chronological and the version is
+     already the identifier. */
+  .page { grid-template-columns: minmax(0, 780px); justify-content: center; }
+
+  .release {
+    border-top: 1px solid var(--doc-border);
+    padding: 26px 0 0;
+    margin: 0 0 34px;
+  }
+  .release:first-of-type { border-top: 0; padding-top: 0; }
+
+  .release-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .version {
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--doc-ink);
+  }
+  .rel-date { font-size: 13px; color: var(--doc-mist); }
+  .chip {
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--note-edge);
+    background: var(--note-bg);
+    color: var(--note);
+  }
+  .chip.shipped { border-color: var(--doc-border); background: var(--surface); color: var(--doc-slate); }
+
+  .release h3 {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--doc-mist);
+    margin: 22px 0 8px;
+  }
+  .release ul { margin: 0 0 6px; padding-left: 20px; }
+  .release li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="28" height="28" />CITADEL</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/support">Support</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/delete-account">Delete account</a>
+      <a href="https://demo.citadelfitness.app" target="_blank" rel="noopener">Live demo</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+
+  <header class="doc-head">
+    <span class="eyebrow sans">Releases</span>
+    <h1>Changelog</h1>
+    <div class="doc-meta sans">
+      <span><strong>Current</strong> 1.0.0</span>
+      <span><strong>Platform</strong> Android</span>
+      <span><strong>Updated</strong> September 6, 2026</span>
+    </div>
+    <p class="lede">Every release that reaches a device gets an entry here, including the ones only testers can install. If a bug you reported is fixed, this is where it will say so.</p>
+  </header>
+
+  <main>
+
+    <div class="release">
+      <div class="release-head">
+        <span class="version">1.0.0</span>
+        <span class="rel-date">3 September 2026 &middot; build 3</span>
+        <span class="chip">Internal testing</span>
+      </div>
+      <p>The first build to leave a laptop. Android only, on the internal testing track, which means it is installable by invited testers and is not on the public store.</p>
+
+      <h3>What is in it</h3>
+      <ul>
+        <li>Workout logging against a catalogue of 273 exercises, with sets, reps, weight, distance, duration and effort.</li>
+        <li>Streaks, weekly volume and activity charts, with backdated sessions marked as backdated.</li>
+        <li>Weights and distances in kg or lb and km or mi, converted rather than added together.</li>
+        <li>Activity leaderboard, ranked by days trained in the last seven, same-day logs only.</li>
+        <li>The newsletter, with per-category notifications.</li>
+        <li>Data export as CSV, and account deletion that runs immediately from inside the app.</li>
+      </ul>
+
+      <h3>Known limits</h3>
+      <ul>
+        <li>No paid plans. Nothing can be bought and no payment details are asked for anywhere.</li>
+        <li>Crash reports from this build arrive without source maps, so they are harder to read than they will be. It does not affect the app itself.</li>
+        <li>iOS is not built yet.</li>
+      </ul>
+    </div>
+
+    <div class="release">
+      <div class="release-head">
+        <span class="version">Before 1.0.0</span>
+        <span class="rel-date">August 2026</span>
+        <span class="chip shipped">Not released</span>
+      </div>
+      <p>Everything before build 3 ran on a development server rather than on anyone's phone, so there is nothing to list: no version of Citadel Fitness was installable before September.</p>
+      <p>That is deliberately said rather than dressed up with a list of pre-release milestones. A changelog that includes work nobody could use is a progress report wearing a changelog's clothes.</p>
+    </div>
+
+  </main>
+
+  <div class="doc-foot sans">
+    <p>Citadel Fitness &middot; <a href="/support">Support</a> &middot; <a href="/pricing">Pricing</a> &middot; <a href="/">Home</a></p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="site-footer-brand">
+      <a class="site-wordmark" href="/"><img src="/favicon.png" alt="" width="26" height="26" />CITADEL</a>
+      <p class="site-footer-note">A workout tracker that stays out of your way. No ads, no trackers, and your data stays yours.</p>
+    </div>
+    <div class="site-footer-col">
+      <h2>Product</h2>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span class="soon">Download</span></li>
+        <li><a href="https://demo.citadelfitness.app">Live demo</a></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Company</h2>
+      <ul>
+        <li><a href="/about">About</a></li>
+        <li><a href="/changelog" aria-current="page">Changelog</a></li>
+        <li><span class="soon">Guides</span></li>
+      </ul>
+    </div>
+    <div class="site-footer-col">
+      <h2>Legal</h2>
+      <ul>
+        <li><a href="/privacy">Privacy policy</a></li>
+        <li><a href="/terms">Terms of service</a></li>
+        <li><a href="/delete-account">Delete your account</a></li>
+        <li><a href="/support">Support</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="site-footer-bottom">
+    <p class="site-copy">&copy; 2026 Citadel Fitness. All rights reserved.</p>
+    <div class="site-social">
+      <a href="https://www.instagram.com/citadelfitness.app/" target="_blank" rel="noopener" aria-label="Citadel Fitness on Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://x.com/CitadelFitness" target="_blank" rel="noopener" aria-label="Citadel Fitness on X">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://www.tiktok.com/@citadel.fitness.com" target="_blank" rel="noopener" aria-label="Citadel Fitness on TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 5.82c-.98-.86-1.51-2.09-1.51-3.4h-3.09v13.02c0 1.43-1.17 2.6-2.6 2.6a2.6 2.6 0 0 1-2.6-2.6 2.6 2.6 0 0 1 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.78-1.48z"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
