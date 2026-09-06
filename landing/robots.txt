@@ -1,0 +1,17 @@
+# Citadel Fitness — https://citadelfitness.app
+#
+# Everything public is crawlable. There is no Disallow list, and that is
+# deliberate rather than an omission.
+#
+# Private routes are kept out of search by a noindex meta tag on the page
+# itself and by an X-Robots-Tag header in vercel.json. Both work without
+# naming anything here.
+#
+# Do not add Disallow rules for private pages. This file is public and is
+# among the first things a curious person fetches, so a rule meant to hide a
+# path publishes it instead. It is a signpost, not a lock.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://citadelfitness.app/sitemap.xml

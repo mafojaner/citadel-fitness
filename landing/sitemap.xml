@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Public pages only. Private routes are omitted rather than described, since
+  a comment naming one would advertise it exactly as a robots.txt rule would.
+
+  Extensionless URLs, because cleanUrls is on in vercel.json and the .html
+  forms take a 308. A sitemap should list the destination, not the redirect.
+
+  Add each new page as it ships rather than in advance; an entry for a URL
+  that 404s is worse than a missing one.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://citadelfitness.app/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://citadelfitness.app/privacy</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://citadelfitness.app/delete-account</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
