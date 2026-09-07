@@ -1,7 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Easing,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gradients } from '../theme/tokens';
 
 export interface SavedRecord {
@@ -23,64 +33,151 @@ interface WorkoutSavedAnimationProps {
   /** The unit the weights are already in. */
   weightUnit?: string;
   /**
-   * Optional line under the badge. Used when the save went to the offline
-   * queue rather than the server: the workout is recorded either way, but
-   * saying so is the difference between "done" and "done, and it will
-   * upload itself".
+   * Optional line under the headline. Used when the save went to the
+   * offline queue rather than the server: the workout is recorded either
+   * way, but saying so is the difference between "done" and "done, and it
+   * will upload itself".
    */
   caption?: string;
 }
 
-interface ConfettiPiece {
-  color: string;
-  shape: 'rect' | 'dot';
-  size: number;
-  dx: number;
-  dyBurst: number;
-  dyFall: number;
-  spin: number;
-}
-
-const PIECE_COUNT = 26;
-const PIECE_COLORS = ['#FF5A36', '#FF3D81', '#FFC837', '#2FB380', '#8B5CF6'];
-const HOLD_MS = 1050;
+/**
+ * The motion is deliberately quicker than the time on screen.
+ *
+ * These were each roughly half again as long, which spent the first second
+ * of a two-second celebration still arriving -- the headline landed about
+ * when you were ready to leave. Shortening the travel without shortening
+ * the hold buys the same total length with the moving part over sooner, so
+ * what you spend the time on is reading the thing rather than watching it
+ * assemble. `holdMs` below absorbs the difference exactly, which is why
+ * the totals are unchanged at 2050ms, or 3850ms with a record.
+ */
+const WIPE_MS = 380;
+const BAND_B_DELAY_MS = 150;
+const BAND_B_MS = 300;
+const CONTENT_DELAY_MS = 250;
+const CONTENT_MS = 260;
+const HOLD_MS = 1670;
 /**
  * Longer when there is a record to read.
  *
- * 1050ms is right for "saved" -- it is a confirmation, and confirmations
- * should get out of the way. It is not enough time to read "New personal
- * record, Bench Press, 70 kg x 5", and a celebration nobody can finish
- * reading is worse than no celebration. Records are rare enough that this is
- * an occasional reward rather than a tax on every save.
+ * A record needs enough time to actually be read ("New personal record,
+ * Bench Press, 70 kg x 5"), not just glimpsed between two motions. Records
+ * are rare enough that this is an occasional reward rather than a tax on
+ * every save -- and the skip control is there for when it isn't wanted.
  */
-const HOLD_WITH_RECORD_MS = 2900;
-const FADE_OUT_MS = 250;
-const SCRIM_OPACITY = 0.55;
+const HOLD_WITH_RECORD_MS = 3470;
+const FADE_OUT_MS = 260;
+const BACKDROP = '#0B0E14';
 
-function generateConfetti(): ConfettiPiece[] {
-  return Array.from({ length: PIECE_COUNT }, (_, i) => {
-    const angle = (i / PIECE_COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-    const distance = 70 + Math.random() * 60;
-    return {
-      color: PIECE_COLORS[i % PIECE_COLORS.length],
-      shape: Math.random() < 0.6 ? 'rect' : 'dot',
-      size: 5 + Math.random() * 5,
-      dx: Math.cos(angle) * distance,
-      // Burst outward first, then extra downward drift for a "burst, then
-      // fall" arc instead of a flat radial spray — reads more like real
-      // confetti settling under gravity.
-      dyBurst: Math.sin(angle) * distance * 0.6,
-      dyFall: 60 + Math.random() * 70,
-      spin: 360 * (2 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1),
-    };
-  });
+interface ConfettiPiece {
+  icon: keyof typeof Ionicons.glyphMap;
+  size: number;
+  left: number;
+  startTop: number;
+  drift: number;
+  wobble: number;
+  peakOpacity: number;
+  delay: number;
+  duration: number;
+}
+
+const CONFETTI_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
+  'barbell-outline',
+  'flame-outline',
+  'trophy-outline',
+  'thumbs-up-outline',
+];
+
+function generateConfetti(width: number, height: number, spanMs: number): ConfettiPiece[] {
+  const count = Math.round(width / 34);
+  return Array.from({ length: count }, (_, i) => ({
+    icon: CONFETTI_ICONS[i % CONFETTI_ICONS.length],
+    size: 18 + Math.random() * 14,
+    left: Math.random() * width,
+    // Starts anywhere from just under the headline to well below the
+    // screen, so pieces keep entering from the bottom rather than all
+    // drifting past in the first second.
+    startTop: height * 0.4 + Math.random() * height * 0.9,
+    drift: height * 0.35 + Math.random() * height * 0.35,
+    wobble: (Math.random() - 0.5) * 40,
+    peakOpacity: 0.35 + Math.random() * 0.35,
+    delay: Math.random() * Math.max(0, spanMs - 700),
+    duration: 1000 + Math.random() * 700,
+  }));
 }
 
 /**
- * Replaces react-native-confetti-cannon, which rendered 120 individually
- * physics-simulated particles — visibly janky on web, where none of that
- * runs on a compositor thread. This is ~26 views animating only transform
- * and opacity (both native-driver-safe), so it stays smooth everywhere.
+ * Renders ~26 icons animating only transform and opacity (both
+ * native-driver-safe), the same approach the confetti burst this replaced
+ * used — see the note it left behind for why that mattered on web.
+ */
+function ConfettiField({ width, height, spanMs }: { width: number; height: number; spanMs: number }) {
+  // Lazy initializer: called once per mount and cached, the documented
+  // escape hatch for one-time non-deterministic setup that isn't expected
+  // to be a pure function of props the way useMemo's callback is.
+  const [pieces] = useState(() => generateConfetti(width, height, spanMs));
+  const [progress] = useState(() => pieces.map(() => new Animated.Value(0)));
+
+  useEffect(() => {
+    const animations = pieces.map((piece, i) =>
+      Animated.timing(progress[i], {
+        toValue: 1,
+        duration: piece.duration,
+        delay: piece.delay,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      })
+    );
+    Animated.parallel(animations).start();
+  }, [pieces, progress]);
+
+  return (
+    <>
+      {pieces.map((piece, i) => {
+        const translateY = progress[i].interpolate({ inputRange: [0, 1], outputRange: [0, -piece.drift] });
+        const translateX = progress[i].interpolate({ inputRange: [0, 1], outputRange: [0, piece.wobble] });
+        const opacity = progress[i].interpolate({
+          inputRange: [0, 0.15, 0.75, 1],
+          outputRange: [0, piece.peakOpacity, piece.peakOpacity, 0],
+        });
+        return (
+          <Animated.View
+            key={i}
+            style={{
+              position: 'absolute',
+              left: piece.left,
+              top: piece.startTop,
+              opacity,
+              transform: [{ translateY }, { translateX }],
+            }}
+          >
+            <Ionicons name={piece.icon} size={piece.size} color="#FFFFFF" />
+          </Animated.View>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * The full-screen takeover shown when a workout saves.
+ *
+ * Replaced a badge-and-burst overlay on the still-visible form with a wipe
+ * that covers the whole screen and a dedicated "Nice work." beat, after a
+ * clip of Strava's own completion screen: the button's colour floods the
+ * screen, resolves into a settled diagonal band, and a name-brand icon
+ * field drifts upward behind the headline while it holds.
+ *
+ * Two bands rather than one continuously morphing shape — this app has
+ * react-native-svg but nothing that animates an SVG path's `d` attribute,
+ * and Animated only drives transform and opacity anyway (see
+ * WelcomeBackBanner's note on why: it's what keeps this on the compositor
+ * thread). Band A starts oversized and centred, covering the screen on its
+ * own; it then shrinks and slides to its resting diagonal while Band B
+ * slides up from off-screen to complete the pair, together reading as one
+ * S-curve at rest without either ever animating anything but scale,
+ * translate and opacity.
  */
 export function WorkoutSavedAnimation({
   onDone,
@@ -88,178 +185,225 @@ export function WorkoutSavedAnimation({
   records = [],
   weightUnit = 'kg',
 }: WorkoutSavedAnimationProps) {
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const hasRecords = records.length > 0;
-  const [badgeProgress] = useState(() => new Animated.Value(0));
-  const [confetti] = useState(() => new Animated.Value(0));
-  const [scrim] = useState(() => new Animated.Value(0));
-  // Lazy initializer: React calls this exactly once per mount and caches
-  // the result, which is the documented escape hatch for one-time
-  // non-deterministic setup — unlike useMemo, it isn't expected to be a
-  // pure function of its inputs on every render.
-  const [pieces] = useState(generateConfetti);
+  const holdMs = hasRecords ? HOLD_WITH_RECORD_MS : HOLD_MS;
+
+  const [wipe] = useState(() => new Animated.Value(0));
+  const [bandB] = useState(() => new Animated.Value(0));
+  const [content] = useState(() => new Animated.Value(0));
+  const [exit] = useState(() => new Animated.Value(1));
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guards the one thing that must happen exactly once. Skip fires it, and
+  // so does the timer -- pressing skip in the same frame the hold expires
+  // would otherwise run two exit animations and call onDone twice, which
+  // on the caller's side is a second navigation.popToTop().
+  const leavingRef = useRef(false);
+
+  const leave = useCallback(() => {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    Animated.timing(exit, { toValue: 0, duration: FADE_OUT_MS, useNativeDriver: true }).start(() => onDone());
+  }, [exit, onDone]);
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(scrim, {
-        toValue: SCRIM_OPACITY,
-        duration: 180,
-        easing: Easing.out(Easing.ease),
+    // Quintic-out: the same distance covered with more of it spent early,
+    // which is what makes the arrival read as quick without the band ever
+    // looking like it snapped into place. React Native has no `Easing.quint`
+    // the way CSS vocabulary does; the fifth-power curve comes from poly(5).
+    //
+    // Built here rather than as a module constant, which is what it was
+    // first. `Easing.out(f)` returns `t => 1 - f(1 - t)` without ever
+    // calling `f`, so an `Easing` that isn't initialised yet at module-eval
+    // time produces a closure that looks fine and throws "easing is not a
+    // function" later, when the animation actually starts.
+    const snap = Easing.out(Easing.poly(5));
+    Animated.parallel([
+      Animated.timing(wipe, {
+        toValue: 1,
+        duration: WIPE_MS,
+        easing: snap,
         useNativeDriver: true,
       }),
-      Animated.parallel([
-        // The "breathe in" — a slow expand past its resting size and back,
-        // like an inhale, rather than a snappy elastic bounce.
-        Animated.sequence([
-          Animated.timing(badgeProgress, {
-            toValue: 1.08,
-            duration: 480,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(badgeProgress, {
-            toValue: 1,
-            duration: 260,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.timing(confetti, {
-          toValue: 1,
-          duration: 900,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]),
+      Animated.timing(bandB, {
+        toValue: 1,
+        duration: BAND_B_MS,
+        delay: BAND_B_DELAY_MS,
+        easing: snap,
+        useNativeDriver: true,
+      }),
+      Animated.timing(content, {
+        toValue: 1,
+        duration: CONTENT_MS,
+        delay: CONTENT_DELAY_MS,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
     ]).start();
 
-    const timeout = setTimeout(
-      () => {
-        Animated.timing(scrim, { toValue: 0, duration: FADE_OUT_MS, useNativeDriver: true }).start(onDone);
-      },
-      hasRecords ? HOLD_WITH_RECORD_MS : HOLD_MS
-    );
-    return () => clearTimeout(timeout);
-  }, [badgeProgress, confetti, scrim, onDone, hasRecords]);
+    timeoutRef.current = setTimeout(leave, WIPE_MS + holdMs);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [wipe, bandB, content, leave, holdMs]);
 
-  const badgeOpacity = badgeProgress.interpolate({
-    inputRange: [0, 1.08],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
+  // Sized well past the screen in both dimensions at rest (before either
+  // band moves at all) so that centring either one, unscaled, already
+  // covers corner to corner — the "wipe" is this same shape starting
+  // smaller and off to the side, not a separately-built cover shape.
+  const bandWidth = width * 1.8;
+  const bandHeight = height * 0.2;
+  const bandRotation = '-26deg';
+
+  const blackOpacity = wipe.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 1, 1] });
+
+  const bandAScale = wipe.interpolate({ inputRange: [0, 0.55, 1], outputRange: [0.3, 1.5, 1] });
+  const bandATranslateX = wipe.interpolate({ inputRange: [0, 0.55, 1], outputRange: [0, 0, width * 0.25] });
+  const bandATranslateY = wipe.interpolate({
+    inputRange: [0, 0.55, 1],
+    outputRange: [0, 0, -height * 0.3],
   });
 
-  return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-      {/* Its own opacity layer, separate from the badge/confetti below —
-          otherwise animating this to darken the background would also fade
-          out the celebration content sitting on top of it. */}
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B0E14', opacity: scrim }]} />
+  const bandBTranslateY = bandB.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height * 1.4, height * 0.36],
+  });
 
-      {pieces.map((piece, i) => {
-        const translateX = confetti.interpolate({ inputRange: [0, 1], outputRange: [0, piece.dx] });
-        const translateY = confetti.interpolate({
-          inputRange: [0, 0.4, 1],
-          outputRange: [0, piece.dyBurst, piece.dyBurst + piece.dyFall],
-        });
-        const rotate = confetti.interpolate({ inputRange: [0, 1], outputRange: ['0deg', `${piece.spin}deg`] });
-        const opacity = confetti.interpolate({ inputRange: [0, 0.6, 1], outputRange: [1, 1, 0] });
-        return (
-          <Animated.View
-            key={i}
-            style={{
-              position: 'absolute',
-              width: piece.size,
-              height: piece.shape === 'rect' ? piece.size * 0.55 : piece.size,
-              borderRadius: piece.shape === 'rect' ? 1.5 : piece.size / 2,
-              backgroundColor: piece.color,
-              opacity,
-              transform: [{ translateX }, { translateY }, { rotate }],
-            }}
-          />
-        );
-      })}
+  const contentOpacity = content;
+  const contentTranslateY = content.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
+
+  return (
+    // In a Modal rather than an absolute layer on the screen, because
+    // "takeover" has to mean the whole screen: as a plain overlay this sat
+    // inside the navigator's content area, leaving the header above it and
+    // the floating tab bar below it lit and untouched, which reads as a
+    // panel over the form rather than the app handing the moment over. The
+    // back button is deliberately inert while it plays -- it lasts two
+    // seconds and leaves on its own.
+    <Modal visible transparent statusBarTranslucent animationType="none" onRequestClose={() => {}}>
+    <Animated.View
+      style={[StyleSheet.absoluteFill, { opacity: exit, alignItems: 'center', justifyContent: 'center' }]}
+    >
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { backgroundColor: BACKDROP, opacity: blackOpacity }]}
+      />
 
       <Animated.View
-        style={{ opacity: badgeOpacity, transform: [{ scale: badgeProgress }] }}
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          width: bandWidth,
+          height: bandHeight,
+          borderRadius: bandHeight / 2,
+          overflow: 'hidden',
+          transform: [
+            { translateX: bandATranslateX },
+            { translateY: bandATranslateY },
+            { rotate: bandRotation },
+            { scale: bandAScale },
+          ],
+        }}
       >
-        <LinearGradient
-          colors={gradients.flame}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 96,
-            height: 96,
-            borderRadius: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-            shadowColor: gradients.flame[0],
-            shadowOpacity: 0.5,
-            shadowRadius: 20,
-            shadowOffset: { width: 0, height: 8 },
-            elevation: 8,
-          }}
-        >
-          <Ionicons name="checkmark" size={52} color="#FFFFFF" />
-        </LinearGradient>
+        <LinearGradient colors={gradients.flame} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       </Animated.View>
 
-      {hasRecords ? (
-        // Under the badge, in the app's own ember, and stated as plainly as
-        // possible: what the lift was and what was done on it. The screen
-        // this replaces required leaving the workout, opening the records
-        // vault, and comparing six dates.
-        <Animated.View
-          style={{
-            opacity: badgeOpacity,
-            alignItems: 'center',
-            marginTop: 22,
-            paddingHorizontal: 28,
-            gap: 6,
-          }}
-        >
-          <Text
-            style={{
-              color: '#FFC837',
-              fontSize: 12,
-              fontWeight: '800',
-              letterSpacing: 1.2,
-            }}
-          >
-            {records.length === 1 ? 'NEW PERSONAL RECORD' : `${records.length} NEW PERSONAL RECORDS`}
-          </Text>
-          {records.slice(0, 3).map((record) => (
-            <Text
-              key={record.exerciseName}
-              style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700', textAlign: 'center' }}
-              numberOfLines={1}
-            >
-              {record.exerciseName} · {record.weight} {weightUnit} × {record.reps}
-            </Text>
-          ))}
-          {/* Capped at three. A session that sets five records is a first
-              week, not a milestone, and a wall of them stops reading as an
-              achievement. */}
-          {records.length > 3 ? (
-            <Text style={{ color: '#D8DCE4', fontSize: 13 }}>
-              and {records.length - 3} more
-            </Text>
-          ) : null}
-        </Animated.View>
-      ) : null}
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          width: bandWidth,
+          height: bandHeight,
+          borderRadius: bandHeight / 2,
+          overflow: 'hidden',
+          transform: [
+            { translateX: -width * 0.25 },
+            { translateY: bandBTranslateY },
+            { rotate: bandRotation },
+          ],
+        }}
+      >
+        <LinearGradient colors={gradients.flame} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      </Animated.View>
 
-      {caption ? (
-        <Animated.Text
-          style={{
-            marginTop: 20,
-            color: '#FFFFFF',
-            fontSize: 14,
-            textAlign: 'center',
-            paddingHorizontal: 32,
-            opacity: scrim,
-          }}
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+        <ConfettiField width={width} height={height} spanMs={holdMs} />
+      </View>
+
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          opacity: contentOpacity,
+          transform: [{ translateY: contentTranslateY }],
+          alignItems: 'center',
+          paddingHorizontal: 32,
+        }}
+      >
+        <Ionicons name="barbell-outline" size={40} color="#FFFFFF" style={{ marginBottom: 14 }} />
+        <Text style={{ color: '#FFFFFF', fontSize: 30, fontWeight: '800', letterSpacing: 0.2 }}>Nice work.</Text>
+
+        {hasRecords ? (
+          <View style={{ alignItems: 'center', marginTop: 22, gap: 6 }}>
+            <Text style={{ color: '#FFC837', fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }}>
+              {records.length === 1 ? 'NEW PERSONAL RECORD' : `${records.length} NEW PERSONAL RECORDS`}
+            </Text>
+            {records.slice(0, 3).map((record) => (
+              <Text
+                key={record.exerciseName}
+                style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700', textAlign: 'center' }}
+                numberOfLines={1}
+              >
+                {record.exerciseName} · {record.weight} {weightUnit} × {record.reps}
+              </Text>
+            ))}
+            {/* Capped at three. A session that sets five records is a first
+                week, not a milestone, and a wall of them stops reading as an
+                achievement. */}
+            {records.length > 3 ? (
+              <Text style={{ color: '#D8DCE4', fontSize: 13 }}>and {records.length - 3} more</Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        {caption ? (
+          <Text style={{ marginTop: 20, color: 'rgba(255,255,255,0.75)', fontSize: 14, textAlign: 'center' }}>
+            {caption}
+          </Text>
+        ) : null}
+      </Animated.View>
+
+      {/* Fades in with the headline rather than at the very start: during
+          the wipe there is nothing yet to skip past, and a control that
+          appears before the thing it dismisses reads as an error message.
+          Top right, clear of the record lines, and given a hit slop well
+          past its own box because it is small text on a screen that is
+          about to leave on its own anyway. */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: insets.top + 8,
+          right: 12,
+          opacity: contentOpacity,
+        }}
+      >
+        <Pressable
+          onPress={leave}
+          hitSlop={16}
+          accessibilityRole="button"
+          accessibilityLabel="Skip"
+          style={({ pressed }) => ({
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            opacity: pressed ? 0.6 : 1,
+          })}
         >
-          {caption}
-        </Animated.Text>
-      ) : null}
-    </View>
+          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: '600' }}>Skip</Text>
+        </Pressable>
+      </Animated.View>
+    </Animated.View>
+    </Modal>
   );
 }
