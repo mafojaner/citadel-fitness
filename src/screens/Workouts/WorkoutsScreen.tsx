@@ -5,7 +5,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
@@ -26,12 +25,7 @@ import {
 } from '../../constants/categories';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
-import {
-  fetchWorkoutForDate,
-  fetchWorkoutDatesInRange,
-  monthRange,
-  type WorkoutDetailExercise,
-} from '../../lib/workouts';
+import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
@@ -68,38 +62,16 @@ function summarize(exercises: WorkoutDetailExercise[]) {
   return Array.from(byCategory.entries());
 }
 
-function formatDayLabel(dateString: string, today: string) {
-  if (dateString === today) return 'Today';
-  const date = new Date(`${dateString}T00:00:00`);
-  return date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-}
-
 export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<WorkoutsNavigationProp>();
   const openWorkoutDraft = useOpenWorkoutDraft();
   const userId = useAuthStore((s) => s.session?.user.id);
   const today = todayISO();
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [markedDates, setMarkedDates] = useState<string[]>([]);
   const [dayExercises, setDayExercises] = useState<WorkoutDetailExercise[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const loadMonth = useCallback(
-    async (dateString: string) => {
-      if (!userId) return;
-      const { start, end } = monthRange(dateString);
-      try {
-        const dates = await fetchWorkoutDatesInRange(userId, start, end);
-        setMarkedDates(dates);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load your workout calendar');
-      }
-    },
-    [userId]
-  );
 
   const loadDay = useCallback(
     async (dateString: string) => {
@@ -120,9 +92,8 @@ export function WorkoutsScreen() {
   );
 
   const reload = useCallback(() => {
-    loadMonth(selectedDate);
-    loadDay(selectedDate);
-  }, [loadMonth, loadDay, selectedDate]);
+    loadDay(today);
+  }, [loadDay, today]);
 
   useFocusEffect(reload);
 
@@ -130,7 +101,7 @@ export function WorkoutsScreen() {
     if (entering) return;
     setEntering(true);
     try {
-      await openWorkoutDraft(selectedDate);
+      await openWorkoutDraft(today);
       navigation.navigate('AddWorkout');
     } finally {
       setEntering(false);
@@ -171,23 +142,16 @@ export function WorkoutsScreen() {
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
-      <ActivityCalendar
-        selectedDate={selectedDate}
-        onDayPress={setSelectedDate}
-        onMonthChange={loadMonth}
-        markedDates={markedDates}
-      />
-
       <AnimatedPressable
-        onPress={() => navigation.navigate('DayDetail', { date: selectedDate })}
+        onPress={() => navigation.navigate('DayDetail', { date: today })}
         scaleTo={0.98}
         accessibilityRole="button"
-        accessibilityLabel={`${formatDayLabel(selectedDate, today)}, view details`}
+        accessibilityLabel={`${'Today'}, view details`}
       >
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-              {formatDayLabel(selectedDate, today)}
+              {'Today'}
             </Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </View>
