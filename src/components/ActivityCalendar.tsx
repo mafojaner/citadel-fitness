@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import { Card } from './Card';
-import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface CalendarDayMarking {
@@ -35,6 +34,14 @@ interface ActivityCalendarProps {
    * off there.
    */
   showEligibility?: boolean;
+  /**
+   * Render the grid alone, with no card or shadow of its own.
+   *
+   * For a caller that is already a card and wants the month inside it --
+   * WeekStripCalendar, which puts a week strip and a toggle above the grid
+   * and would otherwise be a card nested in a card.
+   */
+  bare?: boolean;
 }
 
 /**
@@ -50,6 +57,7 @@ export function ActivityCalendar({
   markedDates = [],
   ringedDates = [],
   showEligibility = false,
+  bare = false,
 }: ActivityCalendarProps) {
   const { colors, radius, scheme } = useTheme();
 
@@ -181,44 +189,50 @@ export function ActivityCalendar({
     ]
   );
 
+  const grid = (
+    <Calendar
+      key={scheme}
+      current={selectedDate}
+      onDayPress={(day: DateData) => onDayPress(day.dateString)}
+      onMonthChange={(month: DateData) => onMonthChange(month.dateString)}
+      markedDates={marks}
+      dayComponent={CalendarDay}
+      renderArrow={(direction: 'left' | 'right') => (
+        <Ionicons
+          name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
+          size={20}
+          color={colors.textSecondary}
+        />
+      )}
+      theme={{
+        backgroundColor: colors.surface,
+        calendarBackground: colors.surface,
+        textSectionTitleColor: colors.textSecondary,
+        dayTextColor: colors.textPrimary,
+        monthTextColor: colors.textPrimary,
+        textMonthFontWeight: '700',
+        todayTextColor: colors.primary,
+        arrowColor: colors.primary,
+      }}
+    />
+  );
+
+  if (bare) return grid;
+
+  // A neutral shadow, where this was a violet glow borrowed from
+  // `gradients.calendar` -- the same borrowed-ramp habit the glyphs had.
   return (
     <View
       style={{
         borderRadius: radius.lg,
-        shadowColor: gradients.calendar[1],
-        shadowOpacity: 0.18,
+        shadowColor: '#000',
+        shadowOpacity: scheme === 'dark' ? 0.3 : 0.1,
         shadowRadius: 16,
         shadowOffset: { width: 0, height: 8 },
         elevation: 3,
       }}
     >
-      <Card>
-        <Calendar
-          key={scheme}
-          current={selectedDate}
-          onDayPress={(day: DateData) => onDayPress(day.dateString)}
-          onMonthChange={(month: DateData) => onMonthChange(month.dateString)}
-          markedDates={marks}
-          dayComponent={CalendarDay}
-          renderArrow={(direction: 'left' | 'right') => (
-            <Ionicons
-              name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
-              size={20}
-              color={colors.textSecondary}
-            />
-          )}
-          theme={{
-            backgroundColor: colors.surface,
-            calendarBackground: colors.surface,
-            textSectionTitleColor: colors.textSecondary,
-            dayTextColor: colors.textPrimary,
-            monthTextColor: colors.textPrimary,
-            textMonthFontWeight: '700',
-            todayTextColor: colors.primary,
-            arrowColor: colors.primary,
-          }}
-        />
-      </Card>
+      <Card>{grid}</Card>
     </View>
   );
 }

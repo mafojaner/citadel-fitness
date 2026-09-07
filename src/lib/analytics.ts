@@ -32,6 +32,26 @@ export function todayISO(): string {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * The seven days of the week containing `dateString`, Sunday first.
+ *
+ * Sunday because that is the column the month calendar starts on, and a
+ * week strip that begins on a different day than the month it collapses
+ * from would shuffle under you every time you toggled.
+ *
+ * The weekday is read in local time -- `getDay()` on a midnight-local Date
+ * -- to match `todayISO`, and the stepping is the UTC calendar math in
+ * `addDays`. Mixing them is deliberate and is the same split
+ * fetchProgressSeries uses to bucket weeks: work out *which* day it is
+ * where the member is standing, then count days without a timezone
+ * anywhere near the arithmetic.
+ */
+export function weekOf(dateString: string): string[] {
+  const weekday = new Date(`${dateString}T00:00:00`).getDay();
+  const sunday = addDays(dateString, -weekday);
+  return Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
+}
+
 function daySpan(startDate: string, endDate: string): number {
   const [sy, sm, sd] = startDate.split('-').map(Number);
   const [ey, em, ed] = endDate.split('-').map(Number);

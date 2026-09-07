@@ -3,12 +3,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
-import { ActivityCalendar } from '../../components/ActivityCalendar';
+import { WeekStripCalendar } from '../../components/WeekStripCalendar';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
 import { IconWell } from '../../components/IconWell';
 import { InfoNote, InfoNoteText, InfoNoteTrigger } from '../../components/InfoNote';
-import { PaidFeatureCard } from '../../components/PaidFeatureCard';
+import { PaidFeatureList } from '../../components/PaidFeatureCard';
 import { RestTimer } from '../../components/RestTimer';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import {
@@ -272,7 +272,12 @@ export function AddWorkoutScreen() {
         />
       </View>
 
-      <ActivityCalendar
+      {/* A week, with the month a tap away. This was the full grid, and it
+          was the first thing on the screen someone opens to log a set --
+          about six hundred pixels answering a question that is the
+          exception rather than the rule, since a workout is nearly always
+          logged the day it happened. */}
+      <WeekStripCalendar
         selectedDate={date}
         onDayPress={onSelectDate}
         onMonthChange={loadMonth}
@@ -544,13 +549,21 @@ export function AddWorkoutScreen() {
       {/* Only once something is being logged: on an empty draft these are an
           advert on a blank screen, but next to real sets they're showing
           where the coaching will appear. Below Confirm so neither sits
-          between the user and saving. Paired together — both are "feedback
-          on what you just logged," one from a model and one from a person. */}
+          between the user and saving.
+          *
+          * One list rather than two cards. Both are Valhalla and both are
+          * feedback on what you just logged -- one from a model, one from a
+          * person -- so as separate cards they stacked two identical
+          * VALHALLA headers and two identical "Coming soon" pills on top of
+          * each other. This is the shape the Activity screen groups its
+          * pairs into, down to the labels. */}
       {draftExercises.length > 0 ? (
-        <>
-          <PaidFeatureCard featureId="ai-progressive-overload" />
-          <PaidFeatureCard featureId="form-check" />
-        </>
+        <PaidFeatureList
+          items={[
+            { featureId: 'ai-progressive-overload', label: 'What to lift next' },
+            { featureId: 'form-check', label: 'Get a lift reviewed' },
+          ]}
+        />
       ) : null}
     </ScreenContainer>
 
