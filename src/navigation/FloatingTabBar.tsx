@@ -27,11 +27,27 @@ import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
 import { useTheme } from '../theme/useTheme';
 
-/** Solid variant shown for the active tab, outline for every inactive one — the standard iOS tab-bar convention. */
+/**
+ * Solid variant shown for the active tab, outline for every inactive one —
+ * the standard iOS tab-bar convention.
+ *
+ * Listed in the order they appear, which is the order MainTabs registers
+ * them in. This is a lookup so the order here changes nothing, but a map
+ * that reads left to right is one less thing to reconcile when the bar is
+ * rearranged.
+ *
+ * Workouts is a plus rather than a barbell because it sits in the middle
+ * now, and the middle of a five-tab bar is where the create action goes.
+ *
+ * `add-circle` rather than a bare `add`, which keeps the filled/outline
+ * distinction the rest of the bar relies on: a bare plus has no interior,
+ * so `add` and `add-outline` render near enough identically and that tab
+ * would have been the only one without the cue.
+ */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
-  Workouts: 'barbell',
   Activity: 'stats-chart',
+  Workouts: 'add-circle',
   Learn: 'book',
   Search: 'search',
 };
@@ -51,6 +67,20 @@ const LABEL_BREAKPOINT = 600;
 
 const BAR_MARGIN = 12;
 const ICON_SIZE = 22;
+/**
+ * The centre tab draws bigger than the rest.
+ *
+ * Partly because it is the create action and the middle slot is where a bar
+ * says so, and partly to correct an optical difference: `add-circle` spends
+ * most of its box on the ring, so its plus reads smaller than a `home` or a
+ * `book` set at the same size. Matching the numbers would leave it looking
+ * like the odd one out.
+ *
+ * Still inside ACTIVE_PILL_H, so the capsule contains it at every width.
+ */
+const CREATE_ICON_SIZE = 30;
+/** The tab that gets it — the middle one, which is also the create action. */
+const CREATE_TAB = 'Workouts';
 
 /**
  * The highlight behind the active icon. Wider than it is tall, so it reads
@@ -235,6 +265,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
                 label={route.name}
                 showLabel={showLabels}
                 icon={TAB_ICONS[route.name] ?? 'ellipse'}
+                iconSize={route.name === CREATE_TAB ? CREATE_ICON_SIZE : ICON_SIZE}
                 isFocused={isFocused}
                 activeColor={colors.primary}
                 // textSecondary, not tabInactive, and only on this bar.
@@ -648,6 +679,8 @@ interface TabButtonProps {
   label: string;
   showLabel: boolean;
   icon: keyof typeof Ionicons.glyphMap;
+  /** Set per tab, so the centre create action can draw larger than the rest. */
+  iconSize: number;
   isFocused: boolean;
   activeColor: string;
   inactiveColor: string;
@@ -662,6 +695,7 @@ function TabButton({
   label,
   showLabel,
   icon,
+  iconSize,
   isFocused,
   activeColor,
   inactiveColor,
@@ -726,7 +760,7 @@ function TabButton({
         <Animated.View style={{ transform: [{ scale }] }}>
           <Ionicons
             name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
-            size={ICON_SIZE}
+            size={iconSize}
             color={isFocused ? activeColor : inactiveColor}
           />
         </Animated.View>

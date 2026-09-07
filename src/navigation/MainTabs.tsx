@@ -15,9 +15,9 @@ import { PlansScreen } from '../screens/Plans/PlansScreen';
 export type MainTabsParamList = {
   Home: undefined;
   /** Nested params so the sidebar's shortcuts can open a screen inside this stack directly. */
-  Workouts: NavigatorScreenParams<WorkoutsStackParamList>;
-  /** Nested params for the same reason as Workouts. */
   Activity: NavigatorScreenParams<ActivityStackParamList>;
+  /** Nested params for the same reason as Activity. */
+  Workouts: NavigatorScreenParams<WorkoutsStackParamList>;
   Learn: NavigatorScreenParams<NewsletterStackParamList>;
   Search: undefined;
   /**
@@ -46,9 +46,15 @@ export function MainTabs() {
       }}
       tabBar={(props) => <FloatingTabBar {...props} />}
     >
+      {/* Registration order is the order they appear, in the bottom bar and
+          in the desktop sidebar alike. Workouts sits third of five so it
+          lands dead centre on the phone, which is where a bar puts the
+          thing you are most often there to do — and why its icon is a plus
+          rather than a barbell. Home stays first: it is also the fallback
+          React Navigation lands on when a focused route unregisters. */}
       <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Workouts" component={WorkoutsStack} />
       <Tab.Screen name="Activity" component={ActivityStack} />
+      <Tab.Screen name="Workouts" component={WorkoutsStack} />
       <Tab.Screen name="Learn" component={NewsletterStack} />
       <Tab.Screen name="Search" component={SearchStack} />
       {/* Conditionally registered, so the phone's bottom bar never sees it.
