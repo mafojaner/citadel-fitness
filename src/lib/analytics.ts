@@ -25,26 +25,10 @@ export function addDays(dateString: string, delta: number): string {
  * pure calendar math on a date that's already been resolved.
  */
 export function todayISO(): string {
-  return localISODate(new Date());
-}
-
-/**
- * The local calendar day a timestamp fell on, for the same reason todayISO
- * exists: `toISODate` reads UTC, so a set logged at 9pm in Los Angeles is
- * already tomorrow by that reckoning.
- *
- * It matters wherever a timestamptz has to line up with a date-only column.
- * `workouts.date` and `water_logs.logged_date` are already calendar days
- * chosen by the person logging; `nutrition_intakes.created_at` and
- * `form_check_submissions.created_at` are instants. Grouping those two by
- * UTC would file an evening submission under the next day and sit it in a
- * different card from the workout it went with.
- */
-export function localISODate(value: string | Date): string {
-  const d = typeof value === 'string' ? new Date(value) : value;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
