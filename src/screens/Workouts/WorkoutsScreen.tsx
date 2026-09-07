@@ -1,4 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
@@ -7,6 +9,7 @@ import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FortressTodayCard } from '../../components/FortressTodayCard';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientIconBadge } from '../../components/GradientIconBadge';
@@ -34,6 +37,28 @@ import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
+import type { MainTabsParamList } from '../../navigation/MainTabs';
+
+/**
+ * Composite, because the Fortress card sends three of its four lines to
+ * screens inside the Activity tab. A plain stack prop only knows about this
+ * stack's own routes, so those would not type-check — the same shape Home
+ * uses, and for the same reason.
+ *
+ * The Omit is what Home does not need. `Workouts` is a key in both param
+ * lists: `undefined` in this stack, `NavigatorScreenParams<…>` at the tab
+ * level. A composite intersects the two, and those two intersect to
+ * `never`, which then poisons every navigate call on the prop rather than
+ * just the ambiguous one. Home escapes it because its overlapping key,
+ * `Home`, is `undefined` on both sides.
+ *
+ * Dropping the tab-level entry is also the honest resolution: this screen
+ * is already inside the Workouts tab, so it never needs to navigate to it.
+ */
+type WorkoutsNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<WorkoutsStackParamList>,
+  BottomTabNavigationProp<Omit<MainTabsParamList, 'Workouts'>>
+>;
 
 function summarize(exercises: WorkoutDetailExercise[]) {
   const byCategory = new Map<Category, number>();
@@ -51,7 +76,7 @@ function formatDayLabel(dateString: string, today: string) {
 
 export function WorkoutsScreen() {
   const { colors, spacing, typography } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
+  const navigation = useNavigation<WorkoutsNavigationProp>();
   const openWorkoutDraft = useOpenWorkoutDraft();
   const userId = useAuthStore((s) => s.session?.user.id);
   const today = todayISO();
@@ -129,6 +154,21 @@ export function WorkoutsScreen() {
         onPress={onEnterWorkout}
       />
 
+      {/* Directly under the primary action, the position it held on Home.
+          Draws nothing below Fortress and nothing when the tier has nothing
+          to say today, so it costs a free account neither a row nor a
+          request.
+
+          Programs is a plain stack navigate here rather than the tab-level
+          one Home needed: this screen is already inside the Workouts stack
+          that owns that route. The other three still cross to Activity. */}
+      <FortressTodayCard
+        onOpenPrograms={() => navigation.navigate('Programs')}
+        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast' })}
+        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords' })}
+        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups' })}
+      />
+
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       <ActivityCalendar
@@ -203,6 +243,14 @@ export function WorkoutsScreen() {
         featureId="structured-programs"
         onOpen={() => navigation.navigate('Programs')}
       />
+
+      {/* Last on the screen, as it was on Home. Nutrition still has no
+          logging surface of its own to attach to; this is the screen where
+          the day's logging happens, which is the closest thing it has to
+          one. A teaser for an unbuilt Valhalla feature is a reasonable
+          thing to show near the bottom and an indefensible thing to put
+          near the top. */}
+      <PaidFeatureCard featureId="nutrition-coaching" />
       </ScreenContainer>
     </View>
   );
