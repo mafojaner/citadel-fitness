@@ -10,7 +10,17 @@ import { useWaterIntake } from '../hooks/useWaterIntake';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
 import { waterBlue } from '../theme/tokens';
-import type { HomeStackParamList } from '../navigation/stacks/HomeStack';
+
+/**
+ * The card only ever needs one route, so it asks for one route rather than
+ * for a particular stack's whole param list.
+ *
+ * It used to be typed against HomeStackParamList, which was accurate while
+ * Home was the only screen rendering it and a lie the moment it moved. Any
+ * stack that registers WaterHistory satisfies this, so the card can sit on
+ * whichever screen it belongs to without the type following it around.
+ */
+type WaterCardNavigation = { WaterHistory: undefined };
 
 /**
  * Solid blue, matching how Activity's RewardsCard is solid orange rather
@@ -28,7 +38,7 @@ const BLUE = waterBlue;
  */
 export function WaterIntakeCard() {
   const { spacing, radius, typography } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<WaterCardNavigation>>();
   const unit = useProfileStore((s) => s.preferences.waterUnit);
   const goalMl = useProfileStore((s) => s.preferences.dailyWaterGoalMl);
   const { entries, totalMl, loading, error, mutating, addWater, removeLastEntry } = useWaterIntake();

@@ -13,6 +13,7 @@ import { GradientIconBadge } from '../../components/GradientIconBadge';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { WaterIntakeCard } from '../../components/WaterIntakeCard';
 import { StatChip } from '../../components/StatChip';
 import {
   CATEGORY_GRADIENTS,
@@ -188,6 +189,12 @@ export function WorkoutsScreen() {
           )}
         </Card>
       </AnimatedPressable>
+
+      {/* Under the day it belongs to. Water is the other thing logged daily,
+          so it sits with the selected day rather than above the calendar
+          that chooses one — and ahead of the Programs card below, which is
+          an upsell rather than something to log. */}
+      <WaterIntakeCard />
 
       {/* Below the calendar rather than above it: this is an alternative to
           building a day one workout at a time, so it reads better after

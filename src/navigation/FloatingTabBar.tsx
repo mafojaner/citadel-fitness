@@ -452,7 +452,10 @@ const SHORTCUTS: {
 }[] = [
   { label: 'Log a workout', icon: 'add-circle', tab: 'Workouts', screen: 'AddWorkout' },
   { label: 'Exercises', icon: 'list', tab: 'Workouts', screen: 'ExerciseCatalogue' },
-  { label: 'Water', icon: 'water', tab: 'Home', screen: 'WaterHistory' },
+  // Workouts, not Home: the card that opens this moved there, and the route
+  // is registered on that stack now. Pointing it at Home would navigate to a
+  // screen that stack no longer has.
+  { label: 'Water', icon: 'water', tab: 'Workouts', screen: 'WaterHistory' },
   { label: 'Leaderboard', icon: 'podium', tab: 'Activity', screen: 'Leaderboard' },
   { label: 'Rewards', icon: 'diamond', tab: 'Activity', screen: 'Rewards' },
   { featureId: 'pr-vault', label: 'Personal records', icon: 'trophy', tab: 'Activity', screen: 'PersonalRecords' },
