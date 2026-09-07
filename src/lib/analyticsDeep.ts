@@ -167,7 +167,7 @@ export function computeWeeks(rows: DailyRollup[]): WeekPoint[] {
     byWeek.set(key, bucket);
   }
 
-  return Array.from(byWeek.entries())
+  const trained = Array.from(byWeek.entries())
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
     .map(([weekStart, bucket]) => ({
       weekStart,
@@ -178,6 +178,34 @@ export function computeWeeks(rows: DailyRollup[]): WeekPoint[] {
       // where two sets were rated 9 is a hard week, not a week averaging 0.4.
       avgRpe: bucket.rpeCount > 0 ? Math.round((bucket.rpeSum / bucket.rpeCount) * 10) / 10 : null,
     }));
+
+  if (trained.length === 0) return trained;
+
+  // Weeks with no training are filled in rather than skipped.
+  //
+  // Without this the series only contains weeks that happened, and a chart
+  // spaces its points evenly -- so a fortnight off is drawn exactly as wide
+  // as the gap between two consecutive weeks, and a line that should show a
+  // break reads as a smooth decline. Caught on the real page, where the
+  // week of 17 August was simply missing between 10/08 and 24/08.
+  //
+  // Zero is the honest value for volume and sets in a week nobody trained.
+  // `avgRpe` stays null, because "not rated" and "rated zero" are different
+  // claims and the intensity chart drops nulls rather than plotting them.
+  const filled: WeekPoint[] = [];
+  const cursor = asDate(trained[0].weekStart);
+  const last = asDate(trained[trained.length - 1].weekStart);
+  const byStart = new Map(trained.map((w) => [w.weekStart, w]));
+
+  while (cursor.getTime() <= last.getTime()) {
+    const key = toISO(cursor);
+    filled.push(
+      byStart.get(key) ?? { weekStart: key, volume: 0, sets: 0, activeDays: 0, avgRpe: null }
+    );
+    cursor.setUTCDate(cursor.getUTCDate() + 7);
+  }
+
+  return filled;
 }
 
 export function computeRepBands(rows: DailyRollup[]): RepBandSplit[] {

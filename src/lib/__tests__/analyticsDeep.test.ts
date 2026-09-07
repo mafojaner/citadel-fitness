@@ -236,3 +236,47 @@ describe('computeCardio', () => {
     expect(cardio).toMatchObject({ sessions: 2, minutes: 45, distance: 7.5 });
   });
 });
+
+describe('computeWeeks fills untrained weeks', () => {
+  it('inserts the weeks with no training between two that had some', () => {
+    // The bug this exists for: a chart spaces points evenly, so a fortnight
+    // off drawn as a single segment is indistinguishable from one week off.
+    // Seen on the real page, where 17/08 was missing between 10/08 and 24/08.
+    const weeks = computeWeeks([
+      row({ date: '2026-08-10', sets: 5, volume: 2970 }),
+      row({ date: '2026-08-24', sets: 3, volume: 1100 }),
+    ]);
+
+    expect(weeks.map((w) => w.weekStart)).toEqual(['2026-08-10', '2026-08-17', '2026-08-24']);
+    expect(weeks[1]).toMatchObject({ volume: 0, sets: 0, activeDays: 0, avgRpe: null });
+  });
+
+  it('leaves a filled week unrated rather than rating it zero', () => {
+    const weeks = computeWeeks([
+      row({ date: '2026-08-10', sets: 2, rpeSum: 16, rpeCount: 2 }),
+      row({ date: '2026-08-24', sets: 2, rpeSum: 18, rpeCount: 2 }),
+    ]);
+    // A week nobody trained has no intensity to report. Zero would drag the
+    // RPE line to the floor and read as a deliberately easy week.
+    expect(weeks[1].avgRpe).toBeNull();
+    expect(weeks.filter((w) => w.avgRpe !== null)).toHaveLength(2);
+  });
+
+  it('does not pad before the first or after the last trained week', () => {
+    const weeks = computeWeeks([row({ date: '2026-08-10', sets: 1 })]);
+    expect(weeks).toHaveLength(1);
+    expect(weeks[0].weekStart).toBe('2026-08-10');
+  });
+
+  it('returns nothing for an empty window', () => {
+    expect(computeWeeks([])).toEqual([]);
+  });
+
+  it('keeps weeks-trained counted from days, not from the padded series', () => {
+    // The padding must not inflate consistency: three calendar weeks are
+    // spanned, but only two were trained.
+    const rows = [row({ date: '2026-08-10' }), row({ date: '2026-08-24' })];
+    expect(computeWeeks(rows)).toHaveLength(3);
+    expect(computeConsistency(rows).activeWeeks).toBe(2);
+  });
+});

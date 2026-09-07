@@ -59,6 +59,25 @@ export function TrendChart({ points, color, height = 150, caption, unitSuffix }:
   const plotWidth = Math.max(width - Y_AXIS_ALLOWANCE, 0);
   const spacingBetween = points.length > 1 ? (plotWidth - 20) / (points.length - 1) : plotWidth;
 
+  /**
+   * Only every Nth tick keeps its label.
+   *
+   * The series is one point per week, so "all time" grows without bound --
+   * a year is fifty-two labels in a phone's width, which overlap into a
+   * grey smear rather than degrading gracefully. Six or so is what fits.
+   * The points themselves are all still drawn; it is only the labels that
+   * thin out, so the shape of the line is unaffected.
+   *
+   * Anchored to the end rather than the start, so the most recent week is
+   * always labelled -- it is the one being read, and an unlabelled right
+   * edge is the one gap that actually costs the reader something.
+   */
+  const labelStep = Math.max(1, Math.ceil(points.length / 6));
+  const plotted = points.map((point, i) => ({
+    value: point.value,
+    label: (points.length - 1 - i) % labelStep === 0 ? point.label : '',
+  }));
+
   return (
     <View style={{ gap: spacing.xs }}>
       {caption ? (
@@ -75,7 +94,7 @@ export function TrendChart({ points, color, height = 150, caption, unitSuffix }:
       >
         {width > 0 ? (
           <LineChart
-            data={points}
+            data={plotted}
             width={plotWidth}
             height={height}
             initialSpacing={10}

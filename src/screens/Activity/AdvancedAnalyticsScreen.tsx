@@ -28,6 +28,7 @@ import {
 import { useAdvancedAnalytics } from '../../hooks/useAdvancedAnalytics';
 import { useDeepAnalytics } from '../../hooks/useDeepAnalytics';
 import { usePeriodComparison } from '../../hooks/usePeriodComparison';
+import { shortDateLabel } from '../../lib/analytics';
 import { changePct } from '../../lib/periodComparison';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
@@ -351,7 +352,7 @@ export function AdvancedAnalyticsScreen() {
                   label="Rest"
                   value={consistency.averageRestDays ?? 0}
                   precision={1}
-                  detail={consistency.averageRestDays === null ? 'one session only' : 'days between sessions'}
+                  detail={consistency.averageRestDays === null ? 'one session' : 'days apart'}
                 />
               </View>
               <WeekdayHistogram days={consistency.weekdays} tint={iconInk.azure} />
@@ -402,7 +403,7 @@ export function AdvancedAnalyticsScreen() {
                           {lift.exerciseName}
                         </Text>
                         <Text style={[typography.caption, { color: colors.textMuted }]}>
-                          {lift.achievedOn}
+                          {shortDateLabel(lift.achievedOn)}
                         </Text>
                       </View>
                       <Text style={{ color: colors.textPrimary, fontWeight: '800', fontSize: 16 }}>
