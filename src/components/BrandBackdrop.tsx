@@ -1,7 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  Animated,
+  Easing,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { darkColors, gradients } from '../theme/tokens';
 
 /**
@@ -119,7 +131,7 @@ interface DriftingIconFieldProps {
 /**
  * Icons animating only transform and opacity, which is what keeps the
  * whole field on the compositor thread -- the same constraint
- * WelcomeBackBanner documents, and the reason the confetti this grew out
+ * WelcomeBackMoment documents, and the reason the confetti this grew out
  * of stopped using a physics-simulated particle library.
  */
 export function DriftingIconField({ width, height, spanMs, generation = 0 }: DriftingIconFieldProps) {
@@ -178,5 +190,125 @@ function DriftBatch({ width, height, spanMs }: { width: number; height: number; 
         );
       })}
     </>
+  );
+}
+
+const BACKDROP_FADE_MS = 140;
+const SKIP_DELAY_MS = 250;
+const SKIP_FADE_MS = 260;
+const EXIT_MS = 260;
+
+interface BrandMomentProps {
+  /**
+   * Time on screen before it starts leaving, measured from mount. Includes
+   * whatever entrance the caller draws -- this owns when the moment ends,
+   * not how it arrives.
+   */
+  durationMs: number;
+  onDone: () => void;
+  /** Bands and centred content. Drawn over the backdrop, under the skip control. */
+  children: ReactNode;
+}
+
+/**
+ * The lifecycle every full-screen brand moment shares: it covers the app,
+ * darkens, lets someone leave early, and leaves on its own.
+ *
+ * Two screens do this -- the workout-saved takeover and the sign-in
+ * greeting -- and what they share is not the choreography (one wipes a
+ * band up from a button, the other settles a pair in) but everything
+ * around it. That includes the part worth not writing twice: `onDone` is
+ * consumed by callers who navigate or unmount on it, so firing it twice is
+ * a real bug, and both the timer and the skip control can fire it.
+ *
+ * In a Modal because "takeover" has to mean the whole screen. As a plain
+ * absolute layer this sits inside the navigator's content area, leaving the
+ * header lit above it and the floating tab bar below it, which reads as a
+ * panel over a page rather than the app handing the moment over.
+ */
+export function BrandMoment({ durationMs, onDone, children }: BrandMomentProps) {
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const [backdrop] = useState(() => new Animated.Value(0));
+  const [skip] = useState(() => new Animated.Value(0));
+  const [exit] = useState(() => new Animated.Value(1));
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guards the one thing that must happen exactly once. Skip fires it, and
+  // so does the timer -- pressing skip in the same frame the hold expires
+  // would otherwise run two exit animations and call onDone twice.
+  const leavingRef = useRef(false);
+
+  const leave = useCallback(() => {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    Animated.timing(exit, { toValue: 0, duration: EXIT_MS, useNativeDriver: true }).start(() => onDone());
+  }, [exit, onDone]);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(backdrop, {
+        toValue: 1,
+        duration: BACKDROP_FADE_MS,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(skip, {
+        toValue: 1,
+        duration: SKIP_FADE_MS,
+        delay: SKIP_DELAY_MS,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    timeoutRef.current = setTimeout(leave, durationMs);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [backdrop, skip, leave, durationMs]);
+
+  return (
+    <Modal visible transparent statusBarTranslucent animationType="none" onRequestClose={() => {}}>
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { opacity: exit, alignItems: 'center', justifyContent: 'center' }]}
+      >
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: BACKDROP, opacity: backdrop }]}
+        />
+
+        {children}
+
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+          <DriftingIconField width={width} height={height} spanMs={durationMs} />
+        </View>
+
+        {/* Fades in rather than appearing at once: during the entrance
+            there is nothing yet to skip past, and a control that arrives
+            before the thing it dismisses reads as an error message. Hit
+            slop well past its own box because it is small text on a screen
+            that is about to leave on its own anyway. */}
+        <Animated.View
+          style={{ position: 'absolute', top: insets.top + 8, right: 12, opacity: skip }}
+        >
+          <Pressable
+            onPress={leave}
+            hitSlop={16}
+            accessibilityRole="button"
+            accessibilityLabel="Skip"
+            style={({ pressed }) => ({
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: '600' }}>Skip</Text>
+          </Pressable>
+        </Animated.View>
+      </Animated.View>
+    </Modal>
   );
 }

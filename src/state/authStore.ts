@@ -11,7 +11,7 @@ interface AuthState {
    * driven off the SIGNED_IN auth event, which also fires when a stored
    * session is restored — that would greet you on every reload — nor set
    * by sign-up, where "welcome back" would be wrong. Consumed once by
-   * WelcomeBackBanner, which clears it as it starts animating.
+   * WelcomeBackMoment, which clears it as it starts animating.
    */
   justSignedIn: boolean;
   markJustSignedIn: () => void;

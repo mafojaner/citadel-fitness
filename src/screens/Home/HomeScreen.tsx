@@ -18,7 +18,7 @@ import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { RankingCard } from '../../components/RankingCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
-import { WelcomeBackBanner } from '../../components/WelcomeBackBanner';
+import { WelcomeBackMoment } from '../../components/WelcomeBackMoment';
 import {
   CATEGORY_FILTERS,
   CATEGORY_INK,
@@ -321,7 +321,7 @@ export function HomeScreen() {
       {/* Last child so it layers over the header and content. Lives on Home
           because that's where signing in always lands, and because the streak
           it reads is already loaded here. */}
-      <WelcomeBackBanner streakDays={currentStreakDays} />
+      <WelcomeBackMoment streakDays={currentStreakDays} />
     </View>
   );
 }

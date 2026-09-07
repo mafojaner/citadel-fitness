@@ -1,17 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BACKDROP, DriftingIconField, GradientBand, bandSize } from './BrandBackdrop';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, Text, View, useWindowDimensions } from 'react-native';
+import { BrandMoment, GradientBand, bandSize } from './BrandBackdrop';
 import { darkColors, iconInk } from '../theme/tokens';
 
 export interface SavedRecord {
@@ -67,7 +57,6 @@ const HOLD_MS = 1670;
  * every save -- and the skip control is there for when it isn't wanted.
  */
 const HOLD_WITH_RECORD_MS = 3470;
-const FADE_OUT_MS = 260;
 
 /**
  * The full-screen takeover shown when a workout saves.
@@ -81,7 +70,7 @@ const FADE_OUT_MS = 260;
  * Two bands rather than one continuously morphing shape — this app has
  * react-native-svg but nothing that animates an SVG path's `d` attribute,
  * and Animated only drives transform and opacity anyway (see
- * WelcomeBackBanner's note on why: it's what keeps this on the compositor
+ * WelcomeBackMoment's note on why: it's what keeps this on the compositor
  * thread). Band A starts oversized and centred, covering the screen on its
  * own; it then shrinks and slides to its resting diagonal while Band B
  * slides up from off-screen to complete the pair, together reading as one
@@ -95,28 +84,12 @@ export function WorkoutSavedAnimation({
   weightUnit = 'kg',
 }: WorkoutSavedAnimationProps) {
   const { width, height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const hasRecords = records.length > 0;
   const holdMs = hasRecords ? HOLD_WITH_RECORD_MS : HOLD_MS;
 
   const [wipe] = useState(() => new Animated.Value(0));
   const [bandB] = useState(() => new Animated.Value(0));
   const [content] = useState(() => new Animated.Value(0));
-  const [exit] = useState(() => new Animated.Value(1));
-
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Guards the one thing that must happen exactly once. Skip fires it, and
-  // so does the timer -- pressing skip in the same frame the hold expires
-  // would otherwise run two exit animations and call onDone twice, which
-  // on the caller's side is a second navigation.popToTop().
-  const leavingRef = useRef(false);
-
-  const leave = useCallback(() => {
-    if (leavingRef.current) return;
-    leavingRef.current = true;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    Animated.timing(exit, { toValue: 0, duration: FADE_OUT_MS, useNativeDriver: true }).start(() => onDone());
-  }, [exit, onDone]);
 
   useEffect(() => {
     // Quintic-out: the same distance covered with more of it spent early,
@@ -152,12 +125,7 @@ export function WorkoutSavedAnimation({
         useNativeDriver: true,
       }),
     ]).start();
-
-    timeoutRef.current = setTimeout(leave, WIPE_MS + holdMs);
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [wipe, bandB, content, leave, holdMs]);
+  }, [wipe, bandB, content]);
 
   // Sized well past the screen in both dimensions at rest (before either
   // band moves at all) so that centring either one, unscaled, already
@@ -165,8 +133,6 @@ export function WorkoutSavedAnimation({
   // smaller and off to the side, not a separately-built cover shape.
   const band = bandSize(width, height);
   const bandRotation = '-26deg';
-
-  const blackOpacity = wipe.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 1, 1] });
 
   const bandAScale = wipe.interpolate({ inputRange: [0, 0.55, 1], outputRange: [0.3, 1.5, 1] });
   const bandATranslateX = wipe.interpolate({ inputRange: [0, 0.55, 1], outputRange: [0, 0, width * 0.25] });
@@ -184,22 +150,7 @@ export function WorkoutSavedAnimation({
   const contentTranslateY = content.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
 
   return (
-    // In a Modal rather than an absolute layer on the screen, because
-    // "takeover" has to mean the whole screen: as a plain overlay this sat
-    // inside the navigator's content area, leaving the header above it and
-    // the floating tab bar below it lit and untouched, which reads as a
-    // panel over the form rather than the app handing the moment over. The
-    // back button is deliberately inert while it plays -- it lasts two
-    // seconds and leaves on its own.
-    <Modal visible transparent statusBarTranslucent animationType="none" onRequestClose={() => {}}>
-    <Animated.View
-      style={[StyleSheet.absoluteFill, { opacity: exit, alignItems: 'center', justifyContent: 'center' }]}
-    >
-      <Animated.View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { backgroundColor: BACKDROP, opacity: blackOpacity }]}
-      />
-
+    <BrandMoment durationMs={WIPE_MS + holdMs} onDone={onDone}>
       <GradientBand
         width={band.width}
         height={band.height}
@@ -224,10 +175,6 @@ export function WorkoutSavedAnimation({
           ],
         }}
       />
-
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-        <DriftingIconField width={width} height={height} spanMs={holdMs} />
-      </View>
 
       <Animated.View
         pointerEvents="none"
@@ -270,36 +217,6 @@ export function WorkoutSavedAnimation({
           </Text>
         ) : null}
       </Animated.View>
-
-      {/* Fades in with the headline rather than at the very start: during
-          the wipe there is nothing yet to skip past, and a control that
-          appears before the thing it dismisses reads as an error message.
-          Top right, clear of the record lines, and given a hit slop well
-          past its own box because it is small text on a screen that is
-          about to leave on its own anyway. */}
-      <Animated.View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          right: 12,
-          opacity: contentOpacity,
-        }}
-      >
-        <Pressable
-          onPress={leave}
-          hitSlop={16}
-          accessibilityRole="button"
-          accessibilityLabel="Skip"
-          style={({ pressed }) => ({
-            paddingHorizontal: 14,
-            paddingVertical: 8,
-            opacity: pressed ? 0.6 : 1,
-          })}
-        >
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: '600' }}>Skip</Text>
-        </Pressable>
-      </Animated.View>
-    </Animated.View>
-    </Modal>
+    </BrandMoment>
   );
 }
