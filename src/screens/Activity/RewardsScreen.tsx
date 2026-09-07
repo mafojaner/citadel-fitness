@@ -12,6 +12,7 @@ import { fetchRewardEligibleWorkoutDates, fetchWorkoutDatesInRange } from '../..
 import { todayISO } from '../../lib/analytics';
 import { useAuthStore } from '../../state/authStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 
 function monthRange(dateString: string) {
   const [year, month] = dateString.split('-').map(Number);
@@ -75,7 +76,7 @@ export function RewardsScreen() {
 
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon="diamond" size={44} />
+          <IconWell icon="diamond" size={44} colors={gradients.reward} />
           <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>
               {weeklyStreak} week streak
@@ -102,7 +103,7 @@ export function RewardsScreen() {
 
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon="pricetag" size={40} />
+          <IconWell icon="pricetag" size={40} colors={gradients.reward} />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>
               {rewardsEarned > 0

@@ -5,7 +5,9 @@ import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
 import { IconWell } from './IconWell';
 import {
+  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../constants/categories';
 import { useTheme } from '../theme/useTheme';
@@ -48,7 +50,7 @@ export const ExerciseRow = memo(function ExerciseRow({
     >
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON} size={36} />
+          <IconWell icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON} size={36} colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{exercise.name}</Text>
             <Text

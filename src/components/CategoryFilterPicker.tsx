@@ -5,7 +5,9 @@ import { AnimatedPressable } from './AnimatedPressable';
 import { IconWell } from './IconWell';
 import { PopInView } from './PopInView';
 import {
+  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../constants/categories';
 import { useTheme } from '../theme/useTheme';
@@ -99,6 +101,9 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                   {options.map((option) => {
                     const isActive = option.value === value;
                     const isAll = option.value === 'all';
+                    const gradientColors = isAll
+                      ? DEFAULT_CATEGORY_GRADIENT
+                      : CATEGORY_GRADIENTS[option.value as Category] ?? DEFAULT_CATEGORY_GRADIENT;
                     const icon = isAll
                       ? 'apps-outline'
                       : CATEGORY_ICONS[option.value as Category] ?? DEFAULT_CATEGORY_ICON;
@@ -127,7 +132,7 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                           backgroundColor: isActive ? colors.border : 'transparent',
                         }}
                       >
-                        <IconWell icon={icon} size={32} />
+                        <IconWell icon={icon} size={32} colors={gradientColors} />
                         <Text
                           style={[
                             typography.body,

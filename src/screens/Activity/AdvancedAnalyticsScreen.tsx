@@ -24,6 +24,7 @@ import { usePeriodComparison } from '../../hooks/usePeriodComparison';
 import { changePct } from '../../lib/periodComparison';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 const PERIODS: { label: string; days: number | null }[] = [
@@ -114,6 +115,7 @@ export function AdvancedAnalyticsScreen() {
         <ErrorNotice message={error} onRetry={reload} />
       ) : empty ? (
         <EmptyState
+          colors={gradients.volume}
           icon="trending-up"
           title="Nothing logged in this period"
           detail="Try a longer range, or log a workout and come back."
@@ -140,7 +142,7 @@ export function AdvancedAnalyticsScreen() {
             {balance.map((entry) => (
               <View key={entry.category} style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <IconWell icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON} size={26} />
+                  <IconWell icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON} size={26} colors={CATEGORY_GRADIENTS[entry.category] ?? DEFAULT_CATEGORY_GRADIENT} />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {entry.category[0].toUpperCase() + entry.category.slice(1)}
                   </Text>

@@ -1,11 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
+import { readableOn } from '../theme/contrast';
 import { useTheme } from '../theme/useTheme';
 
 interface IconWellProps {
   icon: keyof typeof Ionicons.glyphMap;
   /** Diameter. The glyph is always half of it, which is what keeps a 34 and a 44 looking like the same object. */
   size?: number;
+  /**
+   * The thing's own ramp -- a category's, a feature's. Only its saturated
+   * end is used, and only for the glyph. Left off, the glyph is ink, which
+   * is right for something with no identity of its own to express.
+   */
+  colors?: readonly [string, string, ...string[]];
 }
 
 /**
@@ -31,8 +38,18 @@ interface IconWellProps {
  * see. `border` is the app's visible neutral and steps the right way in
  * both schemes.
  */
-export function IconWell({ icon, size = 44 }: IconWellProps) {
+export function IconWell({ icon, size = 44, colors: ramp }: IconWellProps) {
   const { colors } = useTheme();
+  // The glyph carries the colour; the disc stays neutral. Filling the disc
+  // instead is what GradientIconBadge does, and that is now reserved for
+  // paid features -- so a coloured disc means "premium" and a coloured
+  // glyph means "this is a chest exercise", which are different claims and
+  // now look different.
+  //
+  // readableOn rather than the raw hex: on the dark disc every ramp in the
+  // palette already clears 3:1 and comes through untouched, but on the
+  // light one not a single ink does -- see the note in theme/contrast.
+  const glyph = ramp ? readableOn(ramp[ramp.length - 1], colors.border) : colors.textPrimary;
   return (
     <View
       style={{
@@ -44,7 +61,7 @@ export function IconWell({ icon, size = 44 }: IconWellProps) {
         justifyContent: 'center',
       }}
     >
-      <Ionicons name={icon} size={size * 0.5} color={colors.textPrimary} />
+      <Ionicons name={icon} size={size * 0.5} color={glyph} />
     </View>
   );
 }

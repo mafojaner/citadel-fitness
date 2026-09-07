@@ -21,7 +21,9 @@ import { StatChip } from '../../components/StatChip';
 import { WelcomeBackBanner } from '../../components/WelcomeBackBanner';
 import {
   CATEGORY_FILTERS,
+  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
@@ -32,6 +34,7 @@ import { useCategoryColumns, useIsDesktop } from '../../hooks/useResponsiveLayou
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
 import type { MainTabsParamList } from '../../navigation/MainTabs';
@@ -140,7 +143,7 @@ export function HomeScreen() {
       >
         <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconWell icon="flame" size={44} />
+            <IconWell icon="flame" size={44} colors={gradients.flame} />
             <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
               {activityLoading ? (
@@ -186,7 +189,7 @@ export function HomeScreen() {
       >
         <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconWell icon="calendar" size={44} />
+            <IconWell icon="calendar" size={44} colors={gradients.calendar} />
             <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
               Workout Summary
             </Text>
@@ -302,6 +305,7 @@ export function HomeScreen() {
           return (
             <CategoryGridCard
               key={c.value}
+              gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
               icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
               label={c.label}
               count={categoryCounts.get(category) ?? 0}

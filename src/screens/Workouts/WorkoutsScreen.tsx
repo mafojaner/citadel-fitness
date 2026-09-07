@@ -18,7 +18,9 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { WaterIntakeCard } from '../../components/WaterIntakeCard';
 import { StatChip } from '../../components/StatChip';
 import {
+  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
@@ -26,6 +28,7 @@ import { todayISO } from '../../lib/analytics';
 import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 import type { MainTabsParamList } from '../../navigation/MainTabs';
@@ -161,7 +164,7 @@ export function WorkoutsScreen() {
             </Text>
           ) : summary.length === 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <IconWell icon="calendar" size={44} />
+              <IconWell icon="calendar" size={44} colors={gradients.calendar} />
               <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
                 <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
                   No workout logged
@@ -175,7 +178,7 @@ export function WorkoutsScreen() {
             <View style={{ gap: spacing.sm }}>
               {summary.map(([category, count]) => (
                 <View key={category} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={28} />
+                  <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={28} colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT} />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {category[0].toUpperCase() + category.slice(1)}
                   </Text>

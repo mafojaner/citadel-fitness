@@ -107,7 +107,7 @@ export function GroupsScreen() {
           {selected ? (
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <IconWell icon="people-circle" size={44} />
+                <IconWell icon="people-circle" size={44} colors={gradients.rankGold} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                     {selected.name}
@@ -222,6 +222,7 @@ export function GroupsScreen() {
             </Card>
           ) : (
             <EmptyState
+              colors={gradients.rankGold}
               icon="people-circle"
               title="No groups yet"
               detail="Start one and share the code, or join a crew you've been invited to."

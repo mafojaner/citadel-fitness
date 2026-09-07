@@ -17,6 +17,7 @@ import { usePrograms } from '../../hooks/usePrograms';
 import { todayISO } from '../../lib/analytics';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
+import { gradients } from '../../theme/tokens';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
 /**
@@ -81,7 +82,7 @@ export function ProgramsScreen() {
       {enrolled && today ? (
         <Card title="Your next session">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconWell icon="calendar-number" size={44} />
+            <IconWell icon="calendar-number" size={44} colors={gradients.calendar} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                 {today.name}

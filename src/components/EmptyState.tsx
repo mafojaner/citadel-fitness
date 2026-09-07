@@ -6,6 +6,8 @@ import { useTheme } from '../theme/useTheme';
 
 interface EmptyStateProps {
   icon: keyof typeof Ionicons.glyphMap;
+  /** The absent thing's own ramp, for the glyph. */
+  colors: readonly [string, string, ...string[]];
   title: string;
   /** One line. If it needs two, the feature needs a simpler empty state. */
   detail: string;
@@ -24,13 +26,13 @@ interface EmptyStateProps {
  * and different promises, and a generic "Nothing here" would be worse than
  * either.
  */
-export function EmptyState({ icon, title, detail }: EmptyStateProps) {
+export function EmptyState({ icon, colors: gradient, title, detail }: EmptyStateProps) {
   const { colors, spacing, typography } = useTheme();
 
   return (
     <Card>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        <IconWell icon={icon} size={44} />
+        <IconWell icon={icon} size={44} colors={gradient} />
         <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
           <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
             {title}

@@ -15,7 +15,9 @@ import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import { SearchField } from '../../components/SearchField';
 import {
   CATEGORY_FILTERS,
+  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
+  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -136,6 +138,7 @@ export function ExerciseCatalogueScreen() {
                 {categoryCards.map((c) => (
                   <CategoryGridCard
                     key={c.value}
+                    gradientColors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
                     icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
                     label={c.label}
                     count={c.count}
@@ -183,11 +186,19 @@ export function ExerciseCatalogueScreen() {
             <PopInView key={infoExercise?.id} style={{ gap: spacing.md }}>
               <Card>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <IconWell icon={
+                  <IconWell
+                    icon={
                       infoExercise
                         ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
                         : DEFAULT_CATEGORY_ICON
-                    } size={40} />
+                    }
+                    colors={
+                      infoExercise
+                        ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
+                        : DEFAULT_CATEGORY_GRADIENT
+                    }
+                    size={40}
+                  />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                       {infoExercise?.name}

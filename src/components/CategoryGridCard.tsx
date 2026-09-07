@@ -7,6 +7,8 @@ import { useTheme } from '../theme/useTheme';
 
 interface CategoryGridCardProps {
   icon: keyof typeof Ionicons.glyphMap;
+  /** The category's own ramp, for the glyph. */
+  gradientColors: readonly [string, string, ...string[]];
   label: string;
   count: number;
   onPress: () => void;
@@ -17,6 +19,7 @@ interface CategoryGridCardProps {
 /** The "Browse by category" tile shared by Home and the Exercise Catalogue. */
 export function CategoryGridCard({
   icon,
+  gradientColors,
   label,
   count,
   onPress,
@@ -41,7 +44,7 @@ export function CategoryGridCard({
     >
       <Card>
         <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <IconWell icon={icon} size={40} />
+          <IconWell icon={icon} size={40} colors={gradientColors} />
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{label}</Text>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             {count} exercise{count === 1 ? '' : 's'}
