@@ -2,8 +2,20 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Animated, Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsDesktop } from '../hooks/useResponsiveLayout';
 import { useMembershipTier } from '../hooks/useMembership';
@@ -32,13 +44,33 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
  * Sized for the taller labelled variant; safe (just a little generous) on
  * the shorter icon-only one.
  */
-export const FLOATING_TAB_BAR_CLEARANCE = 78;
+export const FLOATING_TAB_BAR_CLEARANCE = 86;
 
 /** Below this width, labels are dropped in favour of icon-only tabs — a phone in portrait, not a tablet or desktop web. */
 const LABEL_BREAKPOINT = 600;
 
 const BAR_MARGIN = 12;
 const ICON_SIZE = 22;
+
+/**
+ * The highlight behind the active icon. Wider than it is tall, so it reads
+ * as a capsule sitting along the row rather than a dot orbiting the glyph —
+ * the shape most bottom bars have settled on.
+ *
+ * The width is deliberately not a constant. Five tabs share the bar, so the
+ * space each one gets depends on the screen: roughly 61px a tab at 375pt,
+ * but only about 50px at 320. Any fixed width generous enough to look right
+ * on the first is wide enough to make neighbouring capsules touch — or
+ * overlap — on the second.
+ *
+ * So the capsule fills its tab instead, minus a gutter that guarantees the
+ * gap, and stops growing at a cap so it does not stretch into a slab on a
+ * tablet.
+ */
+const ACTIVE_PILL_MAX_W = 64;
+const ACTIVE_PILL_H = 40;
+/** Horizontal breathing room each side of a capsule, so two never meet. */
+const TAB_GUTTER = 3;
 /**
  * Inset for the row of tabs from the bar's own edges. The bar uses a full
  * stadium radius (`radius.pill`), which curves much more aggressively than
@@ -62,7 +94,52 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const showLabels = windowWidth >= LABEL_BREAKPOINT;
-  const barHeight = showLabels ? 60 : 54;
+  // Taller than the 54/60 this used to be. A floating bar that hugs its
+  // icons reads as a strip of buttons; the room around them is most of what
+  // makes it read as one surface. Icons stay optically centred because the
+  // extra height is added to a row that centres on both axes rather than to
+  // padding on one side of it.
+  const barHeight = showLabels ? 70 : 62;
+
+  // The glass, in two layers.
+  //
+  // The blur alone is what this bar had originally, and it was removed for
+  // a real reason worth keeping written down: at 62% transparent the bar's
+  // background was whatever it happened to be floating over, so on Home it
+  // sat on the blue water card and the inactive icons all but vanished,
+  // while on Workouts it sat on white and they were fine. One bar, a
+  // different legibility on every screen and at every scroll position.
+  //
+  // So the blur is now a backdrop rather than the surface. A tint sits on
+  // top of it at an opacity high enough to put a floor under contrast no
+  // matter what is behind — you still see colour and movement through it,
+  // which is the whole point, but never enough to decide whether an icon is
+  // legible. That is also closer to what the platforms actually ship: their
+  // glass is heavily tinted, not mostly see-through.
+  const glassTint = scheme === 'dark' ? 'rgba(28,34,48,0.86)' : 'rgba(255,255,255,0.85)';
+  // A vertical sheen, brightest along the top edge. Cheap, and it is most of
+  // the difference between "translucent panel" and "piece of glass".
+  const sheen: [string, string] =
+    scheme === 'dark'
+      ? ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0)']
+      : ['rgba(255,255,255,0.65)', 'rgba(255,255,255,0)'];
+  // The specular top edge. A hairline lighter than the border around the
+  // rest of the bar, which is what a lit surface does and a flat one does not.
+  //
+  // Drawn as the top border of a rounded box rather than as a straight bar
+  // across the top, because the bar is a pill: its top edge is only straight
+  // between the two semicircular caps. A full-width line gets clipped
+  // against that curve and stops dead where each cap begins, which reads as
+  // a hard line rather than a lit edge. As a border it follows the outline
+  // into the caps and tapers out where the top meets the sides.
+  const topEdge = scheme === 'dark' ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.75)';
+  // The active capsule: grey, and translucent rather than a solid chip.
+  //
+  // An opaque grey would be a patch stuck on the glass; a wash lets the
+  // blur and the sheen carry on through it, so the capsule reads as part of
+  // the same surface. Ink in light, white in dark — a step away from the
+  // bar in each scheme rather than one grey that only works in one of them.
+  const activeFill = scheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(11,14,20,0.07)';
 
   return (
     // Full-bleed positioning wrapper, invisible itself — centers the actual
@@ -90,26 +167,8 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           overflow: 'hidden',
           borderWidth: 1,
           borderColor: colors.navBorder,
-          // An opaque surface, where this used to be frosted glass.
-          //
-          // The blur was 62% transparent, so the bar's real background was
-          // whatever it happened to be floating over, and the icon colours
-          // were picked against a surface that only existed on some screens.
-          // On Home it sits over the blue water card and the four inactive
-          // icons all but vanish; on Workouts it is over white and they are
-          // fine; scrolling moves it between the two. That is the whole of
-          // the "finicky" — one bar with a different legibility on every
-          // screen and at every scroll position.
-          //
-          // `surface` rather than `navBackground`: in dark mode
-          // navBackground is the page colour, so a bar painted with it would
-          // read as a hole rather than something floating above. `surface`
-          // is a step in from the page in both schemes, which is what the
-          // cards already use to say "this sits on top".
-          backgroundColor: colors.surface,
           // A shadow to lift it off busy content — the actual "floating"
-          // part of a floating bar, and now the only thing separating it
-          // from the page besides the hairline.
+          // part of a floating bar.
           shadowColor: '#000',
           shadowOpacity: scheme === 'dark' ? 0.4 : 0.15,
           shadowRadius: 16,
@@ -117,22 +176,56 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           elevation: 8,
         }}
       >
-        {/* A plain row now.
+        {/* Keyed on `scheme`, and that key is the point of the layering.
           *
-          * What was here was a BlurView keyed on `scheme`, remounted on
-          * every theme change because its `tint` is a native prop that does
-          * not reliably repaint when it changes. That workaround is the
-          * reason the bar sometimes came back wrong after a theme switch:
-          * it depended on a remount landing at the right moment, and a
-          * remount is not a repaint. With the surface painted by an ordinary
-          * style prop there is nothing left to go stale — React Native
-          * repaints a backgroundColor every time, on both platforms.
+          * A BlurView's `tint` is a native prop that does not reliably
+          * repaint when it changes, so it has to be remounted on a theme
+          * switch. Last time that key lived on a BlurView that *wrapped* the
+          * tab row, so every theme change remounted all five buttons with
+          * it and threw away their focus animation state — a change about
+          * colour resetting a thing about which tab is selected.
           *
-          * It also takes the tab buttons out of the blast radius. Keying the
-          * blur remounted all five of them along with it, throwing away
-          * their focus animation state on a change that had nothing to do
-          * with which tab was selected.
-          */}
+          * Here the blur is a sibling of the row, not its parent. It can be
+          * remounted as often as the theme changes and the buttons never
+          * notice. */}
+        <BlurView
+          key={scheme}
+          intensity={scheme === 'dark' ? 40 : 30}
+          tint={scheme === 'dark' ? 'dark' : 'light'}
+          // Android has no native backdrop blur; without this it renders as
+          // a plain translucent view. The tint below is doing the legibility
+          // work either way, so the fallback degrades to "slightly less
+          // glassy" rather than to "unreadable".
+          experimentalBlurMethod={Platform.OS === 'android' ? 'dimezisBlurView' : undefined}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: glassTint }]} pointerEvents="none" />
+        <LinearGradient
+          colors={sheen}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: barHeight * 0.55 }}
+          pointerEvents="none"
+        />
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: radius.pill,
+            borderWidth: 1,
+            // Only the top is lit. The other three are transparent rather
+            // than absent so the box keeps one uniform inset and the arc
+            // tapers off at the corners instead of stopping at them.
+            borderColor: 'transparent',
+            borderTopColor: topEdge,
+          }}
+          pointerEvents="none"
+        />
+
         <View style={{ flex: 1, flexDirection: 'row', paddingHorizontal: ROW_INSET }}>
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
@@ -144,7 +237,22 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
                 icon={TAB_ICONS[route.name] ?? 'ellipse'}
                 isFocused={isFocused}
                 activeColor={colors.primary}
-                inactiveColor={colors.tabInactive}
+                // textSecondary, not tabInactive, and only on this bar.
+                //
+                // tabInactive is #8A93A6 in both schemes, and that value was
+                // chosen against an opaque surface — the token's own comment
+                // records that it read worse "while the bar was translucent
+                // and the page showed through". It is a mid grey, so it can
+                // only clear 3:1 against something near-white or near-black,
+                // and a translucent bar is neither by definition.
+                //
+                // textSecondary is ink500 on light and ink100 on dark: a
+                // step further from the bar in each scheme, which is what
+                // buys back the contrast the transparency spends. The
+                // sidebar still uses tabInactive, because it is opaque and
+                // the original value is correct there.
+                inactiveColor={colors.textSecondary}
+                highlightColor={activeFill}
                 onPress={() => {
                   const event = navigation.emit({
                     type: 'tabPress',
@@ -543,6 +651,8 @@ interface TabButtonProps {
   isFocused: boolean;
   activeColor: string;
   inactiveColor: string;
+  /** Fill of the capsule behind the active icon. */
+  highlightColor: string;
   onPress: () => void;
   onLongPress: () => void;
   accessibilityLabel?: string;
@@ -555,6 +665,7 @@ function TabButton({
   isFocused,
   activeColor,
   inactiveColor,
+  highlightColor,
   onPress,
   onLongPress,
   accessibilityLabel,
@@ -569,6 +680,10 @@ function TabButton({
   }, [isFocused, focusAnim]);
 
   const scale = focusAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.1] });
+  // The capsule grows in from slightly under its final size rather than
+  // fading in at full width, so switching tabs reads as the highlight
+  // moving to the new one instead of two of them cross-dissolving.
+  const pillScale = focusAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
 
   return (
     <Pressable
@@ -577,15 +692,45 @@ function TabButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={accessibilityLabel ?? label}
-      style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 }}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2, paddingHorizontal: TAB_GUTTER }}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>
-        <Ionicons
-          name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
-          size={ICON_SIZE}
-          color={isFocused ? activeColor : inactiveColor}
+      {/* Centred on both axes, with the capsule and the glyph both centred
+          inside it. The icon's position is set by this box rather than by
+          the capsule, so the two cannot drift apart and the glyph stays put
+          whether or not its tab is the selected one. */}
+      <View
+        style={{
+          width: '100%',
+          maxWidth: ACTIVE_PILL_MAX_W,
+          height: ACTIVE_PILL_H,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            height: ACTIVE_PILL_H,
+            // Half the *short* side, which is what makes the ends
+            // semicircular and the shape a capsule rather than a rounded
+            // rectangle.
+            borderRadius: ACTIVE_PILL_H / 2,
+            backgroundColor: highlightColor,
+            opacity: focusAnim,
+            transform: [{ scale: pillScale }],
+          }}
         />
-      </Animated.View>
+        <Animated.View style={{ transform: [{ scale }] }}>
+          <Ionicons
+            name={isFocused ? icon : (`${icon}-outline` as keyof typeof Ionicons.glyphMap)}
+            size={ICON_SIZE}
+            color={isFocused ? activeColor : inactiveColor}
+          />
+        </Animated.View>
+      </View>
       {showLabel ? (
         <Text
           style={{
