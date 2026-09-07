@@ -1685,9 +1685,9 @@
             <div class="agenda-task"><strong>Crash reports do not carry personal data by default.</strong> <code>src/lib/sentry.ts</code> sets <code>sendDefaultPii: false</code>, so IP addresses and user identifiers are not attached automatically. Separately, <code>tracesSampleRate</code> is <code>1.0</code>, which is a volume and cost question rather than a security one, but it is worth knowing that every transaction is being sent.</div>
             <span class="priority done">Verified</span>
           </div>
-          <div class="agenda-day" id="sec-piiinventory" data-state="not-started" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
-            <div class="agenda-task"><strong>There is no inventory of what personal data the app holds.</strong> The Play Data safety form was answered per question and correctly, which is not the same as one list saying: this column holds this kind of data, it is kept for this long, these people can read it, and it is deleted by this path. Weight, height, training history, video, display name, photo and email are all in there. The disclosure exists; the inventory behind it does not.</div>
-            <span class="priority medium">Open</span>
+          <div class="agenda-day" id="sec-piiinventory" data-state="done" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>There was no inventory of what personal data the app holds. Closed 7 September.</strong> Built by reading all 23 tables, both storage buckets and every admin-read path across the migrations, rather than by summarizing the Play Data Safety form back to itself &mdash; see the new <a href="#pii-inventory">PII inventory</a> section above. Two tables came out of it needing a second look rather than a clean pass: <code>nutrition_intakes</code> and <code>form_check_submissions</code>, the only data here read by a human reviewer rather than only by the account itself. Two loose ends remain, both filed as their own row in that section rather than left implicit: whether PostHog's event payload actually carries no identifying properties (only Sentry's equivalent claim has been checked against its code), and how long Supabase retains backups of a deleted account.</div>
+            <span class="priority done">Verified</span>
           </div>
           <div class="agenda-day" id="sec-deletion" data-state="partial" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
             <div class="agenda-task"><strong>Account deletion removes rows and files; withdrawal does not.</strong> <code>delete-account</code> was fixed on 6 September to empty both the <code>avatars</code> and <code>form-checks</code> prefixes for the account, so deleting an account no longer leaves orphaned video behind. That path is closed.<br><br>The gap recorded above stands: withdrawing a single form check sets a status and leaves the file in the bucket. That is one product decision away from being consistent, and until it is made, the word withdraw promises something the system does not do.</div>
@@ -1749,6 +1749,141 @@
             <div class="agenda-task"><strong>Password reset.</strong> The one path that isn't one of the five functions above. Trigger: <code>ForgotPasswordScreen</code> calls <code>supabase.auth.resetPasswordForEmail()</code> directly. Path: entirely inside Supabase Auth &mdash; its own SMTP configuration and its own email templates, set in the dashboard rather than in a migration or a <code>config.toml</code> this repo has, so nothing in git shows what they currently say. Recipients: whatever address is typed into the form, which Supabase's own anti-enumeration behaviour means is not necessarily an existing account.
               <br><br>Never checked, and console-only in the same way the Auth settings on the security checklist are: minimum password length, session lifetime and the rest live in the same place. <code>redirectTo</code> points at <code>citadelfitness://reset-password</code> on native, which is the unverified deep-link scheme already filed on the security checklist &mdash; a token-carrying link on a scheme another installed app could register.</div>
             <span class="priority high">Console only</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="block" id="pii-inventory" data-view="work">
+        <div class="block-head"><span class="dot"></span><h3>PII inventory</h3></div>
+        <div class="callout" style="margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h6"/></svg>
+          <span><strong>Filed 7 September.</strong> The Play Data Safety form was answered correctly, question by question, on 27 August. That
+          is not the same thing as one list saying: this column holds this kind of data, this is why, these people (or these systems) can read
+          it, and it goes away by this path. The disclosure existed; the inventory behind it did not. Built by reading every migration that
+          creates a table or a storage bucket, not by summarizing the disclosure back to itself.<br><br>Grouped by what the data is about
+          rather than listed as 23 near-identical rows: most of those 23 tables are one column of training data each, and reading them as one
+          row per table would bury the two that actually deserve a second look &mdash; the coaching tables, below.</span>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Identity</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-identity" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong><code>auth.users</code> (Supabase-managed) and <code>public.profiles</code>.</strong> Email, a
+              salted password hash, sign-in timestamps and whatever name was typed at signup live in <code>auth.users</code>, which this
+              project does not define and cannot alter the shape of. <code>profiles</code> adds a display name, an optional avatar, the
+              <code>preferences</code> blob (units, toggles, notification settings &mdash; no sensitive content), and three server-written-only
+              columns: <code>membership_tier</code>, <code>fortress_since</code>, <code>welcome_email_sent_at</code>. That last group is
+              enforced two ways at once, not just documented as read-only: column privileges (<code>20260817120000</code>) revoke client UPDATE
+              on anything but <code>name</code>/<code>preferences</code>/<code>avatar_url</code>, and a trigger raises if <code>anon</code> or
+              <code>authenticated</code> touches <code>fortress_since</code> or <code>welcome_email_sent_at</code> regardless.
+              <br><br><strong>Who can read it.</strong> The account itself, by RLS (<code>auth.uid() = id</code>). Nobody else reads a profile
+              row directly; the leaderboard and group member lists go through <code>security definer</code> functions that return a name and
+              an avatar URL, not the row.</div>
+            <span class="priority done">Inventoried</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Training</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-training" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Six tables: <code>workouts</code>, <code>logged_exercises</code>, <code>set_entries</code>,
+              <code>water_logs</code>, <code>lift_goals</code>, <code>program_enrollments</code>.</strong> Dates, reps, weight, RPE, water
+              volume, a lift target and which structured program is being followed. This is the reason the app exists, and it is also the
+              largest share of what it stores about a person by row count.
+              <br><br><strong>Who can read it.</strong> The account alone, everywhere. Every policy is <code>auth.uid() = user_id</code> or a
+              join back to a workout owned by that id &mdash; there is no admin view, no aggregate export, nothing a reviewer or a dashboard
+              function reaches. Advanced analytics, personal records and goal forecasting are all computed from these tables inside
+              <code>security definer</code> functions gated on <code>tier_rank()</code>, but every one of them still resolves against
+              <code>auth.uid()</code> and can only ever return the caller's own numbers.</div>
+            <span class="priority done">Inventoried</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Social</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-social" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Six tables: <code>groups</code>, <code>group_members</code>, <code>group_challenges</code>,
+              <code>referrals</code>, <code>referral_codes</code>, <code>article_favorites</code>.</strong> A group's name and invite code,
+              who is in it and when they joined, who referred whom, which newsletter articles were saved. The one place any of this reaches
+              past the account that created it: fellow group members see each other's display name, photo and how many days they trained that
+              week, on the group's own leaderboard &mdash; the exact visibility privacy.html's Section 8 already discloses, checked here
+              against the policies rather than assumed from the document.
+              <br><br><strong>Who can read it.</strong> The account, plus fellow members of the same group for the leaderboard fields above,
+              gated by <code>is_group_member()</code> and, since <code>20260820090000</code>, by tier as well. <code>referrals</code> is
+              readable by the referrer and the referee, nobody else.</div>
+            <span class="priority done">Inventoried</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Coaching &mdash; the sensitive pair</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-coaching" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong><code>nutrition_intakes</code> and <code>form_check_submissions</code> are the two tables in this
+              inventory that hold more than training numbers, and both are read by a person, not just code.</strong>
+              <br><br><code>nutrition_intakes</code>: a free-text goal, and optionally body weight, height, activity level, dietary
+              restrictions and a description of a typical day &mdash; asked for exactly because a coach needs it, which is also exactly why it
+              is the most sensitive table in the schema. <code>form_check_submissions</code> holds a path to video of someone training at
+              home (the file itself is in the private <code>form-checks</code> bucket, never the public <code>avatars</code> one) plus a
+              note and, once reviewed, the reviewer's own notes back.
+              <br><br><strong>Who can read it, and this is the part worth stating plainly: a human does, not just a policy.</strong> The
+              account itself, always. And the account matching <code>ADMIN_EMAIL</code>, via <code>admin-nutrition-review</code> and
+              <code>admin-form-check-review</code> &mdash; both gated by the shared <code>requireAdmin()</code> check (verified against a
+              non-admin token as its own row, <code>sec-admingate</code>, still open). Video is never hotlinked: the review function issues a
+              signed URL good for 30 minutes per view rather than storing one, so a leaked queue response does not leak standing access to
+              the file.
+              <br><br><strong>Retention.</strong> Kept until the account is deleted, same as everything else here &mdash; there is no separate
+              expiry for either table, and none is disclosed anywhere that would require one.</div>
+            <span class="priority check">Human-readable, gated</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Support and billing</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-support" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong><code>feedback</code>, <code>fortress_waitlist</code> and <code>subscriptions</code>.</strong>
+              Feedback stores the email and free-text message a member sent (a denormalized copy of the address at the time, not a live link
+              to the account &mdash; changing your email afterward does not update old feedback rows, which is a curiosity rather than a
+              problem since the row is still tied to the account by <code>user_id</code>). The waitlist is an email address and nothing
+              else. <code>subscriptions</code> holds which product and tier were bought and the renewal status RevenueCat reported &mdash;
+              no card number, no payment method; that stays with the store.
+              <br><br><strong>Who can read it.</strong> The account, for its own rows in all three. Feedback is also visible to
+              <code>ADMIN_EMAIL</code> in the support queue (<code>admin_support_queue</code>, read through <code>admin-dashboard-stats</code>).
+              Nobody but the RevenueCat webhook, holding the service key, can ever write a subscription row &mdash; there is no
+              insert/update/delete policy for <code>authenticated</code> at all, which is a stronger statement than "gated": it is absent.</div>
+            <span class="priority done">Inventoried</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Files</h4>
+        <div class="card-body" style="margin-bottom:16px;">
+          <div class="agenda-day" id="pii-files" data-state="context" data-owner="code" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Two storage buckets, already on the security checklist from the other direction &mdash; this is
+              the personal-data reading of the same two facts.</strong> <code>avatars</code> is public-read: a profile photo is reachable by
+              anyone holding the URL, no sign-in required, which is <code>sec-avatars</code>'s open finding. <code>form-checks</code> is
+              private and only ever served through the 30-minute signed URL above.</div>
+            <span class="priority check">See sec-avatars</span>
+          </div>
+        </div>
+
+        <h4 style="margin:20px 0 10px; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:var(--slate);">Third-party processors</h4>
+        <div class="card-body">
+          <div class="agenda-day" id="pii-thirdparty" data-state="partial" data-owner="you" data-cat="security" style="grid-template-columns: 1fr auto;">
+            <div class="agenda-task"><strong>Four services see a slice of this, and one of the four claims about them has never been checked
+              against its own configuration &mdash; only read off the privacy policy that describes it.</strong>
+              <br><br><strong>Resend</strong> sees the recipient address and body of every email this app sends &mdash; welcome, newsletter,
+              digest, feedback, password reset (the last through Supabase Auth's own integration, not one of the five functions). Its own
+              retention of sent-mail logs has never been checked; that setting lives in Resend's dashboard, not this repo.
+              <br><br><strong>Sentry</strong>: <code>sendDefaultPii: false</code> is set in <code>src/lib/sentry.ts</code> and was verified
+              directly on the security checklist (<code>sec-sentrypii</code>), so this one is code-confirmed rather than merely claimed.
+              <br><br><strong>PostHog</strong>: privacy.html's summary says product analytics "carries no name, email, or anything you
+              typed." Plausible from how the SDK is normally initialized, but this pass did not open <code>src/lib/analytics.ts</code>'s
+              PostHog init and confirm what properties are actually attached to an event, which is the same gap Sentry's row used to have
+              before it was checked. Worth its own row rather than assumed correct because Sentry's neighbor turned out to be.
+              <br><br><strong>RevenueCat</strong> holds the purchase relationship itself on the store's side; this app only ever sees what
+              its webhook reports into <code>subscriptions</code>, above.
+              <br><br>Also unchecked, in the same "console, not code" category as the Supabase Auth settings on the security checklist:
+              how long Supabase retains its own backups of a deleted account after <code>delete-account</code> runs.</div>
+            <span class="priority medium">Open: PostHog payload, backup retention</span>
           </div>
         </div>
       </section>
@@ -1946,7 +2081,8 @@
           <br><br><strong>3 September: Google Play has approved the account.</strong> The item that held the whole last third of August is half gone, and it is the half that can ship on its own &mdash; Android does not wait for Apple. What that unblocks is a real chain: a production build, an internal-testing track, testers with something to install, and the Play Data Safety form, whose answers were already written line by line on 27 August in <code>docs/store-listing.md</code>. What it does <em>not</em> unblock is billing, which waits on a RevenueCat account rather than on a store.
           <br><br>Approval also changed what is dangerous. The Play service account key is a credential that only exists <em>after</em> approval, and this repository is public &mdash; <code>.gitignore</code> covered Apple's <code>.p8</code>, <code>.p12</code> and <code>.jks</code> and none of Google's. Fixed the same day, and checked with <code>git check-ignore</code> rather than by reading the file: four plausible names for that key would every one of them have been committed.
           <br><br><strong>7 September: the email checklist is filed.</strong> One of the four engineering rows added the day before, closed the same week. See Email checklist below for the six rows it produced &mdash; three had no dated confirmation of anything before this pass, and one, the weekly digest, turned out to have already fired three times on schedule &mdash; the row that reported it as never having fired was itself the thing that was wrong. Twenty-one open now, eleven still yours.
-          <br><br>Also closed the same day: <code>privacy.html</code> and <code>delete-account.html</code> onto <code>doc.css</code>, the row this callout has been carrying since 6 September as an owed refactor. Twenty open now, eleven still yours.</span>
+          <br><br>Also closed the same day: <code>privacy.html</code> and <code>delete-account.html</code> onto <code>doc.css</code>, the row this callout has been carrying since 6 September as an owed refactor. Twenty open now, eleven still yours.
+          <br><br>Two more closed the same day, both engineering: the webhook secret rotation now has no window where email is silently dropped, deployed and checked live rather than only read; and the personal-data inventory that did not exist before this pass, built from the migrations rather than from the Play Data Safety form it used to be checked against. Eighteen open now, eleven still yours.</span>
         </div>
 
         <div class="callout good" style="margin-bottom:16px;">
