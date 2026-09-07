@@ -16,9 +16,9 @@ import {
   type SavedRecord,
 } from '../../components/WorkoutSavedAnimation';
 import {
-  CATEGORY_GRADIENTS,
+  CATEGORY_INK,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_INK,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -302,7 +302,7 @@ export function AddWorkoutScreen() {
             <Card key={exercise.id}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 }}>
-                  <IconWell icon={CATEGORY_ICONS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_ICON} size={36} colors={CATEGORY_GRADIENTS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_GRADIENT} />
+                  <IconWell icon={CATEGORY_ICONS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_ICON} size={36} tint={CATEGORY_INK[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_INK} />
                   <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {nameFor(exercise.exerciseId)}
                   </Text>

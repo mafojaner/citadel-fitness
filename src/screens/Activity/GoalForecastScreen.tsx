@@ -16,7 +16,7 @@ import { todayISO } from '../../lib/analytics';
 import { isoInWeeks, suggestedTargets, type GoalProjection, type GoalStatus } from '../../lib/goals';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
-import { gradients } from '../../theme/tokens';
+import { iconInk } from '../../theme/tokens';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 const STATUS_COPY: Record<GoalStatus, { label: string; detail: string; icon: keyof typeof Ionicons.glyphMap }> = {
@@ -346,7 +346,7 @@ export function GoalForecastScreen() {
         <>
           {form}
           <EmptyState
-            colors={gradients.reward}
+            tint={iconInk.amber}
             icon="flag"
             title="No goals yet"
             detail="Set one above and it starts tracking against everything you log."

@@ -161,7 +161,7 @@ export function PaidFeatureLink({
             and only one of those belongs to the host screen. */}
         <PremiumRow
           icon={feature.icon}
-          colors={feature.colors}
+          tint={feature.ink}
           title={label}
           detail={feature.short ?? feature.description}
           detailLines={2}
@@ -244,7 +244,7 @@ export function PaidFeatureList({ items }: { items: PaidFeatureListItem[] }) {
             >
               <PremiumRow
                 icon={feature.icon}
-                colors={feature.colors}
+                tint={feature.ink}
                 title={item.label}
                 detail={feature.short ?? feature.description}
                 detailLines={2}
@@ -397,7 +397,7 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
         <PremiumHeader label={headerLabel} trailing={badge} />
         <PremiumRow
           icon={feature.icon}
-          colors={feature.colors}
+          tint={feature.ink}
           title={feature.title}
           detail={feature.short ?? feature.description}
           detailLines={2}

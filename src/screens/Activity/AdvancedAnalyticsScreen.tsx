@@ -14,8 +14,8 @@ import { TierMark } from '../../components/TierMark';
 import { Sparkline } from '../../components/Sparkline';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
-  DEFAULT_CATEGORY_GRADIENT,
+  CATEGORY_INK,
+  DEFAULT_CATEGORY_INK,
   CATEGORY_ICONS,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
@@ -24,7 +24,7 @@ import { usePeriodComparison } from '../../hooks/usePeriodComparison';
 import { changePct } from '../../lib/periodComparison';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
-import { gradients } from '../../theme/tokens';
+import { iconInk } from '../../theme/tokens';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 const PERIODS: { label: string; days: number | null }[] = [
@@ -115,7 +115,7 @@ export function AdvancedAnalyticsScreen() {
         <ErrorNotice message={error} onRetry={reload} />
       ) : empty ? (
         <EmptyState
-          colors={gradients.volume}
+          tint={iconInk.cyan}
           icon="trending-up"
           title="Nothing logged in this period"
           detail="Try a longer range, or log a workout and come back."
@@ -142,7 +142,7 @@ export function AdvancedAnalyticsScreen() {
             {balance.map((entry) => (
               <View key={entry.category} style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <IconWell icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON} size={26} colors={CATEGORY_GRADIENTS[entry.category] ?? DEFAULT_CATEGORY_GRADIENT} />
+                  <IconWell icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON} size={26} tint={CATEGORY_INK[entry.category] ?? DEFAULT_CATEGORY_INK} />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {entry.category[0].toUpperCase() + entry.category.slice(1)}
                   </Text>
@@ -163,8 +163,11 @@ export function AdvancedAnalyticsScreen() {
                       width: `${Math.max(entry.share * 100, 1)}%`,
                       height: '100%',
                       borderRadius: radius.pill,
-                      backgroundColor:
-                        (CATEGORY_GRADIENTS[entry.category] ?? DEFAULT_CATEGORY_GRADIENT)[1],
+                      // The same ink as the category's glyph two columns
+                      // to the left. It was the second stop of that
+                      // category's ramp, which is a colour with no name and
+                      // no relationship to anything else on the row.
+                      backgroundColor: CATEGORY_INK[entry.category] ?? DEFAULT_CATEGORY_INK,
                     }}
                   />
                 </View>

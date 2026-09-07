@@ -16,7 +16,7 @@ import { useArmedAction } from '../../hooks/useArmedAction';
 import { useGroupChallenge } from '../../hooks/useGroupChallenge';
 import { useGroups } from '../../hooks/useGroups';
 import { GROUP_PERIODS } from '../../lib/groups';
-import { gradients } from '../../theme/tokens';
+import { gradients, iconInk } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 
 const RANK_GRADIENTS = [gradients.rankGold, gradients.rankSilver, gradients.rankBronze];
@@ -107,7 +107,7 @@ export function GroupsScreen() {
           {selected ? (
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <IconWell icon="people-circle" size={44} colors={gradients.rankGold} />
+                <IconWell icon="people-circle" size={44} tint={iconInk.rose} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                     {selected.name}
@@ -222,7 +222,7 @@ export function GroupsScreen() {
             </Card>
           ) : (
             <EmptyState
-              colors={gradients.rankGold}
+              tint={iconInk.rose}
               icon="people-circle"
               title="No groups yet"
               detail="Start one and share the code, or join a crew you've been invited to."

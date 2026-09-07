@@ -5,13 +5,13 @@ import { IconWell } from './IconWell';
 
 interface StatTileProps {
   icon: keyof typeof Ionicons.glyphMap;
-  /** The metric's own ramp. Only the glyph wears it; the tile and its disc stay neutral. */
-  gradientColors: readonly [string, string, ...string[]];
+  /** The metric's ink. Only the glyph wears it; the tile and its disc stay neutral. */
+  tint: string;
   value: string;
   label: string;
 }
 
-export function StatTile({ icon, gradientColors, value, label }: StatTileProps) {
+export function StatTile({ icon, tint, value, label }: StatTileProps) {
   const { colors, spacing, radius } = useTheme();
 
   return (
@@ -36,7 +36,7 @@ export function StatTile({ icon, gradientColors, value, label }: StatTileProps) 
         elevation: 4,
       }}
     >
-      <IconWell icon={icon} size={40} colors={gradientColors} />
+      <IconWell icon={icon} size={40} tint={tint} />
       <Text style={{ fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: 0.2 }}>
         {value}
       </Text>

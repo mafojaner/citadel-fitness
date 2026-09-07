@@ -20,7 +20,7 @@ import { useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { formatPublished } from '../../lib/articles';
 import { useAuthStore } from '../../state/authStore';
 import { useFavoriteArticlesStore } from '../../state/favoriteArticlesStore';
-import { gradients } from '../../theme/tokens';
+import { iconInk } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Article, ArticleCategory } from '../../types/models';
 import type { NewsletterStackParamList } from '../../navigation/stacks/NewsletterStack';
@@ -190,7 +190,7 @@ export function NewsletterScreen() {
               {/* Coloured for the same reason as the category icons, and
                   filled rather than outlined: a solid heart says "saved"
                   where an outline says "save this". */}
-              <Ionicons name="heart" size={26} color={gradients.favorite[gradients.favorite.length - 1]} />
+              <Ionicons name="heart" size={26} color={iconInk.crimson} />
               <View style={{ gap: 4 }}>
                 <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 16 }}>Favorites</Text>
                 <Text style={{ color: colors.textMuted, fontSize: 12 }}>

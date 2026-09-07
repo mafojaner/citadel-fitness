@@ -151,6 +151,40 @@ export const waterBlue = '#3B82F6';
 
 // Accent gradients for stat badges — deliberately vivid against the
 // otherwise neutral card surfaces, shared across light and dark theme.
+/**
+ * The colours a glyph can be, named for the colour rather than for a use.
+ *
+ * That naming is the whole point. These hues already existed, but only
+ * inside `gradients`, whose keys are uses -- and every icon in the app was
+ * reaching into that map for a ramp belonging to something else. Shoulders
+ * wore `rankGold`, which is a leaderboard medal. Back wore `calendar`.
+ * Nutrition coaching wore `pulse`, an orange-to-cyan ramp built for a
+ * cardio chart. Nothing was wrong on screen, exactly, but no assignment
+ * could be checked -- you could not look at `gradients.arms` on a download
+ * icon and say whether it was right or a leftover.
+ *
+ * With plain colour names, the assignment tables below them have to carry
+ * the reasoning, and a wrong one is visible as a wrong one.
+ *
+ * Only one end of a ramp ever reached a glyph, so these are single colours.
+ * `gradients` stays for the things that really are gradients: the Plans
+ * page's tier cards, rank medals, the progress bar.
+ */
+export const iconInk = {
+  ember: '#FF5A36',
+  flare: '#FF8A36',
+  amber: '#F5A623',
+  gold: '#FFC837',
+  crimson: '#E24C4C',
+  rose: '#FF3D81',
+  violet: '#8B5CF6',
+  azure: '#3B82F6',
+  cyan: '#22D3EE',
+  mint: '#34D399',
+} as const;
+
+export type IconInk = (typeof iconInk)[keyof typeof iconInk];
+
 export const gradients = {
   flame: ['#FF5A36', '#FF3D81'],
   calendar: ['#FF5A36', '#8B5CF6'],

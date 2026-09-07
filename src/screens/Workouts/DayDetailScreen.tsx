@@ -10,9 +10,9 @@ import { IconWell } from '../../components/IconWell';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
+  CATEGORY_INK,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_INK,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { confirmAsync } from '../../lib/confirm';
@@ -104,7 +104,7 @@ export function DayDetailScreen() {
         grouped.map(([category, categoryExercises]) => (
           <Card key={category}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={40} colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT} />
+              <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={40} tint={CATEGORY_INK[category] ?? DEFAULT_CATEGORY_INK} />
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                 {category[0].toUpperCase() + category.slice(1)}
               </Text>

@@ -7,7 +7,7 @@ import { RankAvatar } from './RankAvatar';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useAuthStore } from '../state/authStore';
 import { useTheme } from '../theme/useTheme';
-import { gradients } from '../theme/tokens';
+import { iconInk } from '../theme/tokens';
 
 interface RankingCardProps {
   /**
@@ -49,7 +49,7 @@ export function RankingCard({ onPress }: RankingCardProps) {
       <Card style={{ gap: spacing.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1, minWidth: 0 }}>
-            <IconWell icon="trophy" size={44} colors={gradients.rankGold} />
+            <IconWell icon="trophy" size={44} tint={iconInk.amber} />
             <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity ranking</Text>
               <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>

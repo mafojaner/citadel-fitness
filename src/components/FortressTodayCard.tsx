@@ -4,18 +4,18 @@ import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
 import { PremiumHeader, PremiumRow } from './PremiumCard';
 import { useFortressToday, type FortressToday } from '../hooks/useFortressToday';
-import { gradients } from '../theme/tokens';
+import { iconInk } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface Line {
   icon: keyof typeof Ionicons.glyphMap;
   /**
-   * The disc's gradient. Picked per line rather than one colour for the
-   * card, because these four are four different things a membership bought
-   * and the icons already say which -- a single fill would make them look
-   * like four instances of one.
+   * The glyph's ink, matched to the feature each line opens: the programme
+   * line is the same colour as the Structured programs card, the records
+   * line the same as the records vault. A member reaching one of these from
+   * two directions sees one colour for it.
    */
-  colors: readonly [string, string, ...string[]];
+  tint: string;
   /** The short, scannable half. Never wraps. */
   title: string;
   /** The qualifying half, muted under it. */
@@ -71,7 +71,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const { dayName, programName, position, cycleLength } = data.program;
     lines.push({
       icon: 'calendar-number',
-      colors: gradients.calendar,
+      tint: iconInk.ember,
       title: dayName,
       detail: `Day ${position} of ${cycleLength} · ${programName}`,
       onPress: props.onOpenPrograms,
@@ -82,7 +82,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
   if (data.newRecords > 0) {
     lines.push({
       icon: 'trophy',
-      colors: gradients.reward,
+      tint: iconInk.amber,
       title:
         data.newRecords === 1 ? 'New personal record' : `${data.newRecords} new personal records`,
       detail: 'Set in the last seven days',
@@ -98,7 +98,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const remaining = Math.max(0, Math.round((target - current) * 10) / 10);
     lines.push({
       icon: 'flag',
-      colors: gradients.flame,
+      tint: iconInk.amber,
       title: exerciseName,
       detail:
         remaining === 0
@@ -116,7 +116,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const { groupName, rank, memberCount } = data.group;
     lines.push({
       icon: 'people-circle',
-      colors: gradients.rankGold,
+      tint: iconInk.rose,
       title: `${ordinal(rank)} of ${memberCount}`,
       detail: `${groupName} · this week`,
       onPress: props.onOpenGroups,
@@ -170,7 +170,7 @@ export function FortressTodayCard(props: FortressTodayCardProps) {
           >
             <PremiumRow
               icon={line.icon}
-              colors={line.colors}
+              tint={line.tint}
               title={line.title}
               detail={line.detail}
             />

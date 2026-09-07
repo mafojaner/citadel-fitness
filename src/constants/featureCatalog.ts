@@ -1,13 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { MembershipTier } from '../lib/membership';
 import type { CurrencyCode } from '../lib/currency';
-import { gradients } from '../theme/tokens';
+import { gradients, iconInk, type IconInk } from '../theme/tokens';
 
 export type FeatureTier = MembershipTier;
 
 export interface AppFeature {
   id: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /**
+   * The glyph's colour, chosen for what the feature is about rather than
+   * for its tier -- so the calendar on a free card and the calendar on a
+   * Fortress one are the same colour, because they are the same idea.
+   *
+   * That is the whole rule. Before it, `colors` below was doing this job
+   * and doing it by accident: a ramp was picked per feature from a map
+   * named after other uses, so exports were `arms` and coaching was
+   * `pulse`, and two features about the same thing rarely matched.
+   */
+  ink: IconInk;
+  /** The ramp, for the Plans page's tier cards, which really do draw a gradient. */
   colors: readonly [string, string, ...string[]];
   title: string;
   description: string;
@@ -53,6 +65,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'workout-logging',
     icon: 'barbell',
+    ink: iconInk.ember,
     colors: gradients.volume,
     title: 'Workout logging & catalogue',
     description: 'Log every set, rep, and weight from a full exercise catalogue built for the gym floor.',
@@ -62,6 +75,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'streaks-charts',
     icon: 'flame',
+    ink: iconInk.amber,
     colors: gradients.flame,
     title: 'Streaks & activity charts',
     description: 'Daily streaks and volume trend charts that turn consistency into something visible.',
@@ -71,6 +85,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'leaderboards',
     icon: 'people',
+    ink: iconInk.rose,
     colors: gradients.favorite,
     title: 'Friends & leaderboards',
     description: 'See where you rank against everyone on Citadel Fitness, by days logged this week.',
@@ -82,6 +97,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'ai-progressive-overload',
     icon: 'sparkles',
+    ink: iconInk.violet,
     colors: gradients.identity,
     title: 'AI progressive overload',
     // Per lift, decided on the top set of the last session -- not per set,
@@ -95,6 +111,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'advanced-analytics',
     icon: 'trending-up',
+    ink: iconInk.cyan,
     colors: gradients.volume,
     title: 'Advanced analytics',
     description: 'Muscle-group balance, volume trends, and an estimated one-rep max for every lift you log.',
@@ -104,6 +121,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'pr-vault',
     icon: 'trophy',
+    ink: iconInk.amber,
     colors: gradients.flame,
     title: 'Personal records vault',
     description: 'Every PR tracked automatically, with a full history so you can see exactly how far you have come.',
@@ -113,6 +131,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'data-export',
     icon: 'download',
+    ink: iconInk.cyan,
     colors: gradients.arms,
     title: 'Exercise data export',
     description: 'Download your full workout history, every set, rep, and weight, as a CSV whenever you want it.',
@@ -122,6 +141,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'nutrition-coaching',
     icon: 'nutrition',
+    ink: iconInk.mint,
     colors: gradients.pulse,
     title: 'Nutrition coaching',
     // Was "adjusted automatically" while this sat in Fortress, which
@@ -136,6 +156,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'form-check',
     icon: 'videocam',
+    ink: iconInk.violet,
     colors: gradients.action,
     title: 'Form check reviews',
     // "within 48 hours" until 27 August, which was a service-level promise
@@ -152,6 +173,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'offline-sync',
     icon: 'cloud-done',
+    ink: iconInk.azure,
     colors: gradients.calendar,
     title: 'Offline mode & sync',
     // Narrowed to what is built. Workout saves queue and retry; water
@@ -164,6 +186,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'expert-guides',
     icon: 'book',
+    ink: iconInk.violet,
     colors: gradients.arms,
     title: 'Expert guide library',
     description: 'In-depth programs and technique breakdowns written by coaches, with new guides added monthly.',
@@ -174,6 +197,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'early-access',
     icon: 'flash',
+    ink: iconInk.violet,
     colors: gradients.identity,
     title: 'Early access',
     description: 'New features land in your hands first, weeks before they reach everyone else.',
@@ -183,6 +207,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'priority-support',
     icon: 'headset',
+    ink: iconInk.violet,
     colors: gradients.pulse,
     title: 'Priority support',
     // "a same-day reply from a real person, every time" until 28 August.
@@ -199,6 +224,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'structured-programs',
     icon: 'calendar-number',
+    ink: iconInk.ember,
     colors: gradients.calendar,
     title: 'Structured programs',
     description: 'Pick a program (5x5, push/pull/legs, an 8-week hypertrophy block) and it fills in your workouts day by day.',
@@ -209,6 +235,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'goal-forecasting',
     icon: 'flag',
+    ink: iconInk.amber,
     colors: gradients.reward,
     title: 'Goal forecasting',
     description: 'Set a target lift and a date. We project your trajectory from your logged history and tell you if you are on track.',
@@ -218,6 +245,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'advanced-logging',
     icon: 'timer',
+    ink: iconInk.ember,
     colors: gradients.action,
     title: 'RPE & rest timer',
     // Tempo was in the original pitch and isn't built; the description says
@@ -230,6 +258,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'private-groups',
     icon: 'people-circle',
+    ink: iconInk.rose,
     colors: gradients.rankGold,
     title: 'Private groups & challenges',
     // Challenges as named, stored objects aren't built; the comparison
@@ -242,6 +271,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'weekly-digest',
     icon: 'mail-unread',
+    ink: iconInk.azure,
     colors: gradients.identity,
     title: 'Weekly digest',
     description: 'A Sunday email recapping your week and what to focus on next, so you never have to wonder how you did.',
@@ -251,6 +281,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'wearable-sync',
     icon: 'watch',
+    ink: iconInk.azure,
     colors: gradients.arms,
     title: 'Wearable sync',
     description: 'Connect Apple Health or Whoop so recovery and heart-rate data feed straight into your training suggestions.',
@@ -260,6 +291,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'video-guides',
     icon: 'play-circle',
+    ink: iconInk.violet,
     colors: gradients.volume,
     title: 'Video demonstrations',
     description: 'Professionally shot technique video for every exercise in the catalogue, not just a text description.',
@@ -278,6 +310,7 @@ export const APP_FEATURES: AppFeature[] = [
   {
     id: 'referral',
     icon: 'gift',
+    ink: iconInk.rose,
     colors: gradients.favorite,
     title: 'Refer & earn',
     // Attribution is live; the reward waits on billing existing. Said here

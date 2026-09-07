@@ -11,7 +11,7 @@ import { QUICK_ADD_ML, formatWaterAmount, ozToMl } from '../lib/water';
 import { useWaterIntake } from '../hooks/useWaterIntake';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
-import { gradients } from '../theme/tokens';
+import { iconInk } from '../theme/tokens';
 
 /**
  * The card only ever needs one route, so it asks for one route rather than
@@ -75,7 +75,7 @@ export function WaterIntakeCard() {
         accessibilityLabel={`${formatWaterAmount(totalMl, unit)} of ${formatWaterAmount(goalMl, unit)}${metGoal ? ', goal reached' : ''}. Tap to view hydration history and set your goal.`}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon="water" colors={gradients.water} />
+          <IconWell icon="water" tint={iconInk.azure} />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>Water intake</Text>
             <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>

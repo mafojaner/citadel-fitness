@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { useAuthStore } from '../state/authStore';
 import { useFavoriteArticlesStore } from '../state/favoriteArticlesStore';
-import { gradients } from '../theme/tokens';
+import { iconInk } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface FavoriteButtonProps {
@@ -37,7 +37,7 @@ export function FavoriteButton({ articleId, size = 22 }: FavoriteButtonProps) {
         <Ionicons
           name={isFavorited ? 'heart' : 'heart-outline'}
           size={size}
-          color={isFavorited ? gradients.favorite[1] : colors.textMuted}
+          color={isFavorited ? iconInk.crimson : colors.textMuted}
         />
       </Animated.View>
     </Pressable>

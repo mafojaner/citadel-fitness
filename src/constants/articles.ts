@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { gradients } from '../theme/tokens';
+import { gradients, iconInk, type IconInk } from '../theme/tokens';
 import type { ArticleCategory } from '../types/models';
 
 export const ARTICLE_CATEGORY_FILTERS: { label: string; value: ArticleCategory | 'all' }[] = [
@@ -28,6 +28,21 @@ export const ARTICLE_CATEGORY_ICONS: Record<ArticleCategory, keyof typeof Ionico
   updates: 'megaphone',
 };
 
+/**
+ * Keyed to what the category is about, like every other icon in the app.
+ * These were ramps borrowed from `gradients`, which put nutrition in the
+ * orange-to-pink `flame` and recovery in the cardio-chart `pulse`.
+ */
+export const ARTICLE_CATEGORY_INK: Record<ArticleCategory, IconInk> = {
+  splits: iconInk.ember,
+  exercise: iconInk.flare,
+  nutrition: iconInk.mint,
+  recovery: iconInk.azure,
+  // Still deliberately distinct from the fitness-content categories above:
+  // this is a product announcement, not workout content.
+  updates: iconInk.violet,
+};
+
 export const ARTICLE_CATEGORY_GRADIENTS: Record<
   ArticleCategory,
   readonly [string, string, ...string[]]
@@ -42,7 +57,7 @@ export const ARTICLE_CATEGORY_GRADIENTS: Record<
 };
 
 /**
- * The one spot of colour a category gets: the saturated end of its gradient.
+ * The one spot of colour a category gets.
  *
  * The newsletter used to be built from colour -- gradient-filled tiles, a
  * gradient disc on every row -- which made the category the loudest thing on
@@ -50,7 +65,6 @@ export const ARTICLE_CATEGORY_GRADIENTS: Record<
  * category's own icon instead, which is a shape that already means something
  * rather than a mark added beside it.
  */
-export function articleCategoryInk(category: ArticleCategory): string {
-  const ramp = ARTICLE_CATEGORY_GRADIENTS[category];
-  return ramp[ramp.length - 1];
+export function articleCategoryInk(category: ArticleCategory): IconInk {
+  return ARTICLE_CATEGORY_INK[category];
 }

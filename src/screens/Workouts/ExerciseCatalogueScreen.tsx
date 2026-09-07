@@ -15,9 +15,9 @@ import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import { SearchField } from '../../components/SearchField';
 import {
   CATEGORY_FILTERS,
-  CATEGORY_GRADIENTS,
+  CATEGORY_INK,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_INK,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -138,7 +138,7 @@ export function ExerciseCatalogueScreen() {
                 {categoryCards.map((c) => (
                   <CategoryGridCard
                     key={c.value}
-                    gradientColors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
+                    tint={CATEGORY_INK[c.value as Category] ?? DEFAULT_CATEGORY_INK}
                     icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
                     label={c.label}
                     count={c.count}
@@ -192,10 +192,10 @@ export function ExerciseCatalogueScreen() {
                         ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
                         : DEFAULT_CATEGORY_ICON
                     }
-                    colors={
+                    tint={
                       infoExercise
-                        ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
-                        : DEFAULT_CATEGORY_GRADIENT
+                        ? CATEGORY_INK[infoExercise.category] ?? DEFAULT_CATEGORY_INK
+                        : DEFAULT_CATEGORY_INK
                     }
                     size={40}
                   />

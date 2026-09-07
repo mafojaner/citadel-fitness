@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
-import { GradientIconBadge } from './GradientIconBadge';
 import { IconWell } from './IconWell';
 import { useTheme } from '../theme/useTheme';
 
@@ -93,11 +92,8 @@ export function PremiumHeader({ label, icon = 'shield-checkmark', trailing }: Pr
 
 interface PremiumRowProps {
   icon: keyof typeof Ionicons.glyphMap;
-  /**
-   * The gradient for the disc. Supplying one is what makes this a premium
-   * row rather than an ordinary one -- see the note on the component.
-   */
-  colors?: readonly [string, string, ...string[]];
+  /** The subject's ink, exactly as any other card's icon takes it. */
+  tint?: string;
   /** The short, scannable half. */
   title: string;
   /** The qualifying half, stepped back under it. */
@@ -110,38 +106,26 @@ interface PremiumRowProps {
 }
 
 /**
- * A line inside a premium card: a coloured disc, bold title, muted detail,
- * chevron.
+ * A line inside a premium card: a neutral disc, the subject's ink on the
+ * glyph, bold title, muted detail, chevron.
  *
- * The disc is the point. Colour in this app is now a single claim -- "this
- * is what your membership is for" -- and it is spent here and on the header
- * above, and nowhere else. Every other glyph in every other card draws in
- * ink through IconWell, which is what makes these read as a different class
- * of thing rather than as the same card with a louder icon.
+ * The icon here used to be a filled gradient disc, so that a paid feature's
+ * glyph looked unlike every other glyph in the app. That made a calendar
+ * two different objects depending on which card it landed on -- a violet
+ * glyph on the free Today card, a white glyph on a magenta disc on the
+ * Fortress programs card -- and a member had no way to learn that they were
+ * the same idea.
  *
- * That is the exact inverse of where this started, where forty vivid
- * gradient discs were scattered across free screens and the paid cards were
- * distinguished by an inverted near-black slab. The discs have moved to
- * where the claim is.
- *
- * The gradient is optional so a caller with no natural colour for a row
- * falls back to ink rather than inventing one.
+ * What makes this card premium is the header above it: an accent shield, a
+ * tier name and a state pill, none of which any free card has. The icon
+ * does not have to say it twice, and saying it twice cost the app a
+ * consistent visual language for its own subjects.
  */
-export function PremiumRow({
-  icon,
-  colors: gradient,
-  title,
-  detail,
-  detailLines = 1,
-}: PremiumRowProps) {
+export function PremiumRow({ icon, tint, title, detail, detailLines = 1 }: PremiumRowProps) {
   const { colors, spacing, typography } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-      {gradient ? (
-        <GradientIconBadge icon={icon} colors={gradient} size={34} />
-      ) : (
-        <IconWell icon={icon} size={34} />
-      )}
+      <IconWell icon={icon} size={34} tint={tint} />
       {/* Two parts rather than one sentence. A short title with the
           qualifier underneath scans in one glance and cannot leave the row
           ragged the way a wrapped sentence does. */}

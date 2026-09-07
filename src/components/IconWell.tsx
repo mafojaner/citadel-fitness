@@ -8,19 +8,28 @@ interface IconWellProps {
   /** Diameter. The glyph is always half of it, which is what keeps a 34 and a 44 looking like the same object. */
   size?: number;
   /**
-   * The thing's own ramp -- a category's, a feature's. Only its saturated
-   * end is used, and only for the glyph. Left off, the glyph is ink, which
-   * is right for something with no identity of its own to express.
+   * The glyph's colour, from `iconInk`. Left off, the glyph is text ink,
+   * which is right for something with no subject of its own to express --
+   * a chevron, a generic marker.
+   *
+   * This took a ramp until the assignments were straightened out, and only
+   * ever used one end of it. A single colour is what it always was.
    */
-  colors?: readonly [string, string, ...string[]];
+  tint?: string;
 }
 
 /**
  * An icon in a neutral disc: the app's default way of drawing a glyph next
  * to a row of text.
  *
- * This is the other half of GradientIconBadge, and which one a surface uses
- * is now a statement rather than a style. Colour in this app means "paid":
+ * The only icon treatment on a card, on every tier. It used to be half of
+ * a pair -- free surfaces drew here and paid ones drew a filled
+ * GradientIconBadge -- which meant the same idea wore two faces depending
+ * on who could see it: a calendar was a violet glyph on the free Today card
+ * and a white glyph on a magenta disc on the Fortress programs card. What
+ * makes a card premium is its header, not its icon.
+ *
+ * The disc is neutral and the glyph carries the subject's colour:
  * the tier badges, the plan cards, the accent on a premium header. Every
  * other glyph -- a category, a summary card, an empty state, a search
  * result -- draws here, in ink.
@@ -38,7 +47,7 @@ interface IconWellProps {
  * see. `border` is the app's visible neutral and steps the right way in
  * both schemes.
  */
-export function IconWell({ icon, size = 44, colors: ramp }: IconWellProps) {
+export function IconWell({ icon, size = 44, tint }: IconWellProps) {
   const { colors } = useTheme();
   // The glyph carries the colour; the disc stays neutral. Filling the disc
   // instead is what GradientIconBadge does, and that is now reserved for
@@ -49,7 +58,7 @@ export function IconWell({ icon, size = 44, colors: ramp }: IconWellProps) {
   // readableOn rather than the raw hex: on the dark disc every ramp in the
   // palette already clears 3:1 and comes through untouched, but on the
   // light one not a single ink does -- see the note in theme/contrast.
-  const glyph = ramp ? readableOn(ramp[ramp.length - 1], colors.border) : colors.textPrimary;
+  const glyph = tint ? readableOn(tint, colors.border) : colors.textPrimary;
   return (
     <View
       style={{

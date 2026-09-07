@@ -16,9 +16,9 @@ import { SearchField } from '../../components/SearchField';
 import { TierMark } from '../../components/TierMark';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
+  CATEGORY_INK,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
+  DEFAULT_CATEGORY_INK,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useDataExport } from '../../hooks/useDataExport';
@@ -30,7 +30,7 @@ import { isRecentRecord, type PersonalRecord } from '../../lib/personalRecords';
 import { useProfileStore } from '../../state/profileStore';
 import type { Category } from '../../types/models';
 import { useTheme } from '../../theme/useTheme';
-import { gradients } from '../../theme/tokens';
+import { iconInk } from '../../theme/tokens';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
 function formatDate(dateString: string | null) {
@@ -191,7 +191,7 @@ export function PersonalRecordsScreen() {
           accessibilityLabel={`${record.exerciseName}. Opens this lift's record, goal and progression.`}
         >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon={CATEGORY_ICONS[record.category] ?? DEFAULT_CATEGORY_ICON} size={36} colors={CATEGORY_GRADIENTS[record.category] ?? DEFAULT_CATEGORY_GRADIENT} />
+          <IconWell icon={CATEGORY_ICONS[record.category] ?? DEFAULT_CATEGORY_ICON} size={36} tint={CATEGORY_INK[record.category] ?? DEFAULT_CATEGORY_INK} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
               {record.exerciseName}
@@ -241,7 +241,7 @@ export function PersonalRecordsScreen() {
         <ErrorNotice message={error} onRetry={reload} />
       ) : records.length === 0 ? (
         <EmptyState
-          colors={gradients.flame}
+          tint={iconInk.amber}
           icon="trophy"
           title="No records yet"
           detail="Log a workout and your bests start appearing here automatically. There's nothing to set up."

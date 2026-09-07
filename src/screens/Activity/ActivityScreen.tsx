@@ -31,7 +31,7 @@ import { useRewards } from '../../hooks/useRewards';
 import { addDays, todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
-import { gradients } from '../../theme/tokens';
+import { iconInk } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
@@ -75,7 +75,7 @@ function RewardsCard() {
           Fortress card it was drowning out. */}
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <IconWell icon="diamond" colors={gradients.reward} />
+          <IconWell icon="diamond" tint={iconInk.amber} />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>Rewards</Text>
             <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -403,19 +403,19 @@ export function ActivityScreen() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
           <StatTile
             icon="flame"
-            gradientColors={gradients.flame}
+            tint={iconInk.amber}
             value={`${currentStreakDays}`}
             label={`Day${currentStreakDays === 1 ? '' : 's'} streak`}
           />
           <StatTile
             icon="calendar"
-            gradientColors={gradients.calendar}
+            tint={iconInk.ember}
             value={`${workoutsThisWeek}`}
             label={`Workout${workoutsThisWeek === 1 ? '' : 's'} this week`}
           />
           <StatTile
             icon={isMinutes ? 'time' : 'barbell'}
-            gradientColors={isMinutes ? gradients.pulse : gradients.volume}
+            tint={iconInk.cyan}
             value={totalVolumeThisWeek.toLocaleString()}
             label={isMinutes ? 'Cardio min this week' : `${units} volume this week`}
           />
