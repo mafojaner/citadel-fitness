@@ -149,7 +149,15 @@ export async function fetchWorkoutForDate(
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map(toDetailExercise);
+}
+
+/** The row shape both the single-day and range queries select. */
+const LOGGED_EXERCISE_SELECT =
+  'id, exercise_id, exercises ( name, category, type ), set_entries ( id, set_number, reps, weight, weight_unit, duration_seconds, distance, distance_unit, rpe )';
+
+function toDetailExercise(row: DbLoggedExercise): WorkoutDetailExercise {
+  return {
     id: row.id,
     exerciseId: row.exercise_id,
     exerciseName: row.exercises?.name ?? 'Unknown exercise',
@@ -168,7 +176,57 @@ export async function fetchWorkoutForDate(
         distanceUnit: s.distance_unit,
         rpe: s.rpe,
       })),
-  }));
+  };
+}
+
+/**
+ * Every logged exercise across a span of days, keyed by date.
+ *
+ * Two queries regardless of how many days come back, rather than
+ * fetchWorkoutForDate in a loop: a feed showing sixty days would otherwise
+ * be a hundred and twenty round trips, and the second one already selects
+ * by a list of workout ids either way.
+ */
+export async function fetchWorkoutsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<Map<string, WorkoutDetailExercise[]>> {
+  const { data: workouts, error: workoutsError } = await supabase
+    .from('workouts')
+    .select('id, date')
+    .eq('user_id', userId)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .returns<{ id: string; date: string }[]>();
+
+  if (workoutsError) throw workoutsError;
+
+  const byDate = new Map<string, WorkoutDetailExercise[]>();
+  if (!workouts || workouts.length === 0) return byDate;
+
+  const dateForWorkout = new Map(workouts.map((w) => [w.id, w.date]));
+
+  const { data, error } = await supabase
+    .from('logged_exercises')
+    .select(`workout_id, ${LOGGED_EXERCISE_SELECT}`)
+    .in(
+      'workout_id',
+      workouts.map((w) => w.id)
+    )
+    .returns<(DbLoggedExercise & { workout_id: string })[]>();
+
+  if (error) throw error;
+
+  for (const row of data ?? []) {
+    const date = dateForWorkout.get(row.workout_id);
+    if (!date) continue;
+    const list = byDate.get(date) ?? [];
+    list.push(toDetailExercise(row));
+    byDate.set(date, list);
+  }
+
+  return byDate;
 }
 
 /**
