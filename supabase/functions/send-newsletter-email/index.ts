@@ -6,11 +6,14 @@
 // before this file ever runs and the webhook silently never fires. Auth is
 // still enforced below via the x-webhook-secret header, which fails closed.
 //
-// Triggered by a Supabase Database Webhook on public.articles INSERT (set
-// up in the dashboard: Database -> Webhooks). Emails everyone who has
-// turned on "Email me about new articles & app news" in Account ->
-// Notifications — a real inbox email, separate from the in-app push
-// notification the app already sends for the same event.
+// Triggered by a Postgres trigger, not the dashboard's Database Webhooks
+// UI: on_article_created (migration 20260101000028) calls this via pg_net
+// on public.articles INSERT. Emails everyone who has turned on "Email me
+// about new articles & app news" in Account -> Notifications — a real
+// inbox email, separate from the in-app push notification the app already
+// sends for the same event. Found stale during the 7 September email
+// audit; functionally identical to a dashboard webhook, which is why
+// nobody had noticed.
 //
 // The webhook must be configured with a custom HTTP header
 // `x-webhook-secret: <WEBHOOK_SECRET>` so this endpoint can't be triggered

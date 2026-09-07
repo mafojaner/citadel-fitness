@@ -6,10 +6,13 @@
 // before this file ever runs and the webhook silently never fires. Auth is
 // still enforced below via the x-webhook-secret header, which fails closed.
 //
-// Triggered by a Supabase Database Webhook on auth.users UPDATE (set up in
-// the dashboard: Database -> Webhooks). Fires a one-time welcome email the
+// Triggered by a Postgres trigger, not the dashboard's Database Webhooks
+// UI: on_auth_user_email_confirmed (migration 20260101000028) calls this
+// via pg_net on auth.users UPDATE. Fires a one-time welcome email the
 // moment a new account's email is confirmed for the first time — not on
-// every subsequent login.
+// every subsequent login. Found stale during the 7 September email audit;
+// functionally identical to a dashboard webhook, which is why nobody had
+// noticed.
 //
 // The webhook must be configured with a custom HTTP header
 // `x-webhook-secret: <WEBHOOK_SECRET>` so this endpoint can't be triggered
