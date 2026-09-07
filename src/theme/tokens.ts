@@ -185,6 +185,32 @@ export const iconInk = {
 
 export type IconInk = (typeof iconInk)[keyof typeof iconInk];
 
+/**
+ * The gradient disc each `iconInk` colour fills, for `IconWell`'s tinted case.
+ *
+ * Every icon in the app draws its subject's colour on one of these ten
+ * inks now (see `CATEGORY_INK`, `AppFeature.ink`) -- a fix for the years
+ * where a glyph borrowed whichever ramp from `gradients` happened to have
+ * the right vibe (shoulders wore a leaderboard medal, nutrition coaching
+ * wore a cardio chart's ramp) with no way to tell a decision from a
+ * leftover. Reusing those old borrowed ramps here would bring the same
+ * problem back the moment the fill returned, so each pair is built fresh
+ * from the ink it fills for, ending on a second colour that already exists
+ * elsewhere in the palette rather than a new one invented for this.
+ */
+export const inkGradient: Record<string, readonly [string, string]> = {
+  '#FF5A36': ['#FF5A36', '#FF3D81'], // ember -> rose
+  '#FF8A36': ['#FF8A36', '#FFC837'], // flare -> gold
+  '#F5A623': ['#F5A623', '#FF5A36'], // amber -> ember
+  '#FFC837': ['#FFC837', '#FF8A36'], // gold -> flare
+  '#E24C4C': ['#E24C4C', '#FF3D81'], // crimson -> rose
+  '#FF3D81': ['#FF3D81', '#E24C4C'], // rose -> crimson
+  '#8B5CF6': ['#8B5CF6', '#FF5A36'], // violet -> ember
+  '#3B82F6': ['#3B82F6', '#22D3EE'], // azure -> cyan
+  '#22D3EE': ['#22D3EE', '#34D399'], // cyan -> mint
+  '#34D399': ['#34D399', '#22D3EE'], // mint -> cyan
+};
+
 export const gradients = {
   flame: ['#FF5A36', '#FF3D81'],
   calendar: ['#FF5A36', '#8B5CF6'],

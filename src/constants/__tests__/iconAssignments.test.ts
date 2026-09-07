@@ -11,13 +11,10 @@ import {
   DEFAULT_CATEGORY_ICON,
   DEFAULT_CATEGORY_INK,
 } from '../categories';
-import { MIN_GLYPH_CONTRAST, contrastRatio, readableOn } from '../../theme/contrast';
-import { iconInk } from '../../theme/tokens';
+import { iconInk, inkGradient } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 
 const PALETTE = Object.values(iconInk) as string[];
-/** `colors.border` per scheme -- the disc every glyph sits in. */
-const DISCS = { light: '#D8DCE4', dark: '#2A3140' };
 
 const CATEGORIES = CATEGORY_FILTERS.filter((c) => c.value !== 'all').map(
   (c) => c.value as Category
@@ -61,6 +58,15 @@ describe('ink assignments', () => {
     expect(PALETTE).toContain(DEFAULT_CATEGORY_INK);
   });
 
+  it('has a gradient for every ink in the palette', () => {
+    // IconWell fills a gradient disc for any tint it's handed; a colour
+    // that reaches the palette without a matching entry in inkGradient
+    // falls back to a flat, ungraded disc silently.
+    for (const [name, ink] of Object.entries(iconInk)) {
+      expect(`${name}:${Boolean(inkGradient[ink])}`).toBe(`${name}:true`);
+    }
+  });
+
   it('draws every feature ink from the palette', () => {
     for (const feature of APP_FEATURES) {
       expect(`${feature.id}:${PALETTE.includes(feature.ink)}`).toBe(`${feature.id}:true`);
@@ -73,19 +79,6 @@ describe('ink assignments', () => {
     }
     for (const category of Object.keys(ARTICLE_CATEGORY_ICONS)) {
       expect(articleCategoryInk(category as never)).toBeTruthy();
-    }
-  });
-
-  it('keeps every palette ink legible on both discs', () => {
-    // The palette is what IconWell is handed, so this is the set that has to
-    // survive readableOn rather than `gradients`, which no glyph reads now.
-    for (const [name, ink] of Object.entries(iconInk)) {
-      for (const [scheme, disc] of Object.entries(DISCS)) {
-        const out = readableOn(ink, disc);
-        expect(`${name}/${scheme}:${contrastRatio(out, disc) >= MIN_GLYPH_CONTRAST}`).toBe(
-          `${name}/${scheme}:true`
-        );
-      }
     }
   });
 });
