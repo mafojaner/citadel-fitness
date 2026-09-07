@@ -16,148 +16,41 @@
 <link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/tokens.css" />
 <link rel="stylesheet" href="/shell.css" />
+<link rel="stylesheet" href="/doc.css" />
 <style>
-  :root {
-    --paper: #F5F6F8;
-    --ink: #0B0E14;
-    --surface: #FFFFFF;
-    --surface-raised: #FFFFFF;
-    --border: #E2E5EC;
-    --ember: #FF5A36;
-    --ember-soft: #FFE8E1;
-    --slate: #4A5468;
-    --mist: #8A93A6;
-    --flag: #A5680C;
-    --flag-soft: #FBEFDA;
-    --flag-border: #E7C688;
-  }
+  /* Privacy-only additions on top of doc.css. Everything else this page
+     used to define inline -- the page grid, header, toc, section numbers,
+     tables, callouts -- was a near-exact duplicate of doc.css under
+     different token names (--ink for --doc-ink, --ember for --doc-accent,
+     and so on) and is gone; two divergent copies of one reading treatment
+     is exactly what doc.css exists to stop. Two things here have no
+     doc.css equivalent and stay:
 
+     1. `.tldr`, the "in short" summary box -- neutral, not a callout, so
+        it must not read as a warning.
+     2. `.callout.accent`, a positive callout for the one section that
+        names something you can do rather than something to know.
+
+     Adopted along with the rest: doc.css's numbered sections read as plain
+     margin gaps rather than hairline dividers, and the toc has no left
+     rail. Both are terms.html and support.html's existing look -- this
+     page now matches the site's other two long documents instead of its
+     own, older design. */
+
+  /* Same elevation privacy.html always gave this box: indistinguishable
+     from `--surface` in light mode, one step lighter than it in dark mode
+     -- doc.css has only one surface level, and dropping the distinction
+     would make the box vanish into an ordinary card exactly where dark
+     mode most needs it to read as raised. */
+  :root { --tldr-bg: var(--surface); }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #0B0E14;
-      --ink: #F4F5F7;
-      --surface: #151A24;
-      --surface-raised: #1B212E;
-      --border: #262E3D;
-      --ember: #FF7A57;
-      --ember-soft: #2A180F;
-      --slate: #B7BECC;
-      --mist: #7C879A;
-      --flag: #E8B457;
-      --flag-soft: #2A2110;
-      --flag-border: #4A3A17;
-    }
+    :root { --tldr-bg: #1B212E; }
   }
-
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
-    font-size: 17px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .sans {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  .mono {
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-  }
-
-  .page {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 56px 24px 96px;
-    display: grid;
-    grid-template-columns: 220px minmax(0, 680px);
-    gap: 64px;
-    align-items: start;
-  }
-
-  /* ---------- Header ---------- */
-
-  header.doc-head {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding-bottom: 40px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
-  }
-
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ember);
-  }
-
-  h1 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    font-size: clamp(32px, 5vw, 46px);
-    line-height: 1.08;
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  .doc-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    font-size: 13px;
-    color: var(--mist);
-  }
-  .doc-meta strong { color: var(--slate); font-weight: 600; }
-
-  .lede {
-    max-width: 62ch;
-    color: var(--slate);
-    font-size: 18px;
-    margin: 4px 0 0;
-  }
-
-  /* ---------- TOC / spine ---------- */
-
-  nav.toc {
-    position: sticky;
-    top: 32px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    border-left: 2px solid var(--border);
-    padding-left: 16px;
-  }
-
-  nav.toc a {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--mist);
-    text-decoration: none;
-    padding: 7px 0;
-    display: flex;
-    gap: 10px;
-  }
-  nav.toc a:hover, nav.toc a:focus-visible { color: var(--ember); }
-  nav.toc a:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 2px; }
-  nav.toc .n { color: var(--border); font-variant-numeric: tabular-nums; }
-  nav.toc a:hover .n, nav.toc a:focus-visible .n { color: var(--ember); }
-
-  /* ---------- Summary box ---------- */
 
   .tldr {
     grid-column: 2;
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
+    background: var(--tldr-bg);
+    border: 1px solid var(--doc-border);
     border-radius: 4px;
     padding: 24px 26px;
     margin-bottom: 16px;
@@ -167,183 +60,24 @@
   .tldr li { margin-bottom: 8px; }
   .tldr li:last-child { margin-bottom: 0; }
 
-  /* ---------- Sections ---------- */
-
-  main { grid-column: 2; min-width: 0; }
-
-  section.doc-section {
-    padding: 40px 0;
-    border-bottom: 1px solid var(--border);
-    scroll-margin-top: 24px;
+  /* `.tldr` sitting between `nav.toc` and `main` adds a third grid item to
+     a layout doc.css only ever expects two in, so auto-placement no
+     longer lines main up under it -- pinned back to column 2 explicitly.
+     Only above doc.css's own 900px collapse: pinning it unconditionally
+     fought that collapse, forcing an implicit second column back into
+     existence right when the point of the breakpoint is to remove it. */
+  @media (min-width: 901px) {
+    main { grid-column: 2; }
   }
-  section.doc-section:last-of-type { border-bottom: none; }
-
-  .section-head {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 16px;
-  }
-
-  .section-num {
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-    font-size: 14px;
-    color: var(--mist);
-    font-weight: 500;
-  }
-
-  h2 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 800;
-    font-size: 23px;
-    letter-spacing: -0.005em;
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  h3 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    margin: 24px 0 8px;
-  }
-
-  p { margin: 0 0 14px; }
-  p:last-child { margin-bottom: 0; }
-
-  ul, ol { margin: 0 0 14px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
-
-  a { color: var(--ember); }
-
-  /* ---------- Data table ---------- */
-
-  .data-table-wrap { overflow-x: auto; margin: 18px 0 22px; }
-
-  table.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 15px;
-    min-width: 560px;
-  }
-
-  table.data-table th {
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--mist);
-    text-align: left;
-    padding: 0 14px 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  table.data-table td {
-    padding: 12px 14px 12px 0;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  table.data-table td.what {
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  table.data-table td.why {
-    color: var(--slate);
-    font-size: 14px;
-  }
-
-  table.data-table tr:last-child td { border-bottom: none; }
-
-  /* ---------- Callouts ---------- */
-
-  .callout {
-    border-radius: 4px;
-    padding: 20px 22px;
-    margin: 18px 0;
-    border: 1px solid var(--border);
-    background: var(--surface-raised);
+  @media (max-width: 900px) {
+    .tldr { grid-column: 1; }
   }
 
   .callout.accent {
-    border-color: color-mix(in srgb, var(--ember) 35%, var(--border));
-    background: var(--ember-soft);
+    border-color: color-mix(in srgb, var(--doc-accent) 35%, var(--doc-border));
+    background: color-mix(in srgb, var(--doc-accent) 8%, var(--surface));
   }
-  .callout.accent .callout-label { color: var(--ember); }
-
-  .callout-label {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
-  }
-
-  .callout p:last-child { margin-bottom: 0; }
-
-  .placeholder {
-    display: inline-block;
-    background: var(--flag-soft);
-    border: 1px dashed var(--flag-border);
-    color: var(--flag);
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-    font-size: 14px;
-    padding: 1px 8px;
-    border-radius: 3px;
-  }
-
-  .flag-box {
-    border: 1px dashed var(--flag-border);
-    background: var(--flag-soft);
-    border-radius: 4px;
-    padding: 18px 20px;
-    margin: 0 0 40px;
-  }
-  .flag-box .callout-label { color: var(--flag); }
-  .flag-box p { color: var(--ink); }
-  .flag-box p:last-child { margin-bottom: 0; }
-
-  /* ---------- Footer ---------- */
-
-  footer.doc-foot {
-    grid-column: 2;
-    margin-top: 24px;
-    padding-top: 28px;
-    border-top: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--mist);
-  }
-  footer.doc-foot p { max-width: 62ch; }
-
-  @media (prefers-reduced-motion: no-preference) {
-    html { scroll-behavior: smooth; }
-  }
-
-  /* ---------- Mobile layout ----------
-     Deliberately last in the stylesheet: every selector below ties in
-     specificity with the base rule it overrides (.page, nav.toc,
-     header.doc-head, .tldr, main, footer.doc-foot are each matched by an
-     equal-specificity base rule earlier in this file), so cascade order is
-     what decides the winner. Placed anywhere earlier, the later base rules
-     would win regardless of whether this media query matches. */
-  @media (max-width: 860px) {
-    .page {
-      grid-template-columns: minmax(0, 1fr);
-      padding: 32px 20px 72px;
-      gap: 32px;
-    }
-    nav.toc { display: none; }
-    header.doc-head,
-    .tldr,
-    main,
-    footer.doc-foot {
-      grid-column: 1;
-    }
-  }
+  .callout.accent .callout-label { color: var(--doc-accent); }
 </style>
 </head>
 <body>

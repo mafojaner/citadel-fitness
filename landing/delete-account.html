@@ -16,223 +16,61 @@
 <link rel="preload" href="/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/tokens.css" />
 <link rel="stylesheet" href="/shell.css" />
+<link rel="stylesheet" href="/doc.css" />
 <style>
-  :root {
-    --paper: #F5F6F8;
-    --ink: #0B0E14;
-    --surface: #FFFFFF;
-    --border: #E2E5EC;
-    --ember: #FF5A36;
-    --slate: #4A5468;
-    --mist: #8A93A6;
-    --flag: #A5680C;
-    --flag-soft: #FBEFDA;
-    --flag-border: #E7C688;
-    --bad: #C7362C;
-    --bad-soft: #FCEAE8;
-    --bad-border: #F0BDB7;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #0B0E14;
-      --ink: #F4F5F7;
-      --surface: #151A24;
-      --border: #262E3D;
-      --ember: #FF7A57;
-      --slate: #B7BECC;
-      --mist: #7C879A;
-      --flag: #E8B457;
-      --flag-soft: #2A2110;
-      --flag-border: #4A3A17;
-      --bad: #FF6B62;
-      --bad-soft: #2A1412;
-      --bad-border: #4C2320;
-    }
-  }
-
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
-    font-size: 17px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .sans {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  .mono {
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-  }
-
+  /* Delete-account-only additions on top of doc.css.
+     This page is short enough that it never grew a contents rail, so
+     unlike doc.css's default two-column grid it stays a single narrow
+     column of plain block flow -- the grid's own 64px row gap would
+     otherwise land between every paragraph and heading here, since this
+     page has no section wrappers to absorb it the way doc.css expects. */
   .page {
+    display: block;
     max-width: 720px;
     margin: 0 auto;
     padding: 56px 24px 96px;
   }
 
-  header.doc-head {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding-bottom: 36px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 40px;
-  }
-
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--ember);
-  }
-
-  h1 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    font-size: clamp(32px, 5vw, 46px);
-    line-height: 1.08;
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  .doc-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    font-size: 13px;
-    color: var(--mist);
-  }
-  .doc-meta strong { color: var(--slate); font-weight: 600; }
-
-  .lede {
-    max-width: 62ch;
-    color: var(--slate);
-    font-size: 18px;
-    margin: 4px 0 0;
-  }
-
+  /* doc.css sizes h2/h3 inside `.doc-section`, which this page has never
+     used -- its headings sit directly in the flow. Same type as doc.css
+     (family, weight, size), this page's own spacing: tuned for a flat
+     heading-based document rather than boxed sections. */
   h2 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 22px;
+    font-family: var(--font-body);
     font-weight: 700;
+    font-size: 22px;
     letter-spacing: -0.01em;
     margin: 44px 0 12px;
     text-wrap: balance;
   }
-
   h3 {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 17px;
+    font-family: var(--font-body);
     font-weight: 700;
+    font-size: 16px;
     margin: 28px 0 8px;
-  }
-
-  p { margin: 0 0 16px; }
-  a { color: var(--ember); text-underline-offset: 3px; }
-  a:focus-visible {
-    outline: 2px solid var(--ember);
-    outline-offset: 3px;
-    border-radius: 2px;
   }
 
   ol.steps { margin: 0 0 16px; padding-left: 22px; }
   ol.steps li { margin-bottom: 8px; }
 
-  .path {
-    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
-    font-size: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 2px 7px;
-  }
-
-  .callout {
-    border: 1px solid var(--flag-border);
-    background: var(--flag-soft);
-    border-left: 3px solid var(--flag);
-    border-radius: 4px;
-    padding: 18px 20px;
-    margin: 0 0 20px;
-  }
-  .callout.stop {
-    border-color: var(--bad-border);
-    background: var(--bad-soft);
-    border-left-color: var(--bad);
-  }
-  .callout-label {
-    display: block;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--flag);
-    margin-bottom: 6px;
-  }
-  .callout.stop .callout-label { color: var(--bad); }
-  .callout p:last-child { margin-bottom: 0; }
-
-  .data-table-wrap { overflow-x: auto; margin: 0 0 20px; }
-  table.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 15px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-  }
-  table.data-table th {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--mist);
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  table.data-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  table.data-table tr:last-child td { border-bottom: none; }
-  .what { font-weight: 600; }
-  .why { color: var(--slate); font-size: 14px; }
-
+  /* Same button support.html's contact route uses -- one CTA style shared
+     across every doc page that has a "get in touch" moment. */
   .email-cta {
     display: inline-block;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     font-size: 16px;
-    background: var(--ember);
+    background: var(--doc-accent);
     color: #fff;
     text-decoration: none;
-    padding: 12px 22px;
+    padding: 11px 20px;
     border-radius: 4px;
-    margin: 4px 0 8px;
+    margin: 6px 0 2px;
+    transition: filter var(--dur-base) var(--ease);
   }
-  .email-cta:hover { filter: brightness(1.06); }
+  .email-cta:hover { filter: brightness(1.08); }
 
-  .doc-foot {
-    margin-top: 56px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-    font-size: 14px;
-    color: var(--mist);
-  }
-  .doc-foot a { color: var(--slate); }
+  @media (prefers-reduced-motion: reduce) { .email-cta { transition: none; } }
 
   @media (max-width: 560px) {
     .page { padding: 36px 20px 72px; }
