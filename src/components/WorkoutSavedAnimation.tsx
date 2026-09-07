@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -12,7 +11,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { gradients } from '../theme/tokens';
+import { BACKDROP, DriftingIconField, GradientBand, bandSize } from './BrandBackdrop';
+import { darkColors, iconInk } from '../theme/tokens';
 
 export interface SavedRecord {
   exerciseName: string;
@@ -68,97 +68,6 @@ const HOLD_MS = 1670;
  */
 const HOLD_WITH_RECORD_MS = 3470;
 const FADE_OUT_MS = 260;
-const BACKDROP = '#0B0E14';
-
-interface ConfettiPiece {
-  icon: keyof typeof Ionicons.glyphMap;
-  size: number;
-  left: number;
-  startTop: number;
-  drift: number;
-  wobble: number;
-  peakOpacity: number;
-  delay: number;
-  duration: number;
-}
-
-const CONFETTI_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
-  'barbell-outline',
-  'flame-outline',
-  'trophy-outline',
-  'thumbs-up-outline',
-];
-
-function generateConfetti(width: number, height: number, spanMs: number): ConfettiPiece[] {
-  const count = Math.round(width / 34);
-  return Array.from({ length: count }, (_, i) => ({
-    icon: CONFETTI_ICONS[i % CONFETTI_ICONS.length],
-    size: 18 + Math.random() * 14,
-    left: Math.random() * width,
-    // Starts anywhere from just under the headline to well below the
-    // screen, so pieces keep entering from the bottom rather than all
-    // drifting past in the first second.
-    startTop: height * 0.4 + Math.random() * height * 0.9,
-    drift: height * 0.35 + Math.random() * height * 0.35,
-    wobble: (Math.random() - 0.5) * 40,
-    peakOpacity: 0.35 + Math.random() * 0.35,
-    delay: Math.random() * Math.max(0, spanMs - 700),
-    duration: 1000 + Math.random() * 700,
-  }));
-}
-
-/**
- * Renders ~26 icons animating only transform and opacity (both
- * native-driver-safe), the same approach the confetti burst this replaced
- * used — see the note it left behind for why that mattered on web.
- */
-function ConfettiField({ width, height, spanMs }: { width: number; height: number; spanMs: number }) {
-  // Lazy initializer: called once per mount and cached, the documented
-  // escape hatch for one-time non-deterministic setup that isn't expected
-  // to be a pure function of props the way useMemo's callback is.
-  const [pieces] = useState(() => generateConfetti(width, height, spanMs));
-  const [progress] = useState(() => pieces.map(() => new Animated.Value(0)));
-
-  useEffect(() => {
-    const animations = pieces.map((piece, i) =>
-      Animated.timing(progress[i], {
-        toValue: 1,
-        duration: piece.duration,
-        delay: piece.delay,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      })
-    );
-    Animated.parallel(animations).start();
-  }, [pieces, progress]);
-
-  return (
-    <>
-      {pieces.map((piece, i) => {
-        const translateY = progress[i].interpolate({ inputRange: [0, 1], outputRange: [0, -piece.drift] });
-        const translateX = progress[i].interpolate({ inputRange: [0, 1], outputRange: [0, piece.wobble] });
-        const opacity = progress[i].interpolate({
-          inputRange: [0, 0.15, 0.75, 1],
-          outputRange: [0, piece.peakOpacity, piece.peakOpacity, 0],
-        });
-        return (
-          <Animated.View
-            key={i}
-            style={{
-              position: 'absolute',
-              left: piece.left,
-              top: piece.startTop,
-              opacity,
-              transform: [{ translateY }, { translateX }],
-            }}
-          >
-            <Ionicons name={piece.icon} size={piece.size} color="#FFFFFF" />
-          </Animated.View>
-        );
-      })}
-    </>
-  );
-}
 
 /**
  * The full-screen takeover shown when a workout saves.
@@ -254,8 +163,7 @@ export function WorkoutSavedAnimation({
   // band moves at all) so that centring either one, unscaled, already
   // covers corner to corner — the "wipe" is this same shape starting
   // smaller and off to the side, not a separately-built cover shape.
-  const bandWidth = width * 1.8;
-  const bandHeight = height * 0.2;
+  const band = bandSize(width, height);
   const bandRotation = '-26deg';
 
   const blackOpacity = wipe.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 1, 1] });
@@ -292,14 +200,10 @@ export function WorkoutSavedAnimation({
         style={[StyleSheet.absoluteFill, { backgroundColor: BACKDROP, opacity: blackOpacity }]}
       />
 
-      <Animated.View
-        pointerEvents="none"
+      <GradientBand
+        width={band.width}
+        height={band.height}
         style={{
-          position: 'absolute',
-          width: bandWidth,
-          height: bandHeight,
-          borderRadius: bandHeight / 2,
-          overflow: 'hidden',
           transform: [
             { translateX: bandATranslateX },
             { translateY: bandATranslateY },
@@ -307,30 +211,22 @@ export function WorkoutSavedAnimation({
             { scale: bandAScale },
           ],
         }}
-      >
-        <LinearGradient colors={gradients.flame} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      </Animated.View>
+      />
 
-      <Animated.View
-        pointerEvents="none"
+      <GradientBand
+        width={band.width}
+        height={band.height}
         style={{
-          position: 'absolute',
-          width: bandWidth,
-          height: bandHeight,
-          borderRadius: bandHeight / 2,
-          overflow: 'hidden',
           transform: [
             { translateX: -width * 0.25 },
             { translateY: bandBTranslateY },
             { rotate: bandRotation },
           ],
         }}
-      >
-        <LinearGradient colors={gradients.flame} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      </Animated.View>
+      />
 
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-        <ConfettiField width={width} height={height} spanMs={holdMs} />
+        <DriftingIconField width={width} height={height} spanMs={holdMs} />
       </View>
 
       <Animated.View
@@ -342,18 +238,18 @@ export function WorkoutSavedAnimation({
           paddingHorizontal: 32,
         }}
       >
-        <Ionicons name="barbell-outline" size={40} color="#FFFFFF" style={{ marginBottom: 14 }} />
-        <Text style={{ color: '#FFFFFF', fontSize: 30, fontWeight: '800', letterSpacing: 0.2 }}>Nice work.</Text>
+        <Ionicons name="barbell-outline" size={40} color={darkColors.textPrimary} style={{ marginBottom: 14 }} />
+        <Text style={{ color: darkColors.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: 0.2 }}>Nice work.</Text>
 
         {hasRecords ? (
           <View style={{ alignItems: 'center', marginTop: 22, gap: 6 }}>
-            <Text style={{ color: '#FFC837', fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }}>
+            <Text style={{ color: iconInk.gold, fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }}>
               {records.length === 1 ? 'NEW PERSONAL RECORD' : `${records.length} NEW PERSONAL RECORDS`}
             </Text>
             {records.slice(0, 3).map((record) => (
               <Text
                 key={record.exerciseName}
-                style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '700', textAlign: 'center' }}
+                style={{ color: darkColors.textPrimary, fontSize: 17, fontWeight: '700', textAlign: 'center' }}
                 numberOfLines={1}
               >
                 {record.exerciseName} · {record.weight} {weightUnit} × {record.reps}
@@ -363,7 +259,7 @@ export function WorkoutSavedAnimation({
                 week, not a milestone, and a wall of them stops reading as an
                 achievement. */}
             {records.length > 3 ? (
-              <Text style={{ color: '#D8DCE4', fontSize: 13 }}>and {records.length - 3} more</Text>
+              <Text style={{ color: darkColors.textSecondary, fontSize: 13 }}>and {records.length - 3} more</Text>
             ) : null}
           </View>
         ) : null}

@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { PropsWithChildren } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
+import { darkColors } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface GradientButtonProps extends PropsWithChildren {
@@ -17,6 +18,17 @@ interface GradientButtonProps extends PropsWithChildren {
    */
   colors?: readonly [string, string, ...string[]];
   variant?: 'solid' | 'outline';
+  /**
+   * For a surface that is dark in both themes, which the first-run intro
+   * is. `ctaFill` is a mirrored pair -- near-black on light, white on dark
+   * -- so a button that reads the live theme lands black-on-black there
+   * for anyone whose app is set to light. This pins it to the dark half of
+   * the pair rather than inventing a third colour.
+   *
+   * There is no theme provider to override for a subtree; `useTheme` reads
+   * a global store, so the choice is a prop or nothing.
+   */
+  onDark?: boolean;
 }
 
 export function GradientButton({
@@ -26,8 +38,12 @@ export function GradientButton({
   label,
   colors: gradientColors,
   variant = 'solid',
+  onDark = false,
 }: GradientButtonProps) {
-  const { colors, spacing, radius, scheme } = useTheme();
+  const theme = useTheme();
+  const { spacing, radius } = theme;
+  const colors = onDark ? darkColors : theme.colors;
+  const scheme = onDark ? 'dark' : theme.scheme;
   const isDisabled = disabled || loading;
   // A coloured button outlines in the saturated end of its own gradient;
   // the default one outlines in the fill it would otherwise have had.
