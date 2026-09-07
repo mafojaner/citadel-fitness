@@ -2,12 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
-import { GradientIconBadge } from './GradientIconBadge';
+import { IconWell } from './IconWell';
 import { PopInView } from './PopInView';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../constants/categories';
 import { useTheme } from '../theme/useTheme';
@@ -54,7 +52,7 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
           borderColor: colors.border,
         }}
       >
-        <Ionicons name="filter" size={15} color={colors.primary} />
+        <Ionicons name="filter" size={15} color={colors.textSecondary} />
         <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>{active.label}</Text>
         <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textMuted} />
       </AnimatedPressable>
@@ -101,9 +99,6 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                   {options.map((option) => {
                     const isActive = option.value === value;
                     const isAll = option.value === 'all';
-                    const gradientColors = isAll
-                      ? DEFAULT_CATEGORY_GRADIENT
-                      : CATEGORY_GRADIENTS[option.value as Category] ?? DEFAULT_CATEGORY_GRADIENT;
                     const icon = isAll
                       ? 'apps-outline'
                       : CATEGORY_ICONS[option.value as Category] ?? DEFAULT_CATEGORY_ICON;
@@ -129,10 +124,10 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                           paddingVertical: spacing.sm,
                           paddingHorizontal: spacing.xs,
                           borderRadius: radius.md,
-                          backgroundColor: isActive ? colors.primaryMuted : 'transparent',
+                          backgroundColor: isActive ? colors.border : 'transparent',
                         }}
                       >
-                        <GradientIconBadge icon={icon} colors={gradientColors} size={32} />
+                        <IconWell icon={icon} size={32} />
                         <Text
                           style={[
                             typography.body,
@@ -141,7 +136,7 @@ export function CategoryFilterPicker({ options, value, onChange }: CategoryFilte
                         >
                           {option.label}
                         </Text>
-                        {isActive ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+                        {isActive ? <Ionicons name="checkmark-circle" size={20} color={colors.textPrimary} /> : null}
                       </AnimatedPressable>
                     );
                   })}

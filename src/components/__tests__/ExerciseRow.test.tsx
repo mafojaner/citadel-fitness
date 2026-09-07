@@ -5,9 +5,14 @@ import { ExerciseRow } from '../ExerciseRow';
 import type { Exercise } from '../../types/models';
 
 /**
- * Counted through the badge because it is the child ExerciseRow renders that
- * actually costs something (a LinearGradient), and it runs only when
- * ExerciseRow's own body runs.
+ * Counted through the icon badge because it is a child ExerciseRow renders
+ * unconditionally, so it runs exactly when ExerciseRow's own body runs.
+ *
+ * It used to be GradientIconBadge, and the note here said the badge was
+ * counted because it was the expensive child -- a LinearGradient per row.
+ * It is an IconWell now, which is a plain View, so the cost argument is
+ * gone and the signal is not: this still fires once per row body, which is
+ * the thing being measured.
  *
  * The `mock` prefix is not decoration: babel-plugin-jest-hoist lifts
  * jest.mock above the imports, so the factory would otherwise close over a
@@ -16,8 +21,8 @@ import type { Exercise } from '../../types/models';
  */
 const mockBadgeRenders: string[] = [];
 
-jest.mock('../GradientIconBadge', () => ({
-  GradientIconBadge: (props: { icon: string }) => {
+jest.mock('../IconWell', () => ({
+  IconWell: (props: { icon: string }) => {
     mockBadgeRenders.push(props.icon);
     return null;
   },
@@ -110,10 +115,10 @@ describe('ExerciseRow', () => {
   });
 
   it('does not re-render its rows when unrelated parent state changes', () => {
-    // The measurement, counted through GradientIconBadge because that is
-    // the expensive child and it only runs when ExerciseRow's body does.
-    // Counting renderItem calls instead would prove nothing: FlatList calls
-    // that on every parent pass whether or not the memo holds.
+    // The measurement, counted through IconWell because it only runs when
+    // ExerciseRow's body does. Counting renderItem calls instead would
+    // prove nothing: FlatList calls that on every parent pass whether or
+    // not the memo holds.
     const view = render(<Harness />);
 
     const afterMount = mockBadgeRenders.length;
@@ -131,7 +136,7 @@ describe('ExerciseRow', () => {
   });
 
   it('does re-render a row whose exercise actually changed', () => {
-    // The other half: a memo that never re-renders is a bug, not a
+    // The other half: a memo that never re-renders is a bug, not an
     // optimisation. Same callbacks, different exercise.
     const view = render(
       <ExerciseRow exercise={EXERCISES[0]} onSelect={() => {}} onShowInfo={() => {}} />

@@ -1,14 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   type LayoutChangeEvent,
@@ -19,24 +17,20 @@ import { Card } from '../../components/Card';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { DateRangeCalendar } from '../../components/DateRangeCalendar';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { PaidFeatureCard, PaidFeatureLink } from '../../components/PaidFeatureCard';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { PaidFeatureLink, PaidFeatureList } from '../../components/PaidFeatureCard';
+import { IconWell } from '../../components/IconWell';
 import { GradientPill } from '../../components/GradientPill';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
-import { RankAvatar } from '../../components/RankAvatar';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { StatTile } from '../../components/StatTile';
-import { CATEGORY_FILTERS, CATEGORY_GRADIENTS } from '../../constants/categories';
+import { CATEGORY_FILTERS } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
-import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { useProgressSeries } from '../../hooks/useProgressSeries';
 import { useRewards } from '../../hooks/useRewards';
 import { addDays, todayISO } from '../../lib/analytics';
-import { useAuthStore } from '../../state/authStore';
 import { useProfileStore } from '../../state/profileStore';
 import { useTheme } from '../../theme/useTheme';
-import { gradients } from '../../theme/tokens';
 import type { Category } from '../../types/models';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
@@ -61,86 +55,8 @@ function formatRangeDate(dateString: string) {
   });
 }
 
-function RankingCard() {
-  const { colors, spacing, radius, typography, scheme } = useTheme();
-  const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
-  const userId = useAuthStore((s) => s.session?.user.id);
-  const { entries, loading, error } = useLeaderboard();
-
-  const myRank = entries.findIndex((e) => e.userId === userId);
-  const top = entries.slice(0, 3);
-
-  return (
-    <AnimatedPressable
-      onPress={() => navigation.navigate('Leaderboard')}
-      scaleTo={0.98}
-      accessibilityRole="button"
-      accessibilityLabel="Open leaderboard"
-    >
-      <View
-        style={{
-          borderRadius: radius.lg,
-          overflow: 'hidden',
-          backgroundColor: colors.surface,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-          shadowColor: gradients.rankGold[1],
-          shadowOpacity: scheme === 'dark' ? 0.3 : 0.16,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 4,
-        }}
-      >
-        <LinearGradient
-          colors={scheme === 'dark' ? ['#3A2A0F', '#1C2230'] : ['#FFF6E0', '#FFFFFF']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ padding: spacing.md, gap: spacing.md }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1, minWidth: 0 }}>
-              <GradientIconBadge icon="trophy" colors={gradients.rankGold} size={44} />
-              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity ranking</Text>
-                <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {loading
-                    ? 'Loading...'
-                    : error
-                      ? "Couldn't load the ranking"
-                      : entries.length === 0
-                        ? 'Log a workout to enter this week'
-                        : myRank >= 0
-                          ? `You're #${myRank + 1} this week`
-                          : `${entries.length} member${entries.length === 1 ? '' : 's'} ranked this week`}
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </View>
-
-          {!loading && !error && top.length > 0 ? (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
-              {top.map((entry, index) => (
-                <View key={entry.userId} style={{ alignItems: 'center', gap: spacing.xs, maxWidth: 92 }}>
-                  <RankAvatar rank={index + 1} avatarUrl={entry.avatarUrl} size={40} />
-                  <Text
-                    style={[typography.caption, { color: colors.textSecondary, fontWeight: '600' }]}
-                    numberOfLines={1}
-                  >
-                    {entry.userId === userId ? 'You' : entry.displayName}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
-        </LinearGradient>
-      </View>
-    </AnimatedPressable>
-  );
-}
-
 function RewardsCard() {
-  const { spacing, radius, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<ActivityStackParamList>>();
   const { weeklyStreak, rewardsEarned, loading } = useRewards();
 
@@ -151,46 +67,28 @@ function RewardsCard() {
       accessibilityLabel="Rewards and streak"
       scaleTo={0.98}
     >
-      <View
-        style={{
-          backgroundColor: '#FF5A36',
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          gap: spacing.sm,
-          shadowColor: '#FF5A36',
-          shadowOpacity: 0.35,
-          shadowRadius: 14,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 4,
-        }}
-      >
+      {/* A card, where this was a solid orange slab with white type on it.
+          It was the loudest thing on the screen and it is a free feature, so
+          under the rule that colour marks what a membership buys it was
+          making precisely the wrong promise -- and it sat directly above the
+          Fortress card it was drowning out. */}
+      <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: 'rgba(255,255,255,0.22)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="diamond" size={22} color="#FFFFFF" />
-          </View>
+          <IconWell icon="diamond" />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={[typography.subheading, { color: '#FFFFFF' }]}>Rewards</Text>
-            <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>Rewards</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
               {loading
                 ? 'Loading...'
                 : `${weeklyStreak} week streak · ${rewardsEarned} reward${rewardsEarned === 1 ? '' : 's'} earned`}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.85)" />
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </View>
-        <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)', fontWeight: '600' }]}>
+        <Text style={[typography.caption, { color: colors.textMuted, fontWeight: '600' }]}>
           Tap to view your rewards
         </Text>
-      </View>
+      </Card>
     </AnimatedPressable>
   );
 }
@@ -259,8 +157,12 @@ export function ActivityScreen() {
     document.head.appendChild(style);
   }, []);
 
-  const chartAccentGradient = activeCategory === 'all' ? gradients.action : CATEGORY_GRADIENTS[activeCategory];
-  const chartAccent = chartAccentGradient?.[chartAccentGradient.length - 1] ?? colors.primary;
+  // One ink for every category, where this used to take the saturated end
+  // of the active category's gradient. The colour was decoration rather
+  // than encoding: the chart shows one series at a time and the picker
+  // above it already says which, so the hue changed under you without ever
+  // telling you anything.
+  const chartAccent = colors.textPrimary;
 
   const chartData = points.map((p) => ({ value: p.value, label: p.label, date: p.date }));
   const hasValue = points.some((p) => p.value > 0);
@@ -487,15 +389,10 @@ export function ActivityScreen() {
         />
       </Card>
 
-      <RankingCard />
-
-      {/* Directly below the public leaderboard it extends: a private,
-          invite-only version of the same ranking concept. */}
-      <PaidFeatureCard
-        featureId="private-groups"
-        onOpen={() => navigation.navigate('Groups')}
-      />
-
+      {/* The ranking and its private-groups counterpart both moved to Home,
+          which is where the two cards they now sit under already live. This
+          screen is where you go to look into your training; those two are a
+          glance at where you stand, which is what Home is for. */}
       <RewardsCard />
 
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Analytics Summary</Text>
@@ -505,78 +402,74 @@ export function ActivityScreen() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
           <StatTile
             icon="flame"
-            gradientColors={gradients.flame}
             value={`${currentStreakDays}`}
             label={`Day${currentStreakDays === 1 ? '' : 's'} streak`}
           />
           <StatTile
             icon="calendar"
-            gradientColors={gradients.calendar}
             value={`${workoutsThisWeek}`}
             label={`Workout${workoutsThisWeek === 1 ? '' : 's'} this week`}
           />
           <StatTile
             icon={isMinutes ? 'time' : 'barbell'}
-            gradientColors={isMinutes ? gradients.pulse : gradients.volume}
             value={totalVolumeThisWeek.toLocaleString()}
             label={isMinutes ? 'Cardio min this week' : `${units} volume this week`}
           />
         </View>
       )}
 
-      {/* Records and forecasts extend the summary above rather than the
-          chart: both answer "what are my best numbers, and where are they
-          going", which is what these tiles report the shallow version of.
-          Advanced analytics used to sit here too and now lives on the chart
-          it actually deepens — leaving a "Going deeper" heading over two
-          cards, which is a heading doing no work, so it's gone. */}
-      {/* Inside a Card, not loose at the end of the screen. As bare rows they
-          were the last thing in the scroll view, which put them under the
-          floating tab bar: the tap landed on the tab and switched screens
-          instead of opening the feature, which reads as "the link does
-          nothing". The Card also gives them a surface, so they stop looking
-          like list separators. */}
-      <Card>
-        <PaidFeatureLink
-          featureId="pr-vault"
-          label="Your personal records"
-          onOpen={() => navigation.navigate('PersonalRecords')}
-          // First in its card, so a rule above it separates nothing. The one
-          // on the row below stays: that line divides the two links, which
-          // is work worth doing.
-          divider="none"
-        />
-        <PaidFeatureLink
-          featureId="goal-forecasting"
-          label="Set a target and track it"
-          onOpen={() => navigation.navigate('GoalForecast')}
-        />
-        {/* Last of the three, and the only one that tells you what to do
-            rather than what you did — which is the line the catalogue draws
-            between Fortress and Valhalla, so it reads correctly as the step
-            beyond the two above it. */}
-        <PaidFeatureLink
-          featureId="ai-progressive-overload"
-          label="What to lift next"
-          onOpen={() => navigation.navigate('Overload')}
-        />
-        {/* The other half of "what to do next", and the one a person answers
-            rather than an algorithm. It belongs beside the suggestions
-            because they answer the same question from opposite ends: the
-            heuristic reads your numbers, the coach watches the rep. */}
-        <PaidFeatureLink
-          featureId="form-check"
-          label="Get a lift reviewed"
-          onOpen={() => navigation.navigate('FormCheck')}
-        />
-        {/* The third thing a person answers rather than an algorithm, and
-            the last of the coached features to get an entry point. */}
-        <PaidFeatureLink
-          featureId="nutrition-coaching"
-          label="Get macro targets set"
-          onOpen={() => navigation.navigate('NutritionCoaching')}
-        />
-      </Card>
+      {/* Two cards, split on the line the catalogue itself draws, where
+          this was one plain card holding five text links.
+          *
+          * As links they were the quietest thing on a screen whose paid
+          * cards announce themselves with a shield, a tier name, a coloured
+          * disc and a state pill -- five of the app's most valuable
+          * features rendered as a settings list, under a card with no
+          * heading, at the very bottom of the scroll. They are the same
+          * offers the cards make and they now look like it.
+          *
+          * The split is not cosmetic. The first pair is what you did; the
+          * second is what to do next, and that is exactly where Fortress
+          * ends and Valhalla begins -- so one heading could not have been
+          * honest about both. */}
+      <PaidFeatureList
+        items={[
+          {
+            featureId: 'pr-vault',
+            label: 'Your personal records',
+            onOpen: () => navigation.navigate('PersonalRecords'),
+          },
+          {
+            featureId: 'goal-forecasting',
+            label: 'Set a target and track it',
+            onOpen: () => navigation.navigate('GoalForecast'),
+          },
+        ]}
+      />
+
+      {/* The three a person answers rather than an algorithm -- or in the
+          first case, an algorithm reading your numbers where the other two
+          are a coach watching the rep. They answer the same question from
+          opposite ends, so they belong together. */}
+      <PaidFeatureList
+        items={[
+          {
+            featureId: 'ai-progressive-overload',
+            label: 'What to lift next',
+            onOpen: () => navigation.navigate('Overload'),
+          },
+          {
+            featureId: 'form-check',
+            label: 'Get a lift reviewed',
+            onOpen: () => navigation.navigate('FormCheck'),
+          },
+          {
+            featureId: 'nutrition-coaching',
+            label: 'Get macro targets set',
+            onOpen: () => navigation.navigate('NutritionCoaching'),
+          },
+        ]}
+      />
       </ScreenContainer>
     </View>
   );

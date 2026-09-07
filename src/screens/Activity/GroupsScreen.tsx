@@ -6,7 +6,7 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { EmptyState } from '../../components/EmptyState';
 import { GradientButton } from '../../components/GradientButton';
 import { GroupChallengeCard } from '../../components/GroupChallengeCard';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { GradientNumberBadge } from '../../components/GradientNumberBadge';
 import { GradientPill } from '../../components/GradientPill';
 import { PlainButton } from '../../components/PlainButton';
@@ -107,7 +107,7 @@ export function GroupsScreen() {
           {selected ? (
             <Card>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <GradientIconBadge icon="people-circle" colors={gradients.rankGold} size={44} />
+                <IconWell icon="people-circle" size={44} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                     {selected.name}
@@ -223,7 +223,6 @@ export function GroupsScreen() {
           ) : (
             <EmptyState
               icon="people-circle"
-              colors={gradients.rankGold}
               title="No groups yet"
               detail="Start one and share the code, or join a crew you've been invited to."
             />

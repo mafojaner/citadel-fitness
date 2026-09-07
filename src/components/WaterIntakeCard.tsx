@@ -4,12 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
+import { Card } from './Card';
+import { IconWell } from './IconWell';
 import { WaterProgressBar } from './WaterProgressBar';
 import { QUICK_ADD_ML, formatWaterAmount, ozToMl } from '../lib/water';
 import { useWaterIntake } from '../hooks/useWaterIntake';
 import { useProfileStore } from '../state/profileStore';
 import { useTheme } from '../theme/useTheme';
-import { waterBlue } from '../theme/tokens';
 
 /**
  * The card only ever needs one route, so it asks for one route rather than
@@ -23,13 +24,20 @@ import { waterBlue } from '../theme/tokens';
 type WaterCardNavigation = { WaterHistory: undefined };
 
 /**
- * Solid blue, matching how Activity's RewardsCard is solid orange rather
- * than the neutral surface every other Home card uses — both are the one
- * thing on their screen that's really a call to action (log water / check
- * rewards) rather than a summary to glance at, and the color is what marks
- * that difference at a glance.
+ * The blue is down to one thing: the level in the bar.
+ *
+ * This card used to be a solid blue slab, on the argument that it is a
+ * thing you act on rather than a summary you read, and that the colour
+ * marked the difference. The argument held while it was the only coloured
+ * card on the screen. It stopped holding when the rest of the app went
+ * monochrome and colour was given a single job -- saying what is paid for
+ * -- because a saturated blue panel then read as the loudest thing on
+ * Workouts while being the one card on it that costs nothing.
+ *
+ * What survives is the part that was carrying information rather than
+ * emphasis. The bar is a measurement of water and it is drawn in the colour
+ * of water, which is the same licence `danger` and `success` have.
  */
-const BLUE = waterBlue;
 
 /**
  * Free, not Fortress — everyone gets hydration tracking. Lives on Home
@@ -37,7 +45,7 @@ const BLUE = waterBlue;
  * and Workout summary cards above it).
  */
 export function WaterIntakeCard() {
-  const { spacing, radius, typography } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WaterCardNavigation>>();
   const unit = useProfileStore((s) => s.preferences.waterUnit);
   const goalMl = useProfileStore((s) => s.preferences.dailyWaterGoalMl);
@@ -58,19 +66,7 @@ export function WaterIntakeCard() {
   };
 
   return (
-    <View
-      style={{
-        backgroundColor: BLUE,
-        borderRadius: radius.lg,
-        padding: spacing.md,
-        gap: spacing.sm,
-        shadowColor: BLUE,
-        shadowOpacity: 0.35,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 6 },
-        elevation: 4,
-      }}
-    >
+    <Card>
       <AnimatedPressable
         onPress={() => navigation.navigate('WaterHistory')}
         scaleTo={0.98}
@@ -78,21 +74,10 @@ export function WaterIntakeCard() {
         accessibilityLabel={`${formatWaterAmount(totalMl, unit)} of ${formatWaterAmount(goalMl, unit)}${metGoal ? ', goal reached' : ''}. Tap to view hydration history and set your goal.`}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: 'rgba(255,255,255,0.22)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="water" size={22} color="#FFFFFF" />
-          </View>
+          <IconWell icon="water" />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Text style={[typography.subheading, { color: '#FFFFFF' }]}>Water intake</Text>
-            <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)' }]} numberOfLines={1}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>Water intake</Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
               {formatWaterAmount(totalMl, unit)} of {formatWaterAmount(goalMl, unit)}
               {metGoal ? ' · goal reached' : ''}
             </Text>
@@ -105,16 +90,19 @@ export function WaterIntakeCard() {
               accessibilityRole="button"
               accessibilityLabel="Undo last water log"
             >
-              <Ionicons name="arrow-undo" size={18} color="rgba(255,255,255,0.85)" />
+              <Ionicons name="arrow-undo" size={18} color={colors.textMuted} />
             </Pressable>
           ) : null}
         </View>
-        <Text style={[typography.caption, { color: 'rgba(255,255,255,0.85)', fontWeight: '600' }]}>
+        <Text style={[typography.caption, { color: colors.textMuted, fontWeight: '600' }]}>
           Tap to view history &amp; set your goal
         </Text>
       </AnimatedPressable>
 
-      <WaterProgressBar progress={progress} trackColor="rgba(255,255,255,0.25)" fillColor="#FFFFFF" />
+      {/* No overrides now that the card is a neutral surface: the bar's own
+          defaults are a border-grey track and a water-blue fill, which is
+          exactly what it should be on a card like every other card. */}
+      <WaterProgressBar progress={progress} />
 
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         {presets.map((amountMl) => (
@@ -137,12 +125,12 @@ export function WaterIntakeCard() {
               paddingVertical: spacing.sm,
               borderRadius: radius.md,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.35)',
-              backgroundColor: 'rgba(255,255,255,0.15)',
+              borderColor: colors.border,
+              backgroundColor: colors.background,
             }}
           >
-            <Ionicons name="add" size={14} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13 }}>
+            <Ionicons name="add" size={14} color={colors.textPrimary} />
+            <Text style={{ color: colors.textPrimary, fontWeight: '600', fontSize: 13 }}>
               {formatWaterAmount(amountMl, unit)}
             </Text>
           </AnimatedPressable>
@@ -158,15 +146,15 @@ export function WaterIntakeCard() {
             keyboardType="numeric"
             autoFocus
             placeholder={unit === 'ml' ? 'Amount in ml' : 'Amount in fl oz'}
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={colors.textMuted}
             style={{
               flex: 1,
-              backgroundColor: 'rgba(255,255,255,0.15)',
-              borderColor: 'rgba(255,255,255,0.35)',
+              backgroundColor: colors.background,
+              borderColor: colors.border,
               borderWidth: 1,
               borderRadius: radius.md,
               padding: spacing.sm,
-              color: '#FFFFFF',
+              color: colors.textPrimary,
             }}
           />
           <Pressable
@@ -179,12 +167,12 @@ export function WaterIntakeCard() {
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: 'rgba(255,255,255,0.22)',
+              backgroundColor: colors.ctaFill,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+            <Ionicons name="checkmark" size={18} color={colors.ctaText} />
           </Pressable>
           <Pressable
             onPress={() => {
@@ -196,7 +184,7 @@ export function WaterIntakeCard() {
             accessibilityLabel="Cancel custom amount"
             style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
           >
-            <Ionicons name="close" size={18} color="rgba(255,255,255,0.85)" />
+            <Ionicons name="close" size={18} color={colors.textMuted} />
           </Pressable>
         </View>
       ) : (
@@ -206,13 +194,13 @@ export function WaterIntakeCard() {
           accessibilityRole="button"
           accessibilityLabel="Log a custom amount"
         >
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontWeight: '600', fontSize: 13 }}>
+          <Text style={{ color: colors.textSecondary, fontWeight: '600', fontSize: 13 }}>
             + Custom amount
           </Text>
         </Pressable>
       )}
 
-      {error ? <Text style={{ color: '#FFE1E1', fontSize: 12 }}>{error}</Text> : null}
-    </View>
+      {error ? <Text style={{ color: colors.danger, fontSize: 12 }}>{error}</Text> : null}
+    </Card>
   );
 }

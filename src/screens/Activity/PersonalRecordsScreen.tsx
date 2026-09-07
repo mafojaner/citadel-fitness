@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { EmptyState } from '../../components/EmptyState';
@@ -16,8 +16,6 @@ import { SearchField } from '../../components/SearchField';
 import { TierMark } from '../../components/TierMark';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
-  DEFAULT_CATEGORY_GRADIENT,
   CATEGORY_ICONS,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
@@ -29,7 +27,6 @@ import { formatDuration } from '../../lib/units';
 import { isRecentRecord, type PersonalRecord } from '../../lib/personalRecords';
 import { useProfileStore } from '../../state/profileStore';
 import type { Category } from '../../types/models';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
@@ -191,11 +188,7 @@ export function PersonalRecordsScreen() {
           accessibilityLabel={`${record.exerciseName}. Opens this lift's record, goal and progression.`}
         >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge
-            icon={CATEGORY_ICONS[record.category] ?? DEFAULT_CATEGORY_ICON}
-            colors={CATEGORY_GRADIENTS[record.category] ?? DEFAULT_CATEGORY_GRADIENT}
-            size={36}
-          />
+          <IconWell icon={CATEGORY_ICONS[record.category] ?? DEFAULT_CATEGORY_ICON} size={36} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]} numberOfLines={1}>
               {record.exerciseName}
@@ -246,7 +239,6 @@ export function PersonalRecordsScreen() {
       ) : records.length === 0 ? (
         <EmptyState
           icon="trophy"
-          colors={gradients.flame}
           title="No records yet"
           detail="Log a workout and your bests start appearing here automatically. There's nothing to set up."
         />

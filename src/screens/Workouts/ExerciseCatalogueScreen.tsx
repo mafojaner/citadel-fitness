@@ -9,15 +9,13 @@ import { CategoryFilterPicker } from '../../components/CategoryFilterPicker';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ExerciseRow } from '../../components/ExerciseRow';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { PopInView } from '../../components/PopInView';
 import { ProfileLoadBanner } from '../../components/ProfileLoadBanner';
 import { SearchField } from '../../components/SearchField';
 import {
   CATEGORY_FILTERS,
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -139,7 +137,6 @@ export function ExerciseCatalogueScreen() {
                   <CategoryGridCard
                     key={c.value}
                     icon={CATEGORY_ICONS[c.value as Category] ?? DEFAULT_CATEGORY_ICON}
-                    gradientColors={CATEGORY_GRADIENTS[c.value as Category] ?? DEFAULT_CATEGORY_GRADIENT}
                     label={c.label}
                     count={c.count}
                     columns={categoryColumns}
@@ -186,19 +183,11 @@ export function ExerciseCatalogueScreen() {
             <PopInView key={infoExercise?.id} style={{ gap: spacing.md }}>
               <Card>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <GradientIconBadge
-                    icon={
+                  <IconWell icon={
                       infoExercise
                         ? CATEGORY_ICONS[infoExercise.category] ?? DEFAULT_CATEGORY_ICON
                         : DEFAULT_CATEGORY_ICON
-                    }
-                    colors={
-                      infoExercise
-                        ? CATEGORY_GRADIENTS[infoExercise.category] ?? DEFAULT_CATEGORY_GRADIENT
-                        : DEFAULT_CATEGORY_GRADIENT
-                    }
-                    size={40}
-                  />
+                    } size={40} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                       {infoExercise?.name}

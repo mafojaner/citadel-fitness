@@ -3,11 +3,9 @@ import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
-import { GradientIconBadge } from './GradientIconBadge';
+import { IconWell } from './IconWell';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../constants/categories';
 import { useTheme } from '../theme/useTheme';
@@ -50,11 +48,7 @@ export const ExerciseRow = memo(function ExerciseRow({
     >
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-          <GradientIconBadge
-            icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-            colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-            size={36}
-          />
+          <IconWell icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON} size={36} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[typography.subheading, { color: colors.textPrimary }]}>{exercise.name}</Text>
             <Text
@@ -76,7 +70,9 @@ export const ExerciseRow = memo(function ExerciseRow({
               style={{ opacity: 0.55 }}
             />
           </Pressable>
-          <Ionicons name="add-circle" size={26} color={colors.primary} />
+          {/* Ink. Adding an exercise is the ordinary action on this row,
+              and orange is reserved for what a membership buys. */}
+          <Ionicons name="add-circle" size={26} color={colors.textPrimary} />
         </View>
       </Card>
     </AnimatedPressable>

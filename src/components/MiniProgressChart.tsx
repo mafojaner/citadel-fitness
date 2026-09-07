@@ -4,7 +4,6 @@ import { LineChart } from 'react-native-gifted-charts';
 import { useProgressSeries } from '../hooks/useProgressSeries';
 import { addDays, todayISO } from '../lib/analytics';
 import { useProfileStore } from '../state/profileStore';
-import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 const CHART_HEIGHT = 130;
@@ -13,10 +12,10 @@ const Y_AXIS_ALLOWANCE = 52;
 
 /**
  * A read-only last-7-days version of the Activity tab's progress chart, for
- * the Home summary card on desktop. Deliberately none of that screen's
- * controls — no range preset, chart type, category filter or pointer
- * tooltip: this is a glance at the trend, and tapping the card it sits in
- * goes to the full chart where all of that lives.
+ * the Home summary card. Deliberately none of that screen's controls — no
+ * range preset, chart type, category filter or pointer tooltip: this is a
+ * glance at the trend, and tapping the card it sits in goes to the full
+ * chart where all of that lives.
  */
 export function MiniProgressChart() {
   const { colors, spacing, typography } = useTheme();
@@ -41,7 +40,11 @@ export function MiniProgressChart() {
 
   if (error) return null;
 
-  const accent = gradients.action[gradients.action.length - 1] ?? colors.primary;
+  // Ink, not the accent. This chart sits on the Home summary card among
+  // cards that have all gone monochrome, and orange now means "paid" -- an
+  // orange trend line would be reading as an advertisement for a feature
+  // every account already has.
+  const accent = colors.textPrimary;
   const data = points.map((p) => ({ value: p.value, label: p.label }));
   const hasValue = points.some((p) => p.value > 0);
   const plotWidth = Math.max(width - Y_AXIS_ALLOWANCE, 0);

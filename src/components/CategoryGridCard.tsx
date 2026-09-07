@@ -2,12 +2,11 @@ import type { Ionicons } from '@expo/vector-icons';
 import { Text, View, type DimensionValue } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
-import { GradientIconBadge } from './GradientIconBadge';
+import { IconWell } from './IconWell';
 import { useTheme } from '../theme/useTheme';
 
 interface CategoryGridCardProps {
   icon: keyof typeof Ionicons.glyphMap;
-  gradientColors: readonly [string, string, ...string[]];
   label: string;
   count: number;
   onPress: () => void;
@@ -18,7 +17,6 @@ interface CategoryGridCardProps {
 /** The "Browse by category" tile shared by Home and the Exercise Catalogue. */
 export function CategoryGridCard({
   icon,
-  gradientColors,
   label,
   count,
   onPress,
@@ -43,7 +41,7 @@ export function CategoryGridCard({
     >
       <Card>
         <View style={{ alignItems: 'flex-start', gap: spacing.sm, paddingVertical: spacing.sm }}>
-          <GradientIconBadge icon={icon} colors={gradientColors} size={40} />
+          <IconWell icon={icon} size={40} />
           <Text style={[typography.heading, { color: colors.textPrimary }]}>{label}</Text>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             {count} exercise{count === 1 ? '' : 's'}

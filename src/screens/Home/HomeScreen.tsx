@@ -10,18 +10,18 @@ import { Card } from '../../components/Card';
 import { CategoryGridCard } from '../../components/CategoryGridCard';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { MiniProgressChart } from '../../components/MiniProgressChart';
+import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { PendingSyncNotice } from '../../components/PendingSyncNotice';
+import { RankingCard } from '../../components/RankingCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import { WelcomeBackBanner } from '../../components/WelcomeBackBanner';
 import {
   CATEGORY_FILTERS,
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useActivityAnalytics } from '../../hooks/useActivityAnalytics';
@@ -31,7 +31,6 @@ import { useRecentWorkouts } from '../../hooks/useRecentWorkouts';
 import { useCategoryColumns, useIsDesktop } from '../../hooks/useResponsiveLayout';
 import { todayISO } from '../../lib/analytics';
 import { useProfileStore } from '../../state/profileStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { HomeStackParamList } from '../../navigation/stacks/HomeStack';
@@ -141,7 +140,7 @@ export function HomeScreen() {
       >
         <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="flame" colors={gradients.flame} size={44} />
+            <IconWell icon="flame" size={44} />
             <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>Activity Summary</Text>
               {activityLoading ? (
@@ -163,11 +162,12 @@ export function HomeScreen() {
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </View>
-          {/* Desktop only: this card is two lines tall next to the workout
-              list beside it, leaving the column half empty. The trend is the
-              natural thing to fill it with, and it's the same data the card
-              already summarises in words. */}
-          {isDesktop ? <MiniProgressChart /> : null}
+          {/* The same week the two lines above it describe, drawn. It was
+              desktop-only, on the argument that the phone card had no room
+              to spare -- but the trend is the thing the card is summarising,
+              and a summary that shows it on one screen size and not the
+              other is two different cards. Same chart at every width. */}
+          <MiniProgressChart />
           {/* Pinned to the bottom of the stretched card so both captions sit
               on the same line, rather than one trailing its content with the
               leftover height dangling below it. */}
@@ -186,7 +186,7 @@ export function HomeScreen() {
       >
         <Card style={isDesktop ? { flex: 1 } : undefined}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
+            <IconWell icon="calendar" size={44} />
             <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
               Workout Summary
             </Text>
@@ -237,7 +237,13 @@ export function HomeScreen() {
                             flexDirection: 'row',
                             alignItems: 'center',
                             gap: 4,
-                            backgroundColor: colors.primaryMuted,
+                            // Neutral, matching StatChip beside it. These
+                            // were orange fills with orange text, three or
+                            // four to a row, which made a list of what you
+                            // trained look like a list of things to buy.
+                            backgroundColor: colors.background,
+                            borderWidth: 1,
+                            borderColor: colors.border,
                             borderRadius: radius.pill,
                             paddingHorizontal: spacing.sm,
                             paddingVertical: 3,
@@ -246,13 +252,13 @@ export function HomeScreen() {
                           <Ionicons
                             name={CATEGORY_ICONS[cat] ?? DEFAULT_CATEGORY_ICON}
                             size={12}
-                            color={colors.primary}
+                            color={colors.textSecondary}
                           />
                           <Text
                             style={{
                               fontSize: 11,
                               fontWeight: '600',
-                              color: colors.primary,
+                              color: colors.textSecondary,
                               textTransform: 'capitalize',
                             }}
                           >
@@ -273,8 +279,20 @@ export function HomeScreen() {
       </AnimatedPressable>
       </View>
 
+      {/* Both moved here from Activity, and they stay in that order: the
+          private version reads as an answer to the public one, so it has to
+          come after it. Full width rather than joining the pair above,
+          which is a matched set of two summaries of your own training --
+          these are about where you stand next to other people. */}
+      <RankingCard onPress={() => navigation.navigate('Activity', { screen: 'Leaderboard' })} />
+
+      <PaidFeatureCard
+        featureId="private-groups"
+        onOpen={() => navigation.navigate('Activity', { screen: 'Groups' })}
+      />
+
       {/* Discovery section: category browsing into the same task (find
-          something to log) people come here for — full-text search now
+          something to log) people come here for -- full-text search now
           lives on its own tab, which has room to be the whole screen. */}
       <Text style={[typography.subheading, { color: colors.textPrimary }]}>Find an exercise</Text>
 
@@ -285,7 +303,6 @@ export function HomeScreen() {
             <CategoryGridCard
               key={c.value}
               icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-              gradientColors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
               label={c.label}
               count={categoryCounts.get(category) ?? 0}
               columns={categoryColumns}

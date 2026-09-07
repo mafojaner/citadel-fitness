@@ -24,7 +24,10 @@ export function StatChip({ icon, value }: StatChipProps) {
         paddingHorizontal: spacing.sm,
       }}
     >
-      <Ionicons name={icon} size={13} color={colors.primary} />
+      {/* textSecondary, not primary. Orange in this app now means "paid",
+          and a dumbbell beside an exercise count is neither paid nor worth
+          the loudest colour on the card. */}
+      <Ionicons name={icon} size={13} color={colors.textSecondary} />
       <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 13 }}>{value}</Text>
     </View>
   );

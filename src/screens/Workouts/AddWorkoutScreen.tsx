@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import { ActivityCalendar } from '../../components/ActivityCalendar';
 import { Card } from '../../components/Card';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { InfoNote, InfoNoteText, InfoNoteTrigger } from '../../components/InfoNote';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { RestTimer } from '../../components/RestTimer';
@@ -16,9 +16,7 @@ import {
   type SavedRecord,
 } from '../../components/WorkoutSavedAnimation';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useExercises } from '../../hooks/useExercises';
@@ -302,14 +300,7 @@ export function AddWorkoutScreen() {
             <Card key={exercise.id}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_ICON}
-                    colors={
-                      CATEGORY_GRADIENTS[catalogueFor(exercise.exerciseId)?.category ?? ''] ??
-                      DEFAULT_CATEGORY_GRADIENT
-                    }
-                    size={36}
-                  />
+                  <IconWell icon={CATEGORY_ICONS[catalogueFor(exercise.exerciseId)?.category ?? ''] ?? DEFAULT_CATEGORY_ICON} size={36} />
                   <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {nameFor(exercise.exerciseId)}
                   </Text>
@@ -379,12 +370,16 @@ export function AddWorkoutScreen() {
                         width: 26,
                         height: 26,
                         borderRadius: 13,
-                        backgroundColor: colors.primaryMuted,
+                        // The same neutral disc every other glyph in the
+                        // app sits in. A set number is a count, and a column
+                        // of orange counts down a workout was the screen's
+                        // loudest colour spent on its least surprising fact.
+                        backgroundColor: colors.border,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 12 }}>
+                      <Text style={{ color: colors.textPrimary, fontWeight: '800', fontSize: 12 }}>
                         {set.setNumber}
                       </Text>
                     </View>

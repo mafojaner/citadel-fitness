@@ -15,7 +15,6 @@ import { useLiftGoals, type LiftedExercise } from '../../hooks/useLiftGoals';
 import { todayISO } from '../../lib/analytics';
 import { isoInWeeks, suggestedTargets, type GoalProjection, type GoalStatus } from '../../lib/goals';
 import { useProfileStore } from '../../state/profileStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
@@ -347,7 +346,6 @@ export function GoalForecastScreen() {
           {form}
           <EmptyState
             icon="flag"
-            colors={gradients.reward}
             title="No goals yet"
             detail="Set one above and it starts tracking against everything you log."
           />

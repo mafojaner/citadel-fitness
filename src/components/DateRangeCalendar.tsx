@@ -2,8 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
-import { GradientNumberBadge } from './GradientNumberBadge';
-import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface DateRangeCalendarProps {
@@ -89,7 +87,24 @@ export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarPro
           style={{ alignItems: 'center', paddingVertical: 4 }}
         >
           {isEndpoint ? (
-            <GradientNumberBadge value={date.day} colors={gradients.calendar} size={30} fontSize={13} />
+            <View
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                // The selected day in ink, where it was a violet-to-orange
+                // gradient disc. It is a selection, and selections in this
+                // app are ink now -- the same fill the tab bar's pill and
+                // GradientPill's active state use.
+                backgroundColor: colors.textPrimary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: colors.surface, fontWeight: '800', fontSize: 13 }}>
+                {date.day}
+              </Text>
+            </View>
           ) : (
             <View
               style={{
@@ -115,7 +130,7 @@ export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarPro
         </Pressable>
       );
     },
-    [start, end, colors.primaryMuted, colors.textMuted, colors.textPrimary]
+    [start, end, colors.primaryMuted, colors.surface, colors.textMuted, colors.textPrimary]
   );
 
   return (
@@ -129,7 +144,7 @@ export function DateRangeCalendar({ start, end, onChange }: DateRangeCalendarPro
           <Ionicons
             name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
             size={18}
-            color={colors.primary}
+            color={colors.textSecondary}
           />
         )}
         theme={{

@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import { Card } from './Card';
-import { GradientNumberBadge } from './GradientNumberBadge';
 import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
@@ -98,7 +97,24 @@ export function ActivityCalendar({
           style={{ alignItems: 'center', paddingVertical: 4 }}
         >
           {isSelected ? (
-            <GradientNumberBadge value={date.day} colors={gradients.calendar} size={32} fontSize={14} />
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                // The selected day in ink, where it was a violet-to-orange
+                // gradient disc. It is a selection, and selections in this
+                // app are ink now -- the same fill the tab bar's pill and
+                // GradientPill's active state use.
+                backgroundColor: colors.textPrimary,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: colors.surface, fontWeight: '800', fontSize: 14 }}>
+                {date.day}
+              </Text>
+            </View>
           ) : (
             <View
               style={{
@@ -109,17 +125,24 @@ export function ActivityCalendar({
                 justifyContent: 'center',
                 borderWidth: isRinged ? 2 : isUncountedComplete ? 0 : isToday ? 1.5 : 0,
                 borderColor: isRinged ? colors.success : colors.primary,
+                // A grey pill for a day that was logged but doesn't count.
+                // This was a hardcoded near-black with white on it, which
+                // meant the same near-black in both schemes -- a black disc
+                // on the light theme and, on the dark one, a disc the same
+                // colour as the page it sat on. The border token is the
+                // app's neutral fill and moves with the scheme, so the pill
+                // reads as "marked, not counted" either way.
                 backgroundColor: isRinged
                   ? `${colors.success}22`
                   : isUncountedComplete
-                    ? '#0B0E14'
+                    ? colors.border
                     : 'transparent',
               }}
             >
               <Text
                 style={{
                   color: isUncountedComplete
-                    ? '#FFFFFF'
+                    ? colors.textPrimary
                     : isOtherMonth
                       ? colors.textMuted
                       : isToday
@@ -147,7 +170,15 @@ export function ActivityCalendar({
         </Pressable>
       );
     },
-    [colors.primary, colors.success, colors.textMuted, colors.textPrimary, showEligibility]
+    [
+      colors.border,
+      colors.primary,
+      colors.success,
+      colors.surface,
+      colors.textMuted,
+      colors.textPrimary,
+      showEligibility,
+    ]
   );
 
   return (
@@ -173,7 +204,7 @@ export function ActivityCalendar({
             <Ionicons
               name={direction === 'left' ? 'chevron-back' : 'chevron-forward'}
               size={20}
-              color={colors.primary}
+              color={colors.textSecondary}
             />
           )}
           theme={{

@@ -6,20 +6,17 @@ import { Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { FavoriteButton } from '../../components/FavoriteButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { ProfileIconButton } from '../../components/ProfileIconButton';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SearchField } from '../../components/SearchField';
 import { StatChip } from '../../components/StatChip';
 import {
-  ARTICLE_CATEGORY_GRADIENTS,
   ARTICLE_CATEGORY_ICONS,
   ARTICLE_CATEGORY_LABELS,
 } from '../../constants/articles';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useArticles } from '../../hooks/useArticles';
@@ -130,11 +127,7 @@ export function SearchScreen() {
                   >
                     <Card>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                        <GradientIconBadge
-                          icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
-                          colors={CATEGORY_GRADIENTS[exercise.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                          size={36}
-                        />
+                        <IconWell icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON} size={36} />
                         <View style={{ flex: 1, minWidth: 0 }}>
                           <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                             {exercise.name}
@@ -145,7 +138,7 @@ export function SearchScreen() {
                             {exercise.category}
                           </Text>
                         </View>
-                        <Ionicons name="add-circle" size={26} color={colors.primary} />
+                        <Ionicons name="add-circle" size={26} color={colors.textPrimary} />
                       </View>
                     </Card>
                   </AnimatedPressable>
@@ -166,11 +159,7 @@ export function SearchScreen() {
                   >
                     <Card>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                        <GradientIconBadge
-                          icon={ARTICLE_CATEGORY_ICONS[article.category]}
-                          colors={ARTICLE_CATEGORY_GRADIENTS[article.category]}
-                          size={40}
-                        />
+                        <IconWell icon={ARTICLE_CATEGORY_ICONS[article.category]} size={40} />
                         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
                           <Text style={[typography.caption, { color: colors.textMuted }]}>
                             {ARTICLE_CATEGORY_LABELS[article.category]}

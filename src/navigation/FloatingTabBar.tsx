@@ -163,13 +163,19 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   // a hard line rather than a lit edge. As a border it follows the outline
   // into the caps and tapers out where the top meets the sides.
   const topEdge = scheme === 'dark' ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.75)';
-  // The active capsule: grey, and translucent rather than a solid chip.
+  // The active capsule, matched to the sidebar's.
   //
-  // An opaque grey would be a patch stuck on the glass; a wash lets the
-  // blur and the sheen carry on through it, so the capsule reads as part of
-  // the same surface. Ink in light, white in dark — a step away from the
-  // bar in each scheme rather than one grey that only works in one of them.
-  const activeFill = scheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(11,14,20,0.07)';
+  // The desktop rail fills its selected row with `border` -- a light grey
+  // on white, a dark grey on ink -- and this is that same step, expressed
+  // as a wash instead of a solid chip. Translucent because the bar is
+  // glass: an opaque swatch would be a patch stuck on it, while a wash lets
+  // the blur and the sheen carry on through, so the capsule reads as part
+  // of the same surface.
+  //
+  // The light value used to be 0.07, which was fainter than the rail's own
+  // pill and read as a smudge rather than a selection. 0.14 is roughly
+  // where `border` lands once the glass is behind it.
+  const activeFill = scheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(11,14,20,0.14)';
 
   return (
     // Full-bleed positioning wrapper, invisible itself — centers the actual
@@ -267,22 +273,23 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
                 icon={TAB_ICONS[route.name] ?? 'ellipse'}
                 iconSize={route.name === CREATE_TAB ? CREATE_ICON_SIZE : ICON_SIZE}
                 isFocused={isFocused}
-                activeColor={colors.primary}
-                // textSecondary, not tabInactive, and only on this bar.
+                // One ink for every state, which is the rule the desktop
+                // rail already follows: navText is ink900 in light and white
+                // in dark, so the bar is black-on-glass or white-on-glass
+                // and never the app's orange. Orange here was the accent
+                // competing with itself -- it is also the streak flame, the
+                // category chips, and the CTA that sits above this bar -- so
+                // the one glyph that most needed to say "you are here" was
+                // saying it in the app's most common colour.
                 //
-                // tabInactive is #8A93A6 in both schemes, and that value was
-                // chosen against an opaque surface — the token's own comment
-                // records that it read worse "while the bar was translucent
-                // and the page showed through". It is a mid grey, so it can
-                // only clear 3:1 against something near-white or near-black,
-                // and a translucent bar is neither by definition.
-                //
-                // textSecondary is ink500 on light and ink100 on dark: a
-                // step further from the bar in each scheme, which is what
-                // buys back the contrast the transparency spends. The
-                // sidebar still uses tabInactive, because it is opaque and
-                // the original value is correct there.
-                inactiveColor={colors.textSecondary}
+                // What separates the states instead is what separates them
+                // on the rail: the capsule behind the active glyph, and the
+                // solid-versus-outline icon. Both survive a theme switch,
+                // and neither spends contrast the way a mid grey does on a
+                // translucent surface -- which is what ruled out tabInactive
+                // here, and why it is still right on the opaque sidebar.
+                activeColor={colors.navText}
+                inactiveColor={colors.navText}
                 highlightColor={activeFill}
                 onPress={() => {
                   const event = navigation.emit({

@@ -11,23 +11,20 @@ import { ErrorNotice } from '../../components/ErrorNotice';
 import { FortressTodayCard } from '../../components/FortressTodayCard';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
 import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { WaterIntakeCard } from '../../components/WaterIntakeCard';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { useOpenWorkoutDraft } from '../../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../../lib/analytics';
 import { fetchWorkoutForDate, type WorkoutDetailExercise } from '../../lib/workouts';
 import { useAuthStore } from '../../state/authStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { Category } from '../../types/models';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
@@ -164,7 +161,7 @@ export function WorkoutsScreen() {
             </Text>
           ) : summary.length === 0 ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <GradientIconBadge icon="calendar" colors={gradients.calendar} size={44} />
+              <IconWell icon="calendar" size={44} />
               <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
                 <Text style={[typography.body, { color: colors.textPrimary, fontWeight: '600' }]}>
                   No workout logged
@@ -178,11 +175,7 @@ export function WorkoutsScreen() {
             <View style={{ gap: spacing.sm }}>
               {summary.map(([category, count]) => (
                 <View key={category} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                    colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
-                    size={28}
-                  />
+                  <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={28} />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {category[0].toUpperCase() + category.slice(1)}
                   </Text>

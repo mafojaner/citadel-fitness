@@ -1,8 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { PropsWithChildren } from 'react';
-import { ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
-import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface GradientButtonProps extends PropsWithChildren {
@@ -10,6 +9,12 @@ interface GradientButtonProps extends PropsWithChildren {
   disabled?: boolean;
   loading?: boolean;
   label: string;
+  /**
+   * Only for a button whose colour carries meaning: the Plans CTA in the
+   * tier's own gradient, a destructive action in red. Left off -- which is
+   * every other button in the app -- this is the primary action and draws
+   * in ink rather than in the accent. See `ctaFill` in tokens.
+   */
   colors?: readonly [string, string, ...string[]];
   variant?: 'solid' | 'outline';
 }
@@ -19,11 +24,14 @@ export function GradientButton({
   disabled,
   loading,
   label,
-  colors: gradientColors = gradients.action,
+  colors: gradientColors,
   variant = 'solid',
 }: GradientButtonProps) {
-  const { colors, spacing, radius } = useTheme();
+  const { colors, spacing, radius, scheme } = useTheme();
   const isDisabled = disabled || loading;
+  // A coloured button outlines in the saturated end of its own gradient;
+  // the default one outlines in the fill it would otherwise have had.
+  const outlineInk = gradientColors ? gradientColors[gradientColors.length - 1] : colors.ctaFill;
 
   if (variant === 'outline') {
     return (
@@ -35,14 +43,57 @@ export function GradientButton({
         accessibilityLabel={label}
         accessibilityState={{ disabled: isDisabled, busy: loading }}
         style={{
-          borderColor: gradientColors[gradientColors.length - 1],
+          borderColor: outlineInk,
           borderWidth: 1.5,
           borderRadius: radius.md,
           padding: spacing.md,
           alignItems: 'center',
         }}
       >
-        <Text style={{ color: gradientColors[gradientColors.length - 1], fontWeight: '700' }}>{label}</Text>
+        <Text style={{ color: outlineInk, fontWeight: '700' }}>{label}</Text>
+      </AnimatedPressable>
+    );
+  }
+
+  if (!gradientColors) {
+    return (
+      // The primary action, in ink rather than in the accent -- see the
+      // note on `colors` above for which buttons opt out of this.
+      //
+      // Flat, and deliberately: the gradient path below carries a tinted
+      // glow, which is right for a button whose colour is the point and
+      // wrong for one whose whole idea is that it is the plainest, hardest
+      // shape on the screen. What is left is a soft drop shadow on the
+      // light theme and none on the dark one, where a shadow under a white
+      // button on a near-black page is invisible work -- the same split
+      // Card and FloatingTabBar make.
+      <AnimatedPressable
+        onPress={onPress}
+        disabled={isDisabled}
+        scaleTo={0.97}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
+      >
+        <View
+          style={{
+            backgroundColor: colors.ctaFill,
+            borderRadius: radius.md,
+            padding: spacing.md,
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOpacity: scheme === 'dark' ? 0 : 0.2,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: scheme === 'dark' ? 0 : 4,
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.ctaText} />
+          ) : (
+            <Text style={{ color: colors.ctaText, fontWeight: '700' }}>{label}</Text>
+          )}
+        </View>
       </AnimatedPressable>
     );
   }

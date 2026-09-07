@@ -1,11 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
+import { Card } from './Card';
+import { PremiumHeader, PremiumRow } from './PremiumCard';
 import { useFortressToday, type FortressToday } from '../hooks/useFortressToday';
+import { gradients } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface Line {
   icon: keyof typeof Ionicons.glyphMap;
+  /**
+   * The disc's gradient. Picked per line rather than one colour for the
+   * card, because these four are four different things a membership bought
+   * and the icons already say which -- a single fill would make them look
+   * like four instances of one.
+   */
+  colors: readonly [string, string, ...string[]];
   /** The short, scannable half. Never wraps. */
   title: string;
   /** The qualifying half, muted under it. */
@@ -61,6 +71,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const { dayName, programName, position, cycleLength } = data.program;
     lines.push({
       icon: 'calendar-number',
+      colors: gradients.calendar,
       title: dayName,
       detail: `Day ${position} of ${cycleLength} · ${programName}`,
       onPress: props.onOpenPrograms,
@@ -71,6 +82,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
   if (data.newRecords > 0) {
     lines.push({
       icon: 'trophy',
+      colors: gradients.reward,
       title:
         data.newRecords === 1 ? 'New personal record' : `${data.newRecords} new personal records`,
       detail: 'Set in the last seven days',
@@ -86,6 +98,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const remaining = Math.max(0, Math.round((target - current) * 10) / 10);
     lines.push({
       icon: 'flag',
+      colors: gradients.flame,
       title: exerciseName,
       detail:
         remaining === 0
@@ -103,6 +116,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
     const { groupName, rank, memberCount } = data.group;
     lines.push({
       icon: 'people-circle',
+      colors: gradients.rankGold,
       title: `${ordinal(rank)} of ${memberCount}`,
       detail: `${groupName} · this week`,
       onPress: props.onOpenGroups,
@@ -114,7 +128,7 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
 }
 
 export function FortressTodayCard(props: FortressTodayCardProps) {
-  const { colors, spacing, radius, typography, scheme } = useTheme();
+  const { colors, spacing } = useTheme();
   const { data } = useFortressToday();
 
   if (!data) return null;
@@ -122,38 +136,20 @@ export function FortressTodayCard(props: FortressTodayCardProps) {
   if (lines.length === 0) return null;
 
   return (
-    <View
-      style={{
-        // The inverse slab, which is this app's settled way of saying "this
-        // one is different" -- the same treatment the paid feature cards
-        // use. The first version of this card was a plain surface with a
-        // hairline border, which made the summary of everything the member
-        // pays for look exactly like the two read-only cards under it.
-        backgroundColor: colors.inverseSurface,
-        borderRadius: radius.lg,
-        padding: spacing.md,
-        gap: spacing.sm,
-        ...shadowFor(scheme),
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Ionicons name="shield-checkmark" size={13} color={colors.inverseText} />
-        {/* Named as the tier rather than "Your summary": this card exists to
-            make the thing being paid for visible, and a neutral heading
-            would defeat that. Stepped back, because it labels the panel
-            rather than competing with its contents. */}
-        <Text
-          style={{
-            color: colors.inverseText,
-            opacity: 0.65,
-            fontSize: 11,
-            fontWeight: '700',
-            letterSpacing: 1,
-          }}
-        >
-          FORTRESS TODAY
-        </Text>
-      </View>
+    /* An ordinary card, where this used to be an inverted slab -- near-black
+       on the light theme, white on the dark one.
+
+       The slab existed to say "this one is different", and it did, but it
+       said it by ignoring the scheme: a black panel is not the light
+       theme's colour and a white one is not the dark theme's. The shield
+       and the tier name already do that job in a way that survives a theme
+       switch, so what is left is the surface, hairline and shadow every
+       other card on this screen is made of -- which is Card. */
+    <Card>
+      {/* Named as the tier rather than "Your summary": this card exists to
+          make the thing being paid for visible, and a neutral heading would
+          defeat that. */}
+      <PremiumHeader label="FORTRESS TODAY" />
 
       {lines.map((line, index) => (
         <View key={line.title + line.detail}>
@@ -161,8 +157,7 @@ export function FortressTodayCard(props: FortressTodayCardProps) {
             <View
               style={{
                 height: 1,
-                backgroundColor: colors.inverseBorder,
-                opacity: 0.5,
+                backgroundColor: colors.border,
                 marginBottom: spacing.sm,
               }}
             />
@@ -173,65 +168,15 @@ export function FortressTodayCard(props: FortressTodayCardProps) {
             accessibilityRole="button"
             accessibilityLabel={line.accessibilityLabel}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <View
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 17,
-                  backgroundColor: colors.inverseWell,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name={line.icon} size={17} color={colors.inverseText} />
-              </View>
-
-              {/* Two parts rather than one sentence. The first version read
-                  "Next up: Legs · day 3 of 3 on Push / Pull / Legs", which
-                  wrapped onto a second line and left the row ragged. A short
-                  title with the qualifier underneath scans in one glance and
-                  cannot wrap. */}
-              <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
-                <Text
-                  style={[typography.body, { color: colors.inverseText, fontWeight: '700' }]}
-                  numberOfLines={1}
-                >
-                  {line.title}
-                </Text>
-                <Text
-                  style={[typography.caption, { color: colors.inverseText, opacity: 0.7 }]}
-                  numberOfLines={1}
-                >
-                  {line.detail}
-                </Text>
-              </View>
-
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.inverseText}
-                style={{ opacity: 0.55 }}
-              />
-            </View>
+            <PremiumRow
+              icon={line.icon}
+              colors={line.colors}
+              title={line.title}
+              detail={line.detail}
+            />
           </AnimatedPressable>
         </View>
       ))}
-    </View>
+    </Card>
   );
-}
-
-/**
- * A shadow under the dark slab on a light page, and none under the light
- * slab on a dark one -- where it would be invisible work. The same split
- * FloatingTabBar makes, rather than a second theming mechanism.
- */
-function shadowFor(scheme: 'light' | 'dark') {
-  return {
-    shadowColor: '#000',
-    shadowOpacity: scheme === 'dark' ? 0 : 0.18,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: scheme === 'dark' ? 0 : 4,
-  };
 }

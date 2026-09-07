@@ -6,13 +6,11 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
 import {
-  CATEGORY_GRADIENTS,
   CATEGORY_ICONS,
-  DEFAULT_CATEGORY_GRADIENT,
   DEFAULT_CATEGORY_ICON,
 } from '../../constants/categories';
 import { confirmAsync } from '../../lib/confirm';
@@ -104,11 +102,7 @@ export function DayDetailScreen() {
         grouped.map(([category, categoryExercises]) => (
           <Card key={category}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <GradientIconBadge
-                icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON}
-                colors={CATEGORY_GRADIENTS[category] ?? DEFAULT_CATEGORY_GRADIENT}
-                size={40}
-              />
+              <IconWell icon={CATEGORY_ICONS[category] ?? DEFAULT_CATEGORY_ICON} size={40} />
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                 {category[0].toUpperCase() + category.slice(1)}
               </Text>
@@ -134,12 +128,16 @@ export function DayDetailScreen() {
                         width: 24,
                         height: 24,
                         borderRadius: 12,
-                        backgroundColor: colors.primaryMuted,
+                        // The same neutral disc every other glyph in the
+                        // app sits in. A set number is a count, and a column
+                        // of orange counts down a workout was the screen's
+                        // loudest colour spent on its least surprising fact.
+                        backgroundColor: colors.border,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 11 }}>
+                      <Text style={{ color: colors.textPrimary, fontWeight: '800', fontSize: 11 }}>
                         {set.setNumber}
                       </Text>
                     </View>

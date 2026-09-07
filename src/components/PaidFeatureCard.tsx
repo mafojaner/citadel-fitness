@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
+import { Card } from './Card';
+import { PremiumHeader, PremiumRow, StatePill } from './PremiumCard';
 import { SettingsRow } from './SettingsRow';
-import { APP_FEATURES, featureInk } from '../constants/featureCatalog';
+import { APP_FEATURES, type AppFeature } from '../constants/featureCatalog';
 import { useMembershipTier } from '../hooks/useMembership';
 import { useOpenPlans } from '../hooks/useOpenPlans';
-import { TIER_LABELS, tierAllows } from '../lib/membership';
-import { shadow } from '../theme/tokens';
+import { TIER_LABELS, tierAllows, type MembershipTier } from '../lib/membership';
 import { useTheme } from '../theme/useTheme';
 
 interface PaidFeatureCardProps {
@@ -50,6 +51,39 @@ interface PaidFeatureCardProps {
  * Carries the tier as a pill beside the label, and the feature's own icon
  * badge on the left, so it reads as a link rather than a form control.
  */
+/**
+ * Where a feature stands for this member, and the pill that says so.
+ *
+ * Shared, because the card, the standalone link and the grouped list all
+ * have to answer it identically -- they are the same offer drawn at three
+ * sizes, and three copies of this logic is how they would drift apart.
+ */
+function featureState(feature: AppFeature, tier: MembershipTier, hasRoute: boolean, status?: string) {
+  // Compared rather than equality-checked: a Valhalla member must not be
+  // told a Fortress feature is locked, and a Fortress member must be told
+  // the truth about a Valhalla one rather than "coming soon" for something
+  // their tier will never include.
+  const entitled = tierAllows(tier, feature.tier);
+  const unlocked = entitled && hasRoute;
+  return {
+    entitled,
+    unlocked,
+    pillLabel: unlocked ? 'Open' : entitled ? status ?? 'Coming soon' : 'Locked',
+    pillIcon: (unlocked
+      ? 'sparkles'
+      : entitled
+        ? status
+          ? 'checkmark-circle'
+          : 'time-outline'
+        : 'lock-closed') as keyof typeof Ionicons.glyphMap,
+  };
+}
+
+/** "INCLUDED" rather than "FREE": a badge reading FREE beside a shield says the opposite of what the shield does. */
+function tierHeading(tier: AppFeature['tier']) {
+  return tier === 'free' ? 'INCLUDED' : TIER_LABELS[tier].toUpperCase();
+}
+
 export function PaidFeatureLink({
   featureId,
   label,
@@ -71,16 +105,14 @@ export function PaidFeatureLink({
    */
   divider?: 'top' | 'bottom' | 'none';
 }) {
-  const { colors, tiers, spacing, radius, typography } = useTheme();
+  const { colors, spacing } = useTheme();
   const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
   const feature = APP_FEATURES.find((f) => f.id === featureId);
   if (!feature) return null;
 
-  const entitled = tierAllows(tier, feature.tier);
-  const unlocked = entitled && Boolean(onOpen);
-  const accent = tiers[feature.tier];
+  const { unlocked, pillLabel, pillIcon } = featureState(feature, tier, Boolean(onOpen));
   const onPress = unlocked && onOpen ? onOpen : openPlans;
 
   return (
@@ -94,63 +126,134 @@ export function PaidFeatureLink({
           : `${feature.title}. ${TIER_LABELS[feature.tier]} feature. Select to learn more.`
       }
     >
+      {/* The same header-and-row a premium card is made of, minus the card,
+          because this one lives inside somebody else's.
+          *
+          * It was a single line before -- a small glyph, a label and a
+          * chevron -- which is what a settings row looks like. On a screen
+          * where the paid cards announce themselves with a shield, a tier
+          * name, a coloured disc and a state pill, that made the offers
+          * reached through a link the quietest thing on the page and the
+          * offers reached through a card the loudest, with no reason for
+          * the difference other than which component someone happened to
+          * use. */}
       <View
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
           gap: spacing.sm,
           // The padding follows the rule to whichever side it is on, so the
-          // gap always sits between the line and this row rather than
+          // gap always sits between the line and this block rather than
           // stranding it against the card edge.
-          paddingTop: divider === 'top' ? spacing.sm : 0,
-          paddingBottom: divider === 'bottom' ? spacing.sm : 0,
+          paddingTop: divider === 'top' ? spacing.md : 0,
+          paddingBottom: divider === 'bottom' ? spacing.md : 0,
           borderTopWidth: divider === 'top' ? 1 : 0,
           borderTopColor: colors.border,
           borderBottomWidth: divider === 'bottom' ? 1 : 0,
           borderBottomColor: colors.border,
         }}
       >
-        {/* The feature's icon in the feature's colour, rather than a
-            gradient disc behind it. A plain tier-coloured dot was tried
-            first and read as an unselected radio button — an empty circle
-            beside a label is a control you tick, not a link you follow. The
-            glyph says which feature this is, its ink distinguishes one from
-            another, and the pill beside the label carries the tier. */}
-        <Ionicons
-          name={feature.icon}
-          size={20}
-          color={featureInk(feature)}
-          style={{ width: 26, textAlign: 'center' }}
+        <PremiumHeader
+          label={tierHeading(feature.tier)}
+          trailing={<StatePill label={pillLabel} icon={pillIcon} />}
         />
-        <Text
-          style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '600' }]}
-          numberOfLines={1}
-        >
-          {label}
-        </Text>
-        {!unlocked ? (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              backgroundColor: accent.accent,
-              borderWidth: 1,
-              borderColor: accent.border,
-              borderRadius: radius.pill,
-              paddingHorizontal: spacing.sm,
-              paddingVertical: 2,
-            }}
-          >
-            <Ionicons name="lock-closed" size={9} color={accent.onAccent} />
-            <Text style={{ fontSize: 10, fontWeight: '700', color: accent.onAccent }}>
-              {TIER_LABELS[feature.tier]}
-            </Text>
-          </View>
-        ) : null}
-        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        {/* The caller's label as the title, the catalogue's own sentence
+            underneath. "See the full breakdown" says what this does here;
+            "Every lift and muscle group, over any range" says what you get,
+            and only one of those belongs to the host screen. */}
+        <PremiumRow
+          icon={feature.icon}
+          colors={feature.colors}
+          title={label}
+          detail={feature.short ?? feature.description}
+          detailLines={2}
+        />
       </View>
     </AnimatedPressable>
+  );
+}
+
+interface PaidFeatureListItem {
+  featureId: string;
+  /** Phrased for where it sits, e.g. "Set a target and track it". */
+  label: string;
+  onOpen?: () => void;
+}
+
+/**
+ * Several paid features under one tier heading.
+ *
+ * The alternative was a stack of PaidFeatureLinks, which is what this
+ * replaced: five of them in a plain card, each a line of text with a small
+ * glyph, reading as a settings list rather than as five things a membership
+ * buys. Giving each its own header would repeat the same shield and the
+ * same tier name five times, so the heading is hoisted and the rows share
+ * it -- which is also why the caller passes one tier's features per list.
+ *
+ * A mixed list still renders; it just falls back to a neutral heading,
+ * because a card headed FORTRESS whose third row is Valhalla would be
+ * lying.
+ */
+export function PaidFeatureList({ items }: { items: PaidFeatureListItem[] }) {
+  const { colors, spacing } = useTheme();
+  const openPlans = useOpenPlans();
+  const tier = useMembershipTier();
+
+  const rows = items
+    .map((item) => ({ item, feature: APP_FEATURES.find((f) => f.id === item.featureId) }))
+    .filter((row): row is { item: PaidFeatureListItem; feature: AppFeature } => Boolean(row.feature));
+  if (rows.length === 0) return null;
+
+  const listTier = rows[0].feature.tier;
+  const uniform = rows.every((row) => row.feature.tier === listTier);
+  // One state for the card, which is honest only because every row in it
+  // shares a tier and therefore shares an answer. `allRouted` is the part
+  // that can differ: one unbuilt feature among four built ones makes the
+  // card "Coming soon", which is the cautious way round.
+  const allRouted = rows.every((row) => Boolean(row.item.onOpen));
+  const listState = featureState(rows[0].feature, tier, allRouted);
+
+  return (
+    <Card style={{ gap: spacing.sm }}>
+      {/* One pill in the header rather than one per row: five saying
+          "Open" would be five pills making the same claim about a card you
+          can already tell is yours. A mixed-tier list gets no pill, because
+          there is no single state to report. */}
+      <PremiumHeader
+        label={uniform ? tierHeading(listTier) : 'MEMBERSHIP'}
+        trailing={
+          uniform ? <StatePill label={listState.pillLabel} icon={listState.pillIcon} /> : undefined
+        }
+      />
+      {rows.map(({ item, feature }, index) => {
+        const state = featureState(feature, tier, Boolean(item.onOpen));
+        return (
+          <View key={feature.id}>
+            {index > 0 ? (
+              <View
+                style={{ height: 1, backgroundColor: colors.border, marginBottom: spacing.sm }}
+              />
+            ) : null}
+            <AnimatedPressable
+              onPress={state.unlocked && item.onOpen ? item.onOpen : openPlans}
+              scaleTo={0.98}
+              accessibilityRole="button"
+              accessibilityLabel={
+                state.unlocked
+                  ? `${item.label}. ${feature.title}.`
+                  : `${feature.title}. ${TIER_LABELS[feature.tier]} feature. Select to learn more.`
+              }
+            >
+              <PremiumRow
+                icon={feature.icon}
+                colors={feature.colors}
+                title={item.label}
+                detail={feature.short ?? feature.description}
+                detailLines={2}
+              />
+            </AnimatedPressable>
+          </View>
+        );
+      })}
+    </Card>
   );
 }
 
@@ -166,7 +269,7 @@ export function PaidFeatureLink({
  * landing page's chips once did.
  */
 export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }: PaidFeatureCardProps) {
-  const { colors, tiers, spacing, radius, typography, scheme } = useTheme();
+  const { colors, tiers, spacing, radius } = useTheme();
   const openPlans = useOpenPlans();
   const tier = useMembershipTier();
 
@@ -179,11 +282,12 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
   // tier will never include.
   const entitled = tierAllows(tier, feature.tier);
   const unlocked = entitled && Boolean(onOpen);
-  const badgeLabel = unlocked
-    ? 'Open'
-    : entitled
-      ? status ?? 'Coming soon'
-      : TIER_LABELS[feature.tier];
+  // The card variant names the tier in its own header, so down here the
+  // badge only has to say where the feature stands. The row variant has no
+  // header -- it is one line inside a settings section -- so there the badge
+  // is the only place the tier can be named, and it still is.
+  const lockedLabel = variant === 'card' ? 'Locked' : TIER_LABELS[feature.tier];
+  const badgeLabel = unlocked ? 'Open' : entitled ? status ?? 'Coming soon' : lockedLabel;
   const badgeIcon = unlocked
     ? 'sparkles'
     : entitled
@@ -192,42 +296,44 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
         : 'time-outline'
       : 'lock-closed';
   const onPress = unlocked && onOpen ? onOpen : openPlans;
+  const headerLabel = tierHeading(feature.tier);
 
-  // Only the locked badge is tier-coloured, because only it names a tier —
-  // it's the one place outside the Plans page where "Fortress" or "Valhalla"
-  // appears as a label, so it should look the way that plan's card does.
-  // "Open" and "Coming soon" describe availability, not a tier, and stay in
-  // the app's own accent.
+  // A badge is tier-coloured only where it is actually naming a tier, which
+  // after the header change is the settings row alone. On a card all three
+  // states now share one pill in the app's accent: the header has already
+  // said which plan this is, and three differently-coloured pills for
+  // "yours", "not yet built" and "not yours" read as three different kinds
+  // of object rather than three states of one.
+  //
+  // It also retires a standing problem. Two of the three tier fills are
+  // fixed colours -- Fortress always white, Valhalla always near-black -- so
+  // on a card one of them landed on a surface its own colour in each theme
+  // and survived only on a hairline.
   const accent = tiers[feature.tier];
-  const badgeBackground = entitled ? colors.primaryMuted : accent.accent;
-  const badgeForeground = entitled ? colors.primary : accent.onAccent;
+  const tierColoured = variant === 'row' && !entitled;
 
-  const badge = (
+  // Everywhere but the settings row this is the shared StatePill; the row
+  // keeps a tier-coloured badge because there it is naming the tier rather
+  // than reporting a state -- a settings row has no header to name it in.
+  const badge = tierColoured ? (
     <View
       style={{
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: badgeBackground,
-        // Outlined against the slab, not against the page.
-        //
-        // Two of the three tier fills are fixed colours -- Fortress is
-        // always white and Valhalla always near-black -- so on an inverted
-        // card exactly one of them vanishes in each theme: Valhalla on the
-        // light theme's black slab, Fortress on the dark theme's white one.
-        // A hairline in the slab's own ink rescues both without touching
-        // the fills, which have to stay as they are because they are how
-        // each plan's card looks on the Plans page.
+        backgroundColor: accent.accent,
         borderWidth: 1,
-        borderColor: variant === 'card' ? colors.inverseBorder : entitled ? colors.primaryMuted : accent.border,
+        borderColor: accent.border,
         borderRadius: radius.pill,
         paddingHorizontal: spacing.sm,
         paddingVertical: 2,
       }}
     >
-      <Ionicons name={badgeIcon} size={10} color={badgeForeground} />
-      <Text style={{ fontSize: 10, fontWeight: '700', color: badgeForeground }}>{badgeLabel}</Text>
+      <Ionicons name={badgeIcon} size={10} color={accent.onAccent} />
+      <Text style={{ fontSize: 10, fontWeight: '700', color: accent.onAccent }}>{badgeLabel}</Text>
     </View>
+  ) : (
+    <StatePill label={badgeLabel} icon={badgeIcon} />
   );
 
   // The glow is gone.
@@ -274,89 +380,29 @@ export function PaidFeatureCard({ featureId, variant = 'card', onOpen, status }:
       }`}
       scaleTo={0.98}
     >
-      {/* Filled on every state, not just the ones you own.
+      {/* The same card the Fortress summary is, down to the components.
         *
-        * The previous pass filled only the unlocked card, on the argument
-        * that a locked teaser in colour is an advert while a live entry
-        * point in colour is a button. That holds for a coloured fill. It
-        * does not hold for this one: the inverse slab is not a colour, it
-        * is a way of saying "this is a premium feature", and that is
-        * equally true of one you have not bought yet.
+        * Before this there were two premium looks on one screen: the
+        * Fortress card, which said so with an accent shield and a small
+        * letterspaced tier name, and this, which said so with a gradient
+        * disc and a title. Two vocabularies for one idea, sitting three
+        * inches apart, so neither taught you to recognise the other.
         *
-        * Which means the fill no longer distinguishes the states, so the
-        * badge is back on all three and is now the only thing that does --
-        * "Open", "Coming soon", or the tier's own name under a padlock.
-        *
-        * Drawn directly rather than through Card, because Card paints the
-        * surface, the hairline border and a neutral shadow, and all three
-        * would have to be overridden to get here.
+        * This is the Fortress one, because it is the quieter of the two and
+        * because a paid feature you have not bought is still a card on a
+        * page rather than an advertisement stapled to it. The header names
+        * the tier and carries the state; the row underneath is the feature.
         */}
-      <View
-        style={{
-          backgroundColor: colors.inverseSurface,
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: spacing.md,
-          ...shadow.card,
-          // A shadow under the white slab on a near-black page is invisible
-          // work; on the light theme it is what stops a black rectangle
-          // reading as a hole cut in the page. Same split FloatingTabBar
-          // makes, rather than a second theming mechanism.
-          shadowOpacity: scheme === 'dark' ? 0 : 0.18,
-          elevation: scheme === 'dark' ? 0 : 4,
-        }}
-      >
-        {/* Monochrome, where the flat card used the feature's own ink.
-            That ink is the saturated end of the feature's gradient, and
-            half of those -- the yellow, the cyan, the mint -- fall under
-            2:1 against the dark theme's white slab. The colour survives
-            where it is still legible: the row variant and PaidFeatureLink
-            both sit on ordinary surfaces and both still use featureInk. */}
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: colors.inverseWell,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name={feature.icon} size={22} color={colors.inverseText} />
-        </View>
-
-        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            {/* Shrinks so the badge keeps its place: the title is the part
-                that can be truncated, the tier is not. */}
-            <Text
-              style={[typography.subheading, { flexShrink: 1, color: colors.inverseText }]}
-              numberOfLines={1}
-            >
-              {feature.title}
-            </Text>
-            {badge}
-          </View>
-          {/* Opacity rather than a second ink token, because the secondary
-              colour here is the primary one stepped back, and that holds
-              whichever way round the slab is. */}
-          <Text
-            style={[typography.caption, { color: colors.inverseText, opacity: 0.72 }]}
-            numberOfLines={2}
-          >
-            {feature.short ?? feature.description}
-          </Text>
-        </View>
-
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={colors.inverseText}
-          style={{ opacity: 0.6 }}
+      <Card style={{ gap: spacing.sm }}>
+        <PremiumHeader label={headerLabel} trailing={badge} />
+        <PremiumRow
+          icon={feature.icon}
+          colors={feature.colors}
+          title={feature.title}
+          detail={feature.short ?? feature.description}
+          detailLines={2}
         />
-      </View>
+      </Card>
     </AnimatedPressable>
   );
 }

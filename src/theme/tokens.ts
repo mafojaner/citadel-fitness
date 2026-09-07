@@ -72,33 +72,42 @@ export const lightColors = {
   textMuted: palette.ink300,
   primary: palette.primary,
   primaryMuted: palette.primaryMuted,
-  // The inverse surface.
+  // The primary action's fill, and the ink that goes on it.
   //
-  // A slab that deliberately contrasts with the page instead of sitting on
-  // it: near-black on the light theme, white on the dark one. It exists so
-  // one element on a screen can be the thing you are meant to reach for
-  // without reaching for colour to say so -- `primary` fills already mean
-  // "the app's own accent" on the rewards and water cards, and a second
-  // orange slab beside those would read as the same feature.
+  // Near-black on the light theme, near-white on the dark one -- the only
+  // inversion left in the app. Four tokens used to describe a whole
+  // inverted *surface*, and two cards were built on it; both now sit on
+  // `surface` like everything else, because a panel you read should belong
+  // to the scheme it is read in.
   //
-  // The four values move together and are only meaningful together, which
-  // is why they are tokens rather than four literals at the call site: any
-  // component that fills with `inverseSurface` needs the matching ink, the
-  // translucent well for an icon, and the hairline for a chip, or it will
-  // paint white-on-white the moment the theme flips.
-  // ink700 and offWhite rather than the ends of the palette. Pure #000 on
-  // #FFF is the pairing that makes a slab read as a hole punched in the
-  // page instead of a card resting on it, and it is the one combination in
-  // the palette that appears nowhere else in the app -- every other surface
-  // already lives one step in from the extremes.
-  inverseSurface: palette.ink700,
-  inverseText: palette.offWhite,
-  inverseWell: 'rgba(255,255,255,0.14)',
-  inverseBorder: 'rgba(255,255,255,0.35)',
+  // A button is the case where inverting is right rather than merely loud.
+  // It is one element, it is the thing you are meant to press, and the
+  // app's orange is spoken for: `primary` is the accent on chips, badges,
+  // category glyphs and the water and rewards cards, so an orange CTA was
+  // competing with a dozen orange nouns rather than standing out from them.
+  //
+  // The pair travels together for the reason the old four did -- a fill
+  // without its matching ink paints white on white the moment the theme
+  // flips.
+  ctaFill: palette.ink900,
+  ctaText: palette.white,
   success: palette.success,
   danger: palette.danger,
   tabInactive: '#8A93A6',
-  navBackground: palette.white,
+  // offWhite, matching `background`, rather than white.
+  //
+  // The header is a band across the top of the page with no rule under it,
+  // so a white header on an offWhite page drew a hard horizontal seam
+  // wherever the two met -- on every tab-root screen, right below the
+  // title. The dark theme never had it, because navBackground there is
+  // already the same ink900 as the page behind it. Now both schemes match
+  // their own page.
+  //
+  // The stack headers and the desktop sidebar read this too and lose the
+  // same seam. Nothing depended on the header being a second white: the
+  // search field inside it fills with `surface`, so it now reads as more
+  // distinct from its header rather than less.
+  navBackground: palette.offWhite,
   navText: palette.ink900,
   navBorder: palette.ink100,
 };
@@ -112,12 +121,10 @@ export const darkColors = {
   textMuted: palette.ink300,
   primary: palette.primary,
   primaryMuted: '#4A2A20',
-  // Mirrored, not copied: on a near-black page the high-contrast slab is
-  // the white one. See lightColors for why these four travel together.
-  inverseSurface: palette.offWhite,
-  inverseText: palette.ink900,
-  inverseWell: 'rgba(11,14,20,0.08)',
-  inverseBorder: 'rgba(11,14,20,0.22)',
+  // Mirrored: on a near-black page the button that stands out is the white
+  // one. See lightColors for why the two are a pair.
+  ctaFill: palette.offWhite,
+  ctaText: palette.ink900,
   success: palette.success,
   danger: palette.danger,
   // ink300, not ink500. Against the bar's own surface (ink700) ink500 is

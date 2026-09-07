@@ -1,16 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
-import { GradientIconBadge } from './GradientIconBadge';
+import { IconWell } from './IconWell';
 
 interface StatTileProps {
   icon: keyof typeof Ionicons.glyphMap;
-  gradientColors: readonly [string, string, ...string[]];
   value: string;
   label: string;
 }
 
-export function StatTile({ icon, gradientColors, value, label }: StatTileProps) {
+export function StatTile({ icon, value, label }: StatTileProps) {
   const { colors, spacing, radius } = useTheme();
 
   return (
@@ -24,14 +23,18 @@ export function StatTile({ icon, gradientColors, value, label }: StatTileProps) 
         borderColor: colors.border,
         padding: spacing.md,
         gap: spacing.sm,
-        shadowColor: gradientColors[1],
-        shadowOpacity: 0.28,
+        // A neutral shadow, where this was tinted with the tile's own
+        // gradient. A vivid glow under each of three tiles was three tiles
+        // asking to be looked at first, and the tint encoded nothing the
+        // number above it did not already say.
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
         elevation: 4,
       }}
     >
-      <GradientIconBadge icon={icon} colors={gradientColors} size={40} />
+      <IconWell icon={icon} size={40} />
       <Text style={{ fontSize: 22, fontWeight: '800', color: colors.textPrimary, letterSpacing: 0.2 }}>
         {value}
       </Text>

@@ -15,10 +15,13 @@ interface GradientPillProps {
   colors?: readonly [string, string, ...string[]];
   flex?: boolean;
   /**
-   * 'gradient' is the app's accent pill, right where it sits among vivid
-   * stat tiles and category chips. 'ink' is the flat version for the
-   * account centre and anywhere else that has gone monochrome, where an
-   * orange pill would be the only saturated thing on the screen.
+   * 'ink' is the default, and the app has no screen left that wants the
+   * other one. The gradient pill was right when it sat among vivid stat
+   * tiles and category chips; those are all ink now, so an orange pill
+   * would be the only saturated thing on its screen -- which is the exact
+   * argument that first introduced this prop for the account centre. The
+   * gradient branch is kept for a caller that has a reason, and currently
+   * nothing does.
    */
   tone?: 'gradient' | 'ink';
 }
@@ -30,7 +33,7 @@ export function GradientPill({
   onPress,
   colors: gradientColors = gradients.action,
   flex,
-  tone = 'gradient',
+  tone = 'ink',
 }: GradientPillProps) {
   const { colors, spacing, radius, typography } = useTheme();
 

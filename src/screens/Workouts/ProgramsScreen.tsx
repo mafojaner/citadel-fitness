@@ -5,7 +5,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { GradientButton } from '../../components/GradientButton';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { TierMark } from '../../components/TierMark';
@@ -16,7 +16,6 @@ import { useProgramHistory } from '../../hooks/useProgramHistory';
 import { usePrograms } from '../../hooks/usePrograms';
 import { todayISO } from '../../lib/analytics';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
@@ -82,7 +81,7 @@ export function ProgramsScreen() {
       {enrolled && today ? (
         <Card title="Your next session">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <GradientIconBadge icon="calendar-number" colors={gradients.calendar} size={44} />
+            <IconWell icon="calendar-number" size={44} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[typography.subheading, { color: colors.textPrimary }]}>
                 {today.name}

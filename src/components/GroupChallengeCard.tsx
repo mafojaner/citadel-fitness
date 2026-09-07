@@ -4,6 +4,7 @@ import { Text, TextInput, View } from 'react-native';
 import { GradientButton } from './GradientButton';
 import { GradientNumberBadge } from './GradientNumberBadge';
 import { GradientPill } from './GradientPill';
+import { PremiumHeader } from './PremiumCard';
 import { useArmedAction } from '../hooks/useArmedAction';
 import { useAuthStore } from '../state/authStore';
 import {
@@ -94,12 +95,7 @@ export function GroupChallengeCard({ groupId, challenge, onChanged }: GroupChall
   if (composing || !challenge) {
     return (
       <View style={panel}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Ionicons name="flash" size={14} color={colors.primary} />
-          <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: '700', letterSpacing: 0.8 }}>
-            CHALLENGE
-          </Text>
-        </View>
+        <PremiumHeader label="CHALLENGE" icon="flash" />
 
         {!composing ? (
           <>
@@ -212,13 +208,16 @@ export function GroupChallengeCard({ groupId, challenge, onChanged }: GroupChall
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.sm,
-            backgroundColor: colors.primaryMuted,
+            // Neutral: this announces a result, not a purchase. The accent
+            // it used to fill with is what the CHALLENGE header above it
+            // now owns, and having both made the banner look like the offer.
+            backgroundColor: colors.border,
             borderRadius: radius.md,
             padding: spacing.sm,
           }}
         >
-          <Ionicons name="trophy" size={16} color={colors.primary} />
-          <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.primary, fontWeight: '700' }]}>
+          <Ionicons name="trophy" size={16} color={colors.textPrimary} />
+          <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: '700' }]}>
             {leader.name} won with {leader.score} {unit}
           </Text>
         </View>

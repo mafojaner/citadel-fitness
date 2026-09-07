@@ -7,7 +7,7 @@ import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { GradientIconBadge } from '../../components/GradientIconBadge';
+import { IconWell } from '../../components/IconWell';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { TierMark } from '../../components/TierMark';
@@ -23,7 +23,6 @@ import { useAdvancedAnalytics } from '../../hooks/useAdvancedAnalytics';
 import { usePeriodComparison } from '../../hooks/usePeriodComparison';
 import { changePct } from '../../lib/periodComparison';
 import { useProfileStore } from '../../state/profileStore';
-import { gradients } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
 import type { ActivityStackParamList } from '../../navigation/stacks/ActivityStack';
 
@@ -116,7 +115,6 @@ export function AdvancedAnalyticsScreen() {
       ) : empty ? (
         <EmptyState
           icon="trending-up"
-          colors={gradients.volume}
           title="Nothing logged in this period"
           detail="Try a longer range, or log a workout and come back."
         />
@@ -142,11 +140,7 @@ export function AdvancedAnalyticsScreen() {
             {balance.map((entry) => (
               <View key={entry.category} style={{ gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                  <GradientIconBadge
-                    icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON}
-                    colors={CATEGORY_GRADIENTS[entry.category] ?? DEFAULT_CATEGORY_GRADIENT}
-                    size={26}
-                  />
+                  <IconWell icon={CATEGORY_ICONS[entry.category] ?? DEFAULT_CATEGORY_ICON} size={26} />
                   <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
                     {entry.category[0].toUpperCase() + entry.category.slice(1)}
                   </Text>
