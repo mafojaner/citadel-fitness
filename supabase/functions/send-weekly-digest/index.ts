@@ -9,6 +9,10 @@
 // Unlike the welcome and newsletter functions this is time-triggered rather
 // than database-triggered. See .github/workflows/weekly-digest.yml for the
 // schedule; nothing in the database calls it.
+//
+// WEBHOOK_SECRET_NEXT is also accepted when set -- see
+// _shared/webhook-auth.ts for why, and docs/rotate-webhook-secret.md for
+// the rotation this enables.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { emailShell } from '../_shared/email-template.ts';
@@ -16,9 +20,9 @@ import {
   weeklyDigestBody,
   type FortressSummary,
 } from '../_shared/weekly-digest-content.ts';
+import { isValidWebhookSecret } from '../_shared/webhook-auth.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
-const WEBHOOK_SECRET = Deno.env.get('WEBHOOK_SECRET')!;
 const FROM_EMAIL = Deno.env.get('EMAIL_FROM') ?? 'Citadel Fitness <onboarding@resend.dev>';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -48,7 +52,7 @@ function json(body: unknown, status: number) {
 }
 
 Deno.serve(async (req) => {
-  if (req.headers.get('x-webhook-secret') !== WEBHOOK_SECRET) {
+  if (!isValidWebhookSecret(req.headers.get('x-webhook-secret'))) {
     return json({ error: 'Unauthorized' }, 401);
   }
 

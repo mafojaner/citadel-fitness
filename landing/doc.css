@@ -12,8 +12,11 @@
    deliberately do not change with the theme, which is the seam that keeps a
    light document visibly part of the same site.
 
-   privacy.html and delete-account.html still carry their own inline copies
-   of most of this and should be moved onto this file; they predate it.
+   privacy.html and delete-account.html moved onto this file on 7
+   September, each keeping only the handful of rules with no equivalent
+   here: privacy's .tldr summary box and its one .callout.accent, and
+   delete-account's single-column .page override (it never grew a
+   contents rail, so doc.css's two-column grid does not fit it).
    ========================================================================== */
 
 /* ---- Semantic layer -------------------------------------------------------
