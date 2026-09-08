@@ -141,12 +141,19 @@ export function WorkoutsScreen() {
 
           Programs is a plain stack navigate here rather than the tab-level
           one Home needed: this screen is already inside the Workouts stack
-          that owns that route. The other three still cross to Activity. */}
+          that owns that route. The other three still cross to Activity.
+
+          `initial: false` on all three of those. Without it, a cross-tab
+          navigate into a stack that has not mounted yet *builds* that
+          stack's history as the single target route -- so the screen opens
+          with nothing beneath it, canGoBack() is false, and the header
+          draws no back arrow. It only reproduces on a cold tab, which is
+          why it read as intermittent. */}
       <FortressTodayCard
         onOpenPrograms={() => navigation.navigate('Programs')}
-        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast' })}
-        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords' })}
-        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups' })}
+        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast', initial: false })}
+        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords', initial: false })}
+        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups', initial: false })}
       />
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}

@@ -2,7 +2,11 @@ import {
   computePersonalRecords,
   estimateOneRepMax,
   isRecentRecord,
+  newestRecord,
   newestRecordDate,
+  recentRecords,
+  sortRecords,
+  summariseRecords,
   type ExerciseHistory,
   type PersonalRecord,
   type RecordSet,
@@ -284,5 +288,281 @@ describe('record freshness', () => {
         '2026-09-12'
       )
     ).toBe(false);
+  });
+});
+
+/** A strength record, for the screen-facing derivations below. */
+const pr = (over: Partial<PersonalRecord> = {}): PersonalRecord => ({
+  exerciseId: 'ex-1',
+  exerciseName: 'Bench Press',
+  category: 'chest',
+  type: 'strength',
+  heaviestWeight: 100,
+  heaviestWeightReps: 5,
+  heaviestWeightDate: '2026-08-01',
+  estimatedOneRepMax: 112,
+  estimatedOneRepMaxDate: '2026-08-01',
+  longestDurationSeconds: 0,
+  longestDurationDate: null,
+  farthestDistance: 0,
+  farthestDistanceDate: null,
+  bestSessionValue: 2000,
+  bestSessionDate: '2026-08-01',
+  totalSets: 12,
+  lastPerformed: '2026-08-01',
+  ...over,
+});
+
+describe('newestRecord', () => {
+  it('names which record was broken, not just when', () => {
+    expect(newestRecord(pr({ bestSessionDate: '2026-09-01' }))).toEqual({
+      kind: 'bestSession',
+      date: '2026-09-01',
+    });
+  });
+
+  it('prefers the set actually lifted over the estimate derived from it', () => {
+    // One session sets both, on the same date. The card headlines whichever
+    // this returns, and "you lifted 100 kg" beats "we calculated 112 kg".
+    expect(newestRecord(pr())?.kind).toBe('heaviestWeight');
+  });
+
+  it('agrees with newestRecordDate', () => {
+    // The two are one function now precisely so they cannot drift; this is
+    // the assertion that would fail if someone split them again.
+    const record = pr({ heaviestWeightDate: '2026-08-01', longestDurationDate: '2026-09-05' });
+    expect(newestRecord(record)?.date).toBe(newestRecordDate(record));
+  });
+
+  it('is null with no dated record at all', () => {
+    expect(
+      newestRecord(
+        pr({
+          heaviestWeightDate: null,
+          estimatedOneRepMaxDate: null,
+          longestDurationDate: null,
+          farthestDistanceDate: null,
+          bestSessionDate: null,
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('does not treat a dated zero as a record', () => {
+    // What the server returns for a bodyweight lift: every figure is zero
+    // and every one of them carries the date it was logged. The screen
+    // headlined "0 kg x 0" and announced two personal bests broken that
+    // week, both of nothing.
+    expect(
+      newestRecord(
+        pr({
+          heaviestWeight: 0,
+          heaviestWeightReps: 0,
+          heaviestWeightDate: '2026-09-08',
+          estimatedOneRepMax: 0,
+          estimatedOneRepMaxDate: '2026-09-08',
+          bestSessionValue: 0,
+          bestSessionDate: '2026-09-08',
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('still finds the real record beside a dated zero', () => {
+    // The mixed case, which is the one a blanket "any zero disqualifies the
+    // exercise" rule would get wrong: a lift with a genuine heaviest set
+    // whose best-day volume happens to be missing.
+    expect(
+      newestRecord(
+        pr({
+          heaviestWeight: 60,
+          heaviestWeightDate: '2026-09-08',
+          bestSessionValue: 0,
+          bestSessionDate: '2026-09-09',
+        })
+      )
+    ).toEqual({ kind: 'heaviestWeight', date: '2026-09-08' });
+  });
+});
+
+describe('a record of nothing', () => {
+  const bodyweightOnly = pr({
+    exerciseId: 'bw',
+    heaviestWeight: 0,
+    heaviestWeightReps: 0,
+    heaviestWeightDate: '2026-09-08',
+    estimatedOneRepMax: 0,
+    estimatedOneRepMaxDate: '2026-09-08',
+    bestSessionValue: 0,
+    bestSessionDate: '2026-09-08',
+  });
+
+  it('is not new, however recently it was logged', () => {
+    expect(isRecentRecord(bodyweightOnly, '2026-09-09')).toBe(false);
+  });
+
+  it('is left out of the new-records list', () => {
+    expect(recentRecords([bodyweightOnly], '2026-09-09')).toEqual([]);
+  });
+
+  it('is not counted in the headline', () => {
+    expect(summariseRecords([bodyweightOnly], '2026-09-09').newThisWeek).toBe(0);
+  });
+
+  it('still counts as an exercise in the vault', () => {
+    // It is a lift that has been trained; it just has no measured best.
+    // Dropping it from the count would make the number disagree with the
+    // list, which still shows the card.
+    const summary = summariseRecords([bodyweightOnly], '2026-09-09');
+    expect(summary.exercises).toBe(1);
+    expect(summary.totalSets).toBe(12);
+  });
+});
+
+describe('summariseRecords', () => {
+  it('adds up the vault', () => {
+    const summary = summariseRecords(
+      [
+        pr({ exerciseId: 'a', heaviestWeight: 100, totalSets: 12 }),
+        pr({ exerciseId: 'b', heaviestWeight: 140, totalSets: 3 }),
+      ],
+      '2026-09-12'
+    );
+    expect(summary.exercises).toBe(2);
+    expect(summary.totalSets).toBe(15);
+    expect(summary.heaviestWeight).toBe(140);
+  });
+
+  it('counts new records on the same rule the cards are badged with', () => {
+    const summary = summariseRecords(
+      [
+        pr({ exerciseId: 'a', bestSessionDate: '2026-09-10' }),
+        pr({
+          exerciseId: 'b',
+          bestSessionDate: '2026-06-01',
+          heaviestWeightDate: '2026-06-01',
+          estimatedOneRepMaxDate: '2026-06-01',
+        }),
+      ],
+      '2026-09-12'
+    );
+    expect(summary.newThisWeek).toBe(1);
+  });
+
+  it('is all zeros for an empty vault rather than throwing', () => {
+    expect(summariseRecords([], '2026-09-12')).toEqual({
+      exercises: 0,
+      newThisWeek: 0,
+      totalSets: 0,
+      heaviestWeight: 0,
+      longestDurationSeconds: 0,
+    });
+  });
+});
+
+describe('sortRecords', () => {
+  const bench = pr({
+    exerciseId: 'a',
+    exerciseName: 'Bench Press',
+    heaviestWeight: 100,
+    lastPerformed: '2026-08-01',
+  });
+  const squat = pr({
+    exerciseId: 'b',
+    exerciseName: 'Squat',
+    heaviestWeight: 160,
+    lastPerformed: '2026-07-01',
+  });
+  const run = pr({
+    exerciseId: 'c',
+    exerciseName: 'Running',
+    type: 'cardio',
+    heaviestWeight: 0,
+    lastPerformed: '2026-09-01',
+  });
+
+  it('orders by when the lift was last trained', () => {
+    expect(sortRecords([bench, squat, run], 'recent').map((r) => r.exerciseId)).toEqual([
+      'c',
+      'a',
+      'b',
+    ]);
+  });
+
+  it('orders by the heaviest set, sinking what has no weight', () => {
+    expect(sortRecords([bench, run, squat], 'heaviest').map((r) => r.exerciseId)).toEqual([
+      'b',
+      'a',
+      'c',
+    ]);
+  });
+
+  it('orders by name', () => {
+    expect(sortRecords([squat, run, bench], 'name').map((r) => r.exerciseId)).toEqual([
+      'a',
+      'c',
+      'b',
+    ]);
+  });
+
+  it('does not mutate what it is given', () => {
+    const input = [bench, squat];
+    sortRecords(input, 'heaviest');
+    expect(input.map((r) => r.exerciseId)).toEqual(['a', 'b']);
+  });
+
+  it('breaks ties on name so the order is stable', () => {
+    const a = pr({ exerciseId: 'x', exerciseName: 'Zercher Squat', heaviestWeight: 100 });
+    const b = pr({ exerciseId: 'y', exerciseName: 'Arnold Press', heaviestWeight: 100 });
+    expect(sortRecords([a, b], 'heaviest').map((r) => r.exerciseId)).toEqual(['y', 'x']);
+  });
+});
+
+describe('recentRecords', () => {
+  it('returns only what was broken inside the window, newest first', () => {
+    const rows = recentRecords(
+      [
+        pr({ exerciseId: 'a', exerciseName: 'A', bestSessionDate: '2026-09-08' }),
+        pr({ exerciseId: 'b', exerciseName: 'B', bestSessionDate: '2026-09-11' }),
+        pr({
+          exerciseId: 'c',
+          exerciseName: 'C',
+          heaviestWeightDate: '2026-01-01',
+          estimatedOneRepMaxDate: '2026-01-01',
+          bestSessionDate: '2026-01-01',
+        }),
+      ],
+      '2026-09-12'
+    );
+    expect(rows.map((r) => r.record.exerciseId)).toEqual(['b', 'a']);
+  });
+
+  it('carries which record each one was', () => {
+    const [row] = recentRecords(
+      [
+        pr({
+          heaviestWeightDate: '2026-09-01',
+          estimatedOneRepMaxDate: '2026-09-01',
+          bestSessionDate: '2026-09-11',
+        }),
+      ],
+      '2026-09-12'
+    );
+    expect(row.kind).toBe('bestSession');
+    expect(row.date).toBe('2026-09-11');
+  });
+
+  it('agrees with isRecentRecord about the window', () => {
+    // The headline count and this list are two reads of one predicate, and
+    // a card badged "New" that is missing from the list above it is the
+    // exact inconsistency the shared derivation exists to prevent.
+    const records = [
+      pr({ exerciseId: 'a', bestSessionDate: '2026-09-11' }),
+      pr({ exerciseId: 'b', bestSessionDate: '2026-09-04' }),
+      pr({ exerciseId: 'c', bestSessionDate: '2026-09-06' }),
+    ];
+    expect(recentRecords(records, '2026-09-12').length).toBe(
+      records.filter((r) => isRecentRecord(r, '2026-09-12')).length
+    );
   });
 });

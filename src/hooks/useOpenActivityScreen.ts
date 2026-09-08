@@ -27,7 +27,13 @@ export function useOpenActivityScreen(): (screen: keyof ActivityStackParamList) 
       const navigate = navigation.navigate as unknown as (name: string, params?: object) => void;
       // Through the root rather than as a bare tab name: this also works
       // from inside a stack that is not a direct child of the tabs.
-      navigate('Main', { screen: 'Activity', params: { screen } });
+      //
+      // `initial: false` puts the Activity stack's own root under the
+      // target instead of making the target that root. Without it a screen
+      // opened from another tab has nothing to go back to, so the header
+      // renders no back arrow and the tab bar is the only way out -- a bug
+      // this app shipped on the records page.
+      navigate('Main', { screen: 'Activity', params: { screen, initial: false } });
     },
     [navigation]
   );

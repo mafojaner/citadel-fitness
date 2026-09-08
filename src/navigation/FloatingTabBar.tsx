@@ -602,7 +602,11 @@ function SidebarShortcuts() {
                   unlocked
                     ? navigation.navigate('Main', {
                         screen: shortcut.tab,
-                        params: { screen: shortcut.screen },
+                        // Every shortcut here points below a tab's root, so
+                        // the target stack needs its own root underneath --
+                        // see useOpenActivityScreen for what happens
+                        // without it.
+                        params: { screen: shortcut.screen, initial: false },
                       } as never)
                     : openPlans()
                 }

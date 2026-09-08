@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
@@ -9,7 +8,6 @@ import { Card } from '../../components/Card';
 import { CardHead } from '../../components/CardHead';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { FadeInView } from '../../components/FadeInView';
 import { IconWell } from '../../components/IconWell';
 import { GradientPill } from '../../components/GradientPill';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -17,6 +15,7 @@ import { TierMark } from '../../components/TierMark';
 import { Sparkline } from '../../components/Sparkline';
 import { GrowBar } from '../../components/analytics/GrowBar';
 import { SegmentedShareBar } from '../../components/analytics/SegmentedShareBar';
+import { Section } from '../../components/analytics/Section';
 import { StatBlock } from '../../components/analytics/StatBlock';
 import { StatGrid } from '../../components/analytics/StatGrid';
 import { TrendChart } from '../../components/analytics/TrendChart';
@@ -42,25 +41,6 @@ const PERIODS: { label: string; days: number | null }[] = [
   { label: '90 days', days: 90 },
   { label: 'All time', days: null },
 ];
-
-/**
- * Cards arrive in sequence rather than at once.
- *
- * A screen this dense appearing in a single frame is a wall; 70ms apart it
- * reads top to bottom, which is the order the sections are meant to be read
- * in anyway. Capped so the last card on a long page is not still arriving
- * after half a second.
- */
-const STAGGER_MS = 70;
-const MAX_STAGGER_MS = 420;
-
-function Section({ index, children }: { index: number; children: ReactNode }) {
-  return (
-    <FadeInView slideDistance={12} duration={Math.min(index * STAGGER_MS, MAX_STAGGER_MS) + 260}>
-      {children}
-    </FadeInView>
-  );
-}
 
 /**
  * The change against the previous window, in words.

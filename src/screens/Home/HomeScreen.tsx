@@ -308,11 +308,16 @@ export function HomeScreen() {
           come after it. Full width rather than joining the pair above,
           which is a matched set of two summaries of your own training --
           these are about where you stand next to other people. */}
-      <RankingCard onPress={() => navigation.navigate('Activity', { screen: 'Leaderboard' })} />
+      {/* `initial: false` so the Activity stack is built with its own root
+          under this screen rather than starting at it -- otherwise the
+          leaderboard opens with no back arrow. Same for Groups below. */}
+      <RankingCard
+        onPress={() => navigation.navigate('Activity', { screen: 'Leaderboard', initial: false })}
+      />
 
       <PaidFeatureCard
         featureId="private-groups"
-        onOpen={() => navigation.navigate('Activity', { screen: 'Groups' })}
+        onOpen={() => navigation.navigate('Activity', { screen: 'Groups', initial: false })}
       />
 
       {/* Discovery section: category browsing into the same task (find
