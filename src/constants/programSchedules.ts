@@ -4,8 +4,16 @@ import { iconInk } from '../theme/tokens';
 interface ProgramSchedule {
   /** How often the cycle is meant to be run, in a phrase. */
   frequency: string;
-  /** A worked example week. Rest days named, because they are part of the plan. */
-  week: string;
+  /**
+   * A worked week, Monday first: true trains, false rests.
+   *
+   * Seven booleans rather than the sentence this used to be. "Mon Upper A ·
+   * Tue Lower A · Thu Upper B · Fri Lower B · weekend rest" is accurate and
+   * is still a paragraph to parse; the same thing drawn as a week is read
+   * at a glance, and the shape -- two on, one off, two on, two off -- is
+   * the part that actually answers "can I fit this".
+   */
+  week: boolean[];
   /** What kind of training this is, for someone choosing between them. */
   suits: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -32,37 +40,41 @@ interface ProgramSchedule {
  * guards the names; the test below guards this against the same seeds.
  */
 export const PROGRAM_SCHEDULES: Record<string, ProgramSchedule> = {
+  // Mon, Tue, Wed, Thu, Fri, Sat, Sun.
   'strength-5x5': {
     frequency: '3 days a week',
-    week: 'Mon A · Wed B · Fri A, then the next week starts on B',
+    week: [true, false, true, false, true, false, false],
     suits: 'Getting strong on the barbell lifts, with a day of rest between every session.',
     icon: 'barbell',
     tint: iconInk.ember,
   },
   'push-pull-legs': {
-    frequency: '3 to 6 days a week',
-    week: 'Push · Pull · Legs · rest, repeated — or run twice through for six days',
+    // The six-day version, which is what the split is built for: the whole
+    // cycle twice, with one day off. Run three days instead and it is every
+    // other day -- the frequency line says so.
+    frequency: '3 or 6 days a week',
+    week: [true, true, true, false, true, true, true],
     suits: 'Training most days without hitting the same muscles twice in a row.',
     icon: 'repeat',
     tint: iconInk.violet,
   },
   'upper-lower': {
     frequency: '4 days a week',
-    week: 'Mon Upper A · Tue Lower A · Thu Upper B · Fri Lower B · weekend rest',
+    week: [true, true, false, true, true, false, false],
     suits: 'A hypertrophy block with two rest days and every muscle trained twice.',
     icon: 'layers',
     tint: iconInk.azure,
   },
   'full-body-3': {
     frequency: '3 days a week',
-    week: 'Mon A · Wed B · Fri C · rest between each',
+    week: [true, false, true, false, true, false, false],
     suits: 'Starting out, or coming back — everything trained three times a week.',
     icon: 'body',
     tint: iconInk.mint,
   },
   'strength-conditioning': {
     frequency: '4 days a week',
-    week: 'Mon lift · Tue intervals · Thu lift · Sat steady state · rest around them',
+    week: [true, true, false, true, false, true, false],
     suits: 'Keeping conditioning without dropping the lifting, or the other way round.',
     icon: 'heart',
     tint: iconInk.crimson,
@@ -74,7 +86,7 @@ export function scheduleFor(slug: string): ProgramSchedule {
   return (
     PROGRAM_SCHEDULES[slug] ?? {
       frequency: 'Run at your own pace',
-      week: 'Work through the sessions in order and rest when you need to.',
+      week: [true, false, true, false, true, false, false],
       suits: 'A structured cycle to follow.',
       icon: 'calendar',
       tint: iconInk.ember,

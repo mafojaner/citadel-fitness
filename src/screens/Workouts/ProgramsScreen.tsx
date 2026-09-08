@@ -17,6 +17,7 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
 import { TierMark } from '../../components/TierMark';
+import { WeekBlocks } from '../../components/WeekBlocks';
 import { StatBlock } from '../../components/analytics/StatBlock';
 import { StatGrid } from '../../components/analytics/StatGrid';
 import {
@@ -378,32 +379,10 @@ export function ProgramsScreen() {
                 onPress={startSession}
               />
 
-              {/* What the week is meant to look like. The screen could
-                  say "day 2 of 3" and never say whether those three run
-                  back to back or where the rest days are. */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  gap: spacing.sm,
-                  padding: spacing.sm,
-                  borderRadius: radius.md,
-                  backgroundColor: colors.background,
-                }}
-              >
-                <Ionicons name="calendar-outline" size={15} color={colors.textMuted} style={{ marginTop: 1 }} />
-                <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
-                  <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '700' }]}>
-                    {schedule.frequency}
-                  </Text>
-                  <Text style={[typography.caption, { color: colors.textMuted }]}>{schedule.week}</Text>
-                </View>
-              </View>
-
-              <Text style={[typography.caption, { color: colors.textMuted }]}>
-                The cycle moves to day {(today.position % enrolled.days.length) + 1} when you save
-                this session, not now — so opening it to look is free.
-              </Text>
+              {/* What the week is meant to look like. The screen could say
+                  "day 2 of 3" and never say whether those three run back to
+                  back or where the rest days are. */}
+              <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
 
               {/* Everything that is not "what am I lifting today". Each of
                   these was a permanent block on the old screen. */}
@@ -544,10 +523,18 @@ function ProgramList({
   onJoin: (id: string) => void;
 }) {
   const { colors, spacing, radius, typography } = useTheme();
-  // Switching restarts the cycle, so it asks twice -- and asking on the
-  // card itself is what lets the card be the control, instead of parking an
-  // empty outlined button under every one of them.
-  const [arming, setArming] = useState<string | null>(null);
+  /**
+   * Selecting a card reveals its button; the button does the switching.
+   *
+   * Two steps, because switching restarts the cycle and a card-sized tap
+   * target is easy to hit by accident. The first version made the second
+   * tap the confirmation and warned in red, which put a warning on a
+   * screen where nothing had gone wrong. A button that appears when you
+   * pick something is the same two steps without the alarm -- and it keeps
+   * every unselected card free of the empty outlined button that used to
+   * sit under all of them.
+   */
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <View style={{ gap: spacing.md }}>
@@ -555,7 +542,7 @@ function ProgramList({
         const isCurrent = program.id === enrolledId;
         const movements = program.days.reduce((sum, day) => sum + day.exercises.length, 0);
         const schedule = scheduleFor(program.slug);
-        const armed = arming === program.id;
+        const isSelected = selected === program.id;
 
         const body = (
           <Card>
@@ -577,9 +564,9 @@ function ProgramList({
                 <Ionicons name="checkmark-circle" size={20} color={colors.success} />
               ) : (
                 <Ionicons
-                  name={armed ? 'alert-circle' : 'chevron-forward'}
+                  name={isSelected ? 'radio-button-on' : 'chevron-forward'}
                   size={18}
-                  color={armed ? colors.danger : colors.textMuted}
+                  color={isSelected ? colors.textPrimary : colors.textMuted}
                 />
               )}
             </View>
@@ -609,26 +596,29 @@ function ProgramList({
               ))}
             </View>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: spacing.sm,
-                paddingTop: spacing.sm,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-              }}
-            >
-              <Ionicons name="calendar-outline" size={14} color={colors.textMuted} style={{ marginTop: 2 }} />
-              <Text style={[typography.caption, { color: colors.textMuted, flex: 1, minWidth: 0 }]}>
-                {schedule.week}
-              </Text>
-            </View>
-
-            {armed ? (
-              <Text style={[typography.caption, { color: colors.danger, fontWeight: '700' }]}>
-                Tap again to switch — this restarts the cycle at day one.
-              </Text>
+            {/* Both only on the card you picked. The action is the black
+                button the rest of the app uses for a primary action rather
+                than an outline sitting under every programme, and the week
+                comes with it -- five calendars stacked down the list is the
+                wall this screen was rebuilt to get rid of. The frequency
+                stays on every card, since that is the line someone scans to
+                choose between them. */}
+            {isSelected ? (
+              <>
+                <GradientButton
+                  label="Select programme"
+                  disabled={busy}
+                  onPress={() => {
+                    setSelected(null);
+                    onJoin(program.id);
+                  }}
+                />
+                <View
+                  style={{ paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}
+                >
+                  <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
+                </View>
+              </>
             ) : null}
           </Card>
         );
@@ -641,19 +631,9 @@ function ProgramList({
             scaleTo={0.99}
             disabled={busy}
             accessibilityRole="button"
-            accessibilityLabel={
-              armed
-                ? `Tap again to switch to ${program.name}. This restarts the cycle.`
-                : `${program.name}. ${schedule.frequency}. Select to switch.`
-            }
-            onPress={() => {
-              if (armed) {
-                setArming(null);
-                onJoin(program.id);
-              } else {
-                setArming(program.id);
-              }
-            }}
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${program.name}. ${schedule.frequency}. Select to choose it.`}
+            onPress={() => setSelected(isSelected ? null : program.id)}
           >
             {body}
           </AnimatedPressable>
