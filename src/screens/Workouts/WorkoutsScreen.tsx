@@ -8,8 +8,8 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
-import { FortressTodayCard } from '../../components/FortressTodayCard';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
+import { WeekStripSnapshot } from '../../components/WeekStripSnapshot';
 import { GradientButton } from '../../components/GradientButton';
 import { IconWell } from '../../components/IconWell';
 import { HeaderSearchBar } from '../../components/HeaderSearchBar';
@@ -125,19 +125,22 @@ export function WorkoutsScreen() {
         onPress={onEnterWorkout}
       />
 
-      {/* Directly under the primary action, the position it held on Home.
-          Draws nothing below Fortress and nothing when the tier has nothing
-          to say today, so it costs a free account neither a row nor a
-          request.
+      {/* Inert here, unlike the copy on Home. This screen already is the
+          workouts screen, so a card that navigated would point at itself,
+          and the day picker lives on Add Workout where picking a day means
+          something. What is left is what the strip is for: which days this
+          week have anything on them. */}
+      <WeekStripSnapshot />
 
-          Programs is a plain stack navigate here rather than the tab-level
-          one Home needed: this screen is already inside the Workouts stack
-          that owns that route. The other three still cross to Activity. */}
-      <FortressTodayCard
-        onOpenPrograms={() => navigation.navigate('Programs')}
-        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast' })}
-        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords' })}
-        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups' })}
+      {/* Where the Fortress Today card used to sit. That card and this one
+          were both about the structured programme -- one naming the next
+          session, one offering the feature -- stacked four rows apart on the
+          same screen, which read as the app saying the same thing twice.
+          The offer is the one that survives, since it works whether or not a
+          programme is running. */}
+      <PaidFeatureCard
+        featureId="structured-programs"
+        onOpen={() => navigation.navigate('Programs')}
       />
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
@@ -195,14 +198,6 @@ export function WorkoutsScreen() {
           that chooses one — and ahead of the Programs card below, which is
           an upsell rather than something to log. */}
       <WaterIntakeCard />
-
-      {/* Below the calendar rather than above it: this is an alternative to
-          building a day one workout at a time, so it reads better after
-          you've seen how that manual flow works than before it. */}
-      <PaidFeatureCard
-        featureId="structured-programs"
-        onOpen={() => navigation.navigate('Programs')}
-      />
 
       {/* Last on the screen, as it was on Home. Nutrition still has no
           logging surface of its own to attach to; this is the screen where

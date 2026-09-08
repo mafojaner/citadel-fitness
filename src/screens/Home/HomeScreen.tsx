@@ -18,6 +18,7 @@ import { PendingSyncNotice } from '../../components/PendingSyncNotice';
 import { RankingCard } from '../../components/RankingCard';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { StatChip } from '../../components/StatChip';
+import { WeekStripSnapshot } from '../../components/WeekStripSnapshot';
 import { WelcomeBackMoment } from '../../components/WelcomeBackMoment';
 import {
   CATEGORY_FILTERS,
@@ -104,6 +105,22 @@ export function HomeScreen() {
     }
   };
 
+  /**
+   * This week, under the Activity summary, as a shortcut into Workouts.
+   *
+   * Placed by layout rather than in one fixed spot. Stacked, the two
+   * summaries are one above the other and "below Activity summary" means
+   * between them. Side by side on desktop they are a matched pair, and
+   * dropping a third card into that row would break the pairing and leave
+   * the calendar a third as wide as it needs to be -- so there it goes
+   * under the row instead.
+   */
+  const weekSnapshot = (
+    <WeekStripSnapshot
+      onPress={() => navigation.navigate('Workouts', { screen: 'Workouts' })}
+    />
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <HeaderSearchBar title="Home" showSearch={false} />
@@ -179,6 +196,8 @@ export function HomeScreen() {
           </Text>
         </Card>
       </AnimatedPressable>
+
+      {!isDesktop ? weekSnapshot : null}
 
       <AnimatedPressable
         onPress={() => navigation.navigate('Workouts', { screen: 'Workouts' })}
@@ -281,6 +300,8 @@ export function HomeScreen() {
         </Card>
       </AnimatedPressable>
       </View>
+
+      {isDesktop ? weekSnapshot : null}
 
       {/* Both moved here from Activity, and they stay in that order: the
           private version reads as an answer to the public one, so it has to
