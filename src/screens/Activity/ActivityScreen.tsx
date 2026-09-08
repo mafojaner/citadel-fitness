@@ -165,7 +165,6 @@ export function ActivityScreen() {
   // telling you anything.
   const chartAccent = colors.textPrimary;
 
-  const chartData = points.map((p) => ({ value: p.value, label: p.label, date: p.date }));
   const hasValue = points.some((p) => p.value > 0);
 
   // Longer labels (week/month bucket dates) need more room per point than
@@ -174,8 +173,22 @@ export function ActivityScreen() {
   // squeezing everything into the container width.
   const minPointSpacing = bucketing === 'day' ? 40 : bucketing === 'week' ? 56 : 64;
   const plotWidth = Math.max(chartWidth - 55, 0);
-  const fitSpacing = plotWidth > 0 ? (plotWidth - 20) / Math.max(chartData.length - 1, 1) : 0;
+  const fitSpacing = plotWidth > 0 ? (plotWidth - 10) / Math.max(points.length - 1, 1) : 0;
   const pointSpacing = Math.max(minPointSpacing, fitSpacing);
+  // The first label is left-aligned so it clears the axis, now that the line
+  // starts on it -- see the note in components/analytics/TrendChart. Built
+  // after `pointSpacing` because it needs it, and off `points` so the
+  // spacing above does not have to read back off these rows.
+  const axisLabelStyle = { color: colors.textMuted, fontSize: 10 };
+  const chartData = points.map((p, i) => ({
+    value: p.value,
+    label: p.label,
+    date: p.date,
+    labelTextStyle:
+      i === 0
+        ? { ...axisLabelStyle, textAlign: 'left' as const, paddingLeft: pointSpacing / 2 }
+        : axisLabelStyle,
+  }));
   const contentWidth = pointSpacing * Math.max(chartData.length - 1, 1) + 40;
   const scrollNeeded = contentWidth > plotWidth;
   const renderWidth = scrollNeeded ? contentWidth : plotWidth;
@@ -283,7 +296,11 @@ export function ActivityScreen() {
                   <LineChart
                     data={chartData}
                     width={renderWidth}
-                    initialSpacing={10}
+                    // Flush to the axis: at 10 the series began a step
+                    // inside its own frame, with the area fill starting in
+                    // mid-air. The bar chart below keeps its inset, because
+                    // a bar touching the axis reads as clipped.
+                    initialSpacing={0}
                     endSpacing={10}
                     spacing={pointSpacing}
                     color={chartAccent}

@@ -57,7 +57,7 @@ export function TrendChart({ points, color, height = 150, caption, unitSuffix }:
   }
 
   const plotWidth = Math.max(width - Y_AXIS_ALLOWANCE, 0);
-  const spacingBetween = points.length > 1 ? (plotWidth - 20) / (points.length - 1) : plotWidth;
+  const spacingBetween = points.length > 1 ? (plotWidth - 10) / (points.length - 1) : plotWidth;
 
   /**
    * Only every Nth tick keeps its label.
@@ -73,9 +73,29 @@ export function TrendChart({ points, color, height = 150, caption, unitSuffix }:
    * edge is the one gap that actually costs the reader something.
    */
   const labelStep = Math.max(1, Math.ceil(points.length / 6));
+
+  /**
+   * The first label is left-aligned; every other one is centred.
+   *
+   * gifted-charts puts each label in a box of `spacing` centred on its
+   * point (`left: spacing * index - spacing / 2`), which for index 0 starts
+   * half a step to the left of the axis. That was survivable while the
+   * series began 10px in; with the line flush to the axis the overhang is
+   * clipped and "Wed" renders as "ed".
+   *
+   * Padding the box by half a step and aligning left puts the text's own
+   * left edge exactly on the axis, which is where the point it belongs to
+   * now is. Per-item styles replace the chart-wide one rather than merging
+   * with it, so the colour and size are repeated here.
+   */
+  const axisLabelStyle = { color: colors.textMuted, fontSize: 9 };
   const plotted = points.map((point, i) => ({
     value: point.value,
     label: (points.length - 1 - i) % labelStep === 0 ? point.label : '',
+    labelTextStyle:
+      i === 0
+        ? { ...axisLabelStyle, textAlign: 'left' as const, paddingLeft: spacingBetween / 2 }
+        : axisLabelStyle,
   }));
 
   return (
@@ -97,7 +117,13 @@ export function TrendChart({ points, color, height = 150, caption, unitSuffix }:
             data={plotted}
             width={plotWidth}
             height={height}
-            initialSpacing={10}
+            // Flush to the axis. gifted-charts reserves `initialSpacing`
+            // between the y-axis and the first point, and at 10 the series
+            // began a step inside its own frame -- the area fill started in
+            // mid-air and the first week read as though something preceded
+            // it. Only `endSpacing` is reserved now, which is why the fit
+            // computed above subtracts 10 rather than 20.
+            initialSpacing={0}
             endSpacing={10}
             spacing={spacingBetween}
             color={color}

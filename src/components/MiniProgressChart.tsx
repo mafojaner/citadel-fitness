@@ -45,10 +45,23 @@ export function MiniProgressChart() {
   // orange trend line would be reading as an advertisement for a feature
   // every account already has.
   const accent = colors.textPrimary;
-  const data = points.map((p) => ({ value: p.value, label: p.label }));
   const hasValue = points.some((p) => p.value > 0);
   const plotWidth = Math.max(width - Y_AXIS_ALLOWANCE, 0);
-  const spacingBetween = data.length > 1 ? (plotWidth - 20) / (data.length - 1) : plotWidth;
+  // Off `points`, not off the mapped rows: the rows now need this to place
+  // the first label, and reading it back off them would be a cycle.
+  const spacingBetween = points.length > 1 ? (plotWidth - 10) / (points.length - 1) : plotWidth;
+
+  // The first label is left-aligned so it clears the axis -- see the note in
+  // analytics/TrendChart, which hit the same clipping for the same reason.
+  const axisLabelStyle = { color: colors.textMuted, fontSize: 10 };
+  const data = points.map((p, i) => ({
+    value: p.value,
+    label: p.label,
+    labelTextStyle:
+      i === 0
+        ? { ...axisLabelStyle, textAlign: 'left' as const, paddingLeft: spacingBetween / 2 }
+        : axisLabelStyle,
+  }));
 
   return (
     <View style={{ gap: spacing.xs }}>
@@ -67,7 +80,13 @@ export function MiniProgressChart() {
             data={data}
             width={plotWidth}
             height={CHART_HEIGHT}
-            initialSpacing={10}
+            // Flush to the axis. gifted-charts reserves `initialSpacing`
+            // between the y-axis and the first point, and at 10 the series
+            // began a step inside its own frame -- the area fill started in
+            // mid-air and the first week read as though something preceded
+            // it. Only `endSpacing` is reserved now, which is why the fit
+            // computed above subtracts 10 rather than 20.
+            initialSpacing={0}
             endSpacing={10}
             spacing={spacingBetween}
             color={accent}
