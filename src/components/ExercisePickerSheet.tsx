@@ -8,36 +8,52 @@ import { CATEGORY_ICONS, CATEGORY_INK, DEFAULT_CATEGORY_ICON, DEFAULT_CATEGORY_I
 import { useTheme } from '../theme/useTheme';
 import type { Exercise } from '../types/models';
 
-interface CardioPickerSheetProps {
+interface ExercisePickerSheetProps {
   visible: boolean;
-  /** Every timed movement in the catalogue. Filtered by the field below. */
+  /** Heading, naming what picking one will do. */
+  title: string;
+  searchPlaceholder: string;
+  /** The slice of the catalogue this sheet offers. Filtered by the field below. */
   options: Exercise[];
-  /** Already on the session, so the sheet can say so rather than offering it twice. */
+  /** Already taken, so the sheet can say so rather than offering it twice. */
   chosenIds: string[];
+  /** How a taken row explains itself, e.g. "already in this session". */
+  chosenLabel?: string;
+  /**
+   * A second line under a name, for what the app already knows about it --
+   * the goal form uses it to say what each lift's estimated max is, so the
+   * consequence of picking an unlogged one is visible before the pick.
+   */
+  detailFor?: (exercise: Exercise) => string | null;
   onPick: (exercise: Exercise) => void;
   onClose: () => void;
 }
 
 /**
- * The whole conditioning catalogue, for when the four quick pills are not
- * the thing someone actually did.
+ * A slice of the exercise catalogue, searchable, in a bottom sheet.
  *
- * Four fixed finishers cover the common cases and none of the real ones --
- * a member who swims, hikes, boxes or does stair sprints had a screen
- * telling them their options were rowing or a treadmill. This is the same
- * add, against everything the catalogue has.
+ * Written for conditioning, where four fixed finisher pills covered the
+ * common cases and none of the real ones -- a member who swims, hikes,
+ * boxes or does stair sprints had a screen telling them their options were
+ * rowing or a treadmill. The goal form had the same shape of problem from
+ * the other direction: a wrapping row of pills, one per lift, which is fine
+ * at eight and unusable at eighty, and which could only ever offer lifts
+ * already logged.
  *
  * A search field rather than categories, because the list is a hundred-odd
- * entries and anyone opening this already knows the name of the thing they
- * did.
+ * entries and anyone opening this already knows the name of what they want.
  */
-export function CardioPickerSheet({
+export function ExercisePickerSheet({
   visible,
+  title,
+  searchPlaceholder,
   options,
   chosenIds,
+  chosenLabel = 'already in this session',
+  detailFor,
   onPick,
   onClose,
-}: CardioPickerSheetProps) {
+}: ExercisePickerSheetProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
@@ -71,7 +87,7 @@ export function CardioPickerSheet({
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-              Add conditioning
+              {title}
             </Text>
             <Pressable
               onPress={onClose}
@@ -101,10 +117,10 @@ export function CardioPickerSheet({
             <TextInput
               value={query}
               onChangeText={setQuery}
-              placeholder="Search conditioning"
+              placeholder={searchPlaceholder}
               placeholderTextColor={colors.textMuted}
               style={{ flex: 1, minWidth: 0, color: colors.textPrimary, paddingVertical: 2 }}
-              accessibilityLabel="Search conditioning"
+              accessibilityLabel={searchPlaceholder}
             />
           </View>
 
@@ -112,6 +128,7 @@ export function CardioPickerSheet({
             <View style={{ gap: spacing.xs }}>
               {shown.map((exercise) => {
                 const already = chosenIds.includes(exercise.id);
+                const detail = detailFor?.(exercise) ?? null;
                 return (
                   <AnimatedPressable
                     key={exercise.id}
@@ -124,7 +141,11 @@ export function CardioPickerSheet({
                     accessibilityRole="button"
                     accessibilityState={{ disabled: already }}
                     accessibilityLabel={
-                      already ? `${exercise.name}, already in this session` : `Add ${exercise.name}`
+                      already
+                        ? `${exercise.name}, ${chosenLabel}`
+                        : detail
+                          ? `${exercise.name}. ${detail}`
+                          : `Add ${exercise.name}`
                     }
                     style={{
                       flexDirection: 'row',
@@ -139,12 +160,22 @@ export function CardioPickerSheet({
                       size={32}
                       tint={CATEGORY_INK[exercise.category] ?? DEFAULT_CATEGORY_INK}
                     />
-                    <Text
-                      style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}
-                      numberOfLines={1}
-                    >
-                      {exercise.name}
-                    </Text>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text
+                        style={[typography.body, { color: colors.textPrimary }]}
+                        numberOfLines={1}
+                      >
+                        {exercise.name}
+                      </Text>
+                      {detail ? (
+                        <Text
+                          style={[typography.caption, { color: colors.textMuted }]}
+                          numberOfLines={1}
+                        >
+                          {detail}
+                        </Text>
+                      ) : null}
+                    </View>
                     <Ionicons
                       name={already ? 'checkmark' : 'add'}
                       size={18}

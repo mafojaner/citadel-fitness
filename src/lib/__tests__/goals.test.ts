@@ -1,9 +1,14 @@
 import {
   fitTrend,
+  goalProgress,
   isoInWeeks,
   projectGoal,
   projectGoals,
+  splitGoals,
   suggestedTargets,
+  summariseGoals,
+  type GoalProjection,
+  type GoalStatus,
   type LiftGoal,
 } from '../goals';
 import type { ExerciseHistory, RecordSet } from '../workoutHistory';
@@ -250,5 +255,153 @@ describe('suggestedTargets', () => {
     expect(suggestedTargets(0)).toEqual([]);
     expect(suggestedTargets(-10)).toEqual([]);
     expect(suggestedTargets(Number.NaN)).toEqual([]);
+  });
+});
+
+/** A projection, for the screen-facing derivations below. */
+const projection = (over: Partial<GoalProjection> = {}): GoalProjection => ({
+  goal: goal(),
+  exerciseName: 'Back Squat',
+  status: 'behind' as GoalStatus,
+  current: 100,
+  target: 140,
+  projected: 120,
+  weeklyRate: 1.5,
+  projectedDate: '2027-02-01',
+  daysRemaining: 30,
+  sessions: 6,
+  ...over,
+});
+
+describe('goalProgress', () => {
+  it('reports how far along the target you are', () => {
+    expect(goalProgress(projection({ current: 70, target: 140 })).share).toBe(0.5);
+  });
+
+  it('does not floor an untouched goal at a sliver of progress', () => {
+    // The screen drew the bar as `Math.max(current / target * 100, 1)`, so a
+    // goal with nothing logged behind it showed a 1% fill -- a small lie, on
+    // the one element whose whole job is to say how far along you are.
+    expect(goalProgress(projection({ current: 0, status: 'no-trend' })).share).toBe(0);
+  });
+
+  it('clamps rather than overflowing the track', () => {
+    expect(goalProgress(projection({ current: 200, target: 140 })).share).toBe(1);
+    expect(goalProgress(projection({ projected: 400 })).projectedShare).toBe(1);
+  });
+
+  it('marks where the trend lands on the deadline', () => {
+    expect(goalProgress(projection({ projected: 70, target: 140 })).projectedShare).toBe(0.5);
+  });
+
+  it('has no mark without a trend', () => {
+    expect(goalProgress(projection({ projected: null })).projectedShare).toBeNull();
+  });
+
+  it('survives a target of zero rather than dividing by it', () => {
+    // Not reachable through the form, which requires a positive number, but
+    // the goal is a database row and the bar should not render NaN width if
+    // one ever arrives that way.
+    const progress = goalProgress(projection({ target: 0 }));
+    expect(progress.share).toBe(0);
+    expect(progress.projectedShare).toBeNull();
+  });
+});
+
+describe('summariseGoals', () => {
+  it('counts what is being chased, hit, and on track', () => {
+    const summary = summariseGoals([
+      projection({ status: 'on-track' }),
+      projection({ status: 'behind' }),
+      projection({ status: 'achieved' }),
+      projection({ status: 'no-trend' }),
+    ]);
+    expect(summary.active).toBe(3);
+    expect(summary.onTrack).toBe(1);
+    expect(summary.achieved).toBe(1);
+  });
+
+  it('finds the soonest active deadline', () => {
+    const summary = summariseGoals([
+      projection({ daysRemaining: 90 }),
+      projection({ daysRemaining: 12 }),
+      projection({ daysRemaining: 40 }),
+    ]);
+    expect(summary.nextDeadlineDays).toBe(12);
+  });
+
+  it('ignores achieved goals when finding the next deadline', () => {
+    // An achieved goal is not pending, however close its date is, and
+    // counting it would report a deadline for something already done.
+    const summary = summariseGoals([
+      projection({ status: 'achieved', daysRemaining: 2 }),
+      projection({ status: 'behind', daysRemaining: 45 }),
+    ]);
+    expect(summary.nextDeadlineDays).toBe(45);
+  });
+
+  it('keeps an overdue deadline negative rather than clamping it', () => {
+    // The screen says "3 days overdue" or "3 days away" off the sign. A
+    // clamp here would make the two indistinguishable.
+    expect(summariseGoals([projection({ daysRemaining: -3 })]).nextDeadlineDays).toBe(-3);
+  });
+
+  it('has no next deadline when nothing is pending', () => {
+    expect(summariseGoals([projection({ status: 'achieved' })]).nextDeadlineDays).toBeNull();
+    expect(summariseGoals([]).nextDeadlineDays).toBeNull();
+  });
+
+  it('is all zeros for no goals rather than throwing', () => {
+    expect(summariseGoals([])).toEqual({
+      active: 0,
+      onTrack: 0,
+      achieved: 0,
+      nextDeadlineDays: null,
+    });
+  });
+});
+
+describe('splitGoals', () => {
+  it('puts the soonest deadline first', () => {
+    const { active } = splitGoals([
+      projection({ goal: goal({ id: 'a' }), daysRemaining: 60 }),
+      projection({ goal: goal({ id: 'b' }), daysRemaining: 7 }),
+      projection({ goal: goal({ id: 'c' }), daysRemaining: 30 }),
+    ]);
+    expect(active.map((p) => p.goal.id)).toEqual(['b', 'c', 'a']);
+  });
+
+  it('separates achieved goals out of the list being chased', () => {
+    const { active, achieved } = splitGoals([
+      projection({ goal: goal({ id: 'a' }), status: 'achieved' }),
+      projection({ goal: goal({ id: 'b' }), status: 'behind' }),
+    ]);
+    expect(active.map((p) => p.goal.id)).toEqual(['b']);
+    expect(achieved.map((p) => p.goal.id)).toEqual(['a']);
+  });
+
+  it('sorts an overdue goal above one still in time', () => {
+    const { active } = splitGoals([
+      projection({ goal: goal({ id: 'a' }), daysRemaining: 5 }),
+      projection({ goal: goal({ id: 'b' }), daysRemaining: -10 }),
+    ]);
+    expect(active.map((p) => p.goal.id)).toEqual(['b', 'a']);
+  });
+
+  it('breaks ties on name so the order is stable', () => {
+    const { active } = splitGoals([
+      projection({ goal: goal({ id: 'a' }), exerciseName: 'Squat', daysRemaining: 10 }),
+      projection({ goal: goal({ id: 'b' }), exerciseName: 'Bench Press', daysRemaining: 10 }),
+    ]);
+    expect(active.map((p) => p.goal.id)).toEqual(['b', 'a']);
+  });
+
+  it('does not mutate what it is given', () => {
+    const input = [
+      projection({ goal: goal({ id: 'a' }), daysRemaining: 60 }),
+      projection({ goal: goal({ id: 'b' }), daysRemaining: 7 }),
+    ];
+    splitGoals(input);
+    expect(input.map((p) => p.goal.id)).toEqual(['a', 'b']);
   });
 });

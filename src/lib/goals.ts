@@ -211,6 +211,92 @@ export function projectGoal(
   };
 }
 
+/**
+ * Where a goal sits, as two fractions of the target.
+ *
+ * The screen drew the first of these as a hand-rolled bar with a
+ * `Math.max(..., 1)` floor, so a goal with nothing logged behind it showed
+ * a sliver of progress -- a small lie, but on the one card whose job is to
+ * say how far along you are.
+ *
+ * The second is the point of the page and was never drawn at all. A
+ * forecast screen that reports "you will be at 74 kg" in a sentence and
+ * draws only where you are today has left the forecast in words.
+ */
+export interface GoalProgress {
+  /** 0-1 of the target reached. */
+  share: number;
+  /** 0-1 the trend lands on by the target date, or null without a trend. */
+  projectedShare: number | null;
+}
+
+export function goalProgress(projection: GoalProjection): GoalProgress {
+  const clamp = (value: number) => Math.max(0, Math.min(value, 1));
+  if (projection.target <= 0) return { share: 0, projectedShare: null };
+  return {
+    share: clamp(projection.current / projection.target),
+    projectedShare:
+      projection.projected === null ? null : clamp(projection.projected / projection.target),
+  };
+}
+
+export interface GoalsSummary {
+  active: number;
+  /** Active goals the trend reaches in time. */
+  onTrack: number;
+  achieved: number;
+  /**
+   * Days to the soonest active deadline. Negative when the nearest one has
+   * already passed, null when nothing is pending -- the three cases are
+   * different sentences on the screen, and collapsing them to zero would
+   * make "due today", "a week overdue" and "no goals" read alike.
+   */
+  nextDeadlineDays: number | null;
+}
+
+/** The headline figures, none of them carrying a unit -- see below for why. */
+export function summariseGoals(projections: GoalProjection[]): GoalsSummary {
+  const active = projections.filter((p) => p.status !== 'achieved');
+  // Deliberately no "total weight to go". Goals each store their own unit,
+  // so a member with one goal in kg and one in lb would get a sum of two
+  // different quantities presented as one number.
+  return {
+    active: active.length,
+    onTrack: active.filter((p) => p.status === 'on-track').length,
+    achieved: projections.filter((p) => p.status === 'achieved').length,
+    nextDeadlineDays:
+      active.length === 0 ? null : Math.min(...active.map((p) => p.daysRemaining)),
+  };
+}
+
+/**
+ * The goals split into what is still being chased and what has been hit.
+ *
+ * Achieved goals are kept but moved out of the way. Deleting them on
+ * completion would throw away the only record that the target was ever met;
+ * leaving them in the main list means a year of hit goals slowly buries the
+ * two you are actually chasing.
+ *
+ * Active goals sort by deadline, soonest first, so the one about to run out
+ * is the one at the top. That matched the order the query happened to
+ * return, which is not the same as the screen asking for it -- ordering
+ * here means a change to the query cannot quietly reshuffle the page.
+ */
+export function splitGoals(projections: GoalProjection[]): {
+  active: GoalProjection[];
+  achieved: GoalProjection[];
+} {
+  const byName = (a: GoalProjection, b: GoalProjection) =>
+    a.exerciseName.localeCompare(b.exerciseName);
+
+  return {
+    active: projections
+      .filter((p) => p.status !== 'achieved')
+      .sort((a, b) => a.daysRemaining - b.daysRemaining || byName(a, b)),
+    achieved: projections.filter((p) => p.status === 'achieved').sort(byName),
+  };
+}
+
 interface DbGoal {
   id: string;
   exercise_id: string;

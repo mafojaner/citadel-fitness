@@ -12,7 +12,7 @@ import { FadeInView } from '../../components/FadeInView';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientPill } from '../../components/GradientPill';
 import { IconWell } from '../../components/IconWell';
-import { CardioPickerSheet } from '../../components/CardioPickerSheet';
+import { ExercisePickerSheet } from '../../components/ExercisePickerSheet';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { SettingsRow } from '../../components/SettingsRow';
 import { SettingsSection } from '../../components/SettingsSection';
@@ -510,8 +510,10 @@ export function ProgramsScreen() {
         </Card>
       ) : null}
 
-      <CardioPickerSheet
+      <ExercisePickerSheet
         visible={picking}
+        title="Add conditioning"
+        searchPlaceholder="Search conditioning"
         options={conditioning}
         chosenIds={sessionExercises.map((e) => e.exerciseId)}
         onPick={(exercise) => add(asSessionRow(exercise))}

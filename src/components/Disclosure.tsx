@@ -11,6 +11,16 @@ interface DisclosureProps {
   icon?: keyof typeof Ionicons.glyphMap;
   /** The glyph's ink. Gives the row the same weight as a card head. */
   tint?: string;
+  /**
+   * Open on first render.
+   *
+   * For the case where the disclosure is the only thing to do on the
+   * screen -- the goal form with no goals behind it yet -- where a closed
+   * row asks someone to find the one control on an otherwise empty page.
+   * It is the initial state only; opening and closing still belongs to
+   * whoever is reading it.
+   */
+  defaultOpen?: boolean;
   children: ReactNode;
 }
 
@@ -37,10 +47,11 @@ export function Disclosure({
   hint,
   icon,
   tint,
+  defaultOpen = false,
   children,
 }: DisclosureProps) {
   const { colors, spacing, radius, typography } = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [turn] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
