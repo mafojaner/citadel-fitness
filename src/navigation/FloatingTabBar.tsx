@@ -25,6 +25,8 @@ import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
+import { LogShortcutWidget } from '../components/LogShortcutWidget';
+import { useOnMainScreen } from '../state/routeStore';
 import { useTheme } from '../theme/useTheme';
 
 /**
@@ -36,18 +38,15 @@ import { useTheme } from '../theme/useTheme';
  * that reads left to right is one less thing to reconcile when the bar is
  * rearranged.
  *
- * Workouts is a plus rather than a barbell because it sits in the middle
- * now, and the middle of a five-tab bar is where the create action goes.
- *
- * `add-circle` rather than a bare `add`, which keeps the filled/outline
- * distinction the rest of the bar relies on: a bare plus has no interior,
- * so `add` and `add-outline` render near enough identically and that tab
- * would have been the only one without the cue.
+ * Workouts is a barbell again. It was a plus for as long as the middle of
+ * the bar was where the create action lived; the logging widget owns that
+ * now, and two pluses on one screen -- one of them a destination, the
+ * other the thing that actually creates -- is worse than none.
  */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Home: 'home',
   Activity: 'stats-chart',
-  Workouts: 'add-circle',
+  Workouts: 'barbell',
   Learn: 'book',
   Search: 'search',
 };
@@ -67,21 +66,6 @@ const LABEL_BREAKPOINT = 600;
 
 const BAR_MARGIN = 12;
 const ICON_SIZE = 22;
-/**
- * The centre tab draws bigger than the rest.
- *
- * Partly because it is the create action and the middle slot is where a bar
- * says so, and partly to correct an optical difference: `add-circle` spends
- * most of its box on the ring, so its plus reads smaller than a `home` or a
- * `book` set at the same size. Matching the numbers would leave it looking
- * like the odd one out.
- *
- * Still inside ACTIVE_PILL_H, so the capsule contains it at every width.
- */
-const CREATE_ICON_SIZE = 30;
-/** The tab that gets it — the middle one, which is also the create action. */
-const CREATE_TAB = 'Workouts';
-
 /**
  * The highlight behind the active icon. Wider than it is tall, so it reads
  * as a capsule sitting along the row rather than a dot orbiting the glyph —
@@ -131,6 +115,21 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   // padding on one side of it.
   const barHeight = showLabels ? 70 : 62;
 
+  // The logging widget belongs to the main screens only. Answered off the
+  // focused route rather than off this navigator's nested state, which does
+  // not survive a stack being mounted straight at a pushed screen -- see
+  // routeStore.
+  const onMainScreen = useOnMainScreen();
+
+  /**
+   * Clear of the bar, and stated once so the closed widget and the one the
+   * open menu redraws cannot drift apart. Both are positioned from the
+   * screen edges, and this wrapper's own bottom is added back in because
+   * the widget is placed inside it.
+   */
+  const widgetBottom = insets.bottom + BAR_MARGIN + barHeight + spacing.md;
+  const widgetRight = spacing.lg;
+
   // The glass, in two layers.
   //
   // The blur alone is what this bar had originally, and it was removed for
@@ -178,11 +177,12 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   const activeFill = scheme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(11,14,20,0.14)';
 
   return (
-    // Full-bleed positioning wrapper, invisible itself — centers the actual
-    // bar below via alignItems rather than the old left/right inset, so on
-    // wide (desktop web) viewports the bar caps at contentMaxWidth instead
-    // of stretching edge to edge. box-none lets clicks in the now-empty
-    // margin on either side fall through to whatever's underneath.
+    <>
+    {/* Full-bleed positioning wrapper, invisible itself — centers the actual
+        bar below via alignItems rather than the old left/right inset, so on
+        wide (desktop web) viewports the bar caps at contentMaxWidth instead
+        of stretching edge to edge. box-none lets clicks in the now-empty
+        margin on either side fall through to whatever's underneath. */}
     <View
       pointerEvents="box-none"
       style={{
@@ -271,7 +271,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
                 label={route.name}
                 showLabel={showLabels}
                 icon={TAB_ICONS[route.name] ?? 'ellipse'}
-                iconSize={route.name === CREATE_TAB ? CREATE_ICON_SIZE : ICON_SIZE}
+                iconSize={ICON_SIZE}
                 isFocused={isFocused}
                 // One ink for every state, which is the rule the desktop
                 // rail already follows: navText is ink900 in light and white
@@ -308,7 +308,18 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           })}
         </View>
       </View>
+
     </View>
+
+      {onMainScreen ? (
+        <LogShortcutWidget
+          bottom={widgetBottom}
+          right={widgetRight}
+          onAddWorkout={() => navigation.navigate('Workouts', { screen: 'AddWorkout' })}
+          onLogWater={() => navigation.navigate('Workouts', { screen: 'WaterHistory' })}
+        />
+      ) : null}
+    </>
   );
 }
 

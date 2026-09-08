@@ -19,6 +19,7 @@ import { identifyUser, resetTelemetryIdentity, trackScreen } from '../lib/teleme
 import { useAuthStore } from '../state/authStore';
 import { useFavoriteArticlesStore } from '../state/favoriteArticlesStore';
 import { useProfileStore } from '../state/profileStore';
+import { useRouteStore } from '../state/routeStore';
 import { useWorkoutDraftStore } from '../state/workoutDraftStore';
 import { motion } from '../theme/motion';
 import { useTheme } from '../theme/useTheme';
@@ -171,6 +172,10 @@ export function RootNavigator() {
     const routeName = navigationRef.getCurrentRoute()?.name;
     // Route name only, never params — trackScreen dedupes repeats.
     if (routeName) trackScreen(routeName);
+    // Published for anything that needs to know which screen is actually
+    // showing. See routeStore for why the navigator's own nested state is
+    // not a dependable answer to that.
+    useRouteStore.getState().setCurrent(routeName ?? null);
   };
 
   return (
