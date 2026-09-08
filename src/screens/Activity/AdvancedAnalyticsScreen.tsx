@@ -17,6 +17,7 @@ import { Sparkline } from '../../components/Sparkline';
 import { GrowBar } from '../../components/analytics/GrowBar';
 import { SegmentedShareBar } from '../../components/analytics/SegmentedShareBar';
 import { StatBlock } from '../../components/analytics/StatBlock';
+import { StatGrid } from '../../components/analytics/StatGrid';
 import { TrendChart } from '../../components/analytics/TrendChart';
 import { WeekdayHistogram } from '../../components/analytics/WeekdayHistogram';
 import {
@@ -216,29 +217,30 @@ export function AdvancedAnalyticsScreen() {
               something, and these are the four figures worth that second. */}
           <Section index={section++}>
             <Card>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md }}>
+              <StatGrid>
                 <StatBlock label="Sets" value={totalSets} />
                 <StatBlock label="Active days" value={activeDays} />
                 {/* Only once the rollups are actually in. A zero here is
                     indistinguishable from a window with no volume, so a
-                    failed fetch would read as a truthful finding. */}
+                    failed fetch would read as a truthful finding. Dropping
+                    them leaves two cells, which is still a whole row. */}
                 {deepReady ? (
-                  <>
-                    <StatBlock
-                      label="Volume"
-                      value={totalVolume}
-                      unit={weightUnit}
-                      detail={totalVolume > 0 ? 'reps × weight' : undefined}
-                    />
-                    <StatBlock
-                      label="Per week"
-                      value={consistency.sessionsPerWeek}
-                      precision={1}
-                      detail="sessions"
-                    />
-                  </>
+                  <StatBlock
+                    label="Volume"
+                    value={totalVolume}
+                    unit={weightUnit}
+                    detail={totalVolume > 0 ? 'reps × weight' : undefined}
+                  />
                 ) : null}
-              </View>
+                {deepReady ? (
+                  <StatBlock
+                    label="Per week"
+                    value={consistency.sessionsPerWeek}
+                    precision={1}
+                    detail="sessions"
+                  />
+                ) : null}
+              </StatGrid>
               {comparison ? (
                 <View style={{ paddingTop: spacing.sm }}>
                   <ComparisonLine comparison={comparison} label={period.label} />
