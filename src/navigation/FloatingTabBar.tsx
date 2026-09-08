@@ -26,6 +26,8 @@ import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
 import { LogShortcutWidget } from '../components/LogShortcutWidget';
+import { useOpenWorkoutDraft } from '../hooks/useOpenWorkoutDraft';
+import { todayISO } from '../lib/analytics';
 import { useOnMainScreen } from '../state/routeStore';
 import { useTheme } from '../theme/useTheme';
 
@@ -128,6 +130,30 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
    * the widget is placed inside it.
    */
   const widgetBottom = insets.bottom + BAR_MARGIN + barHeight + spacing.sm;
+
+  /**
+   * The same route into Add Workout that Home's button and the Workouts
+   * calendar take, rather than a bare navigate.
+   *
+   * `useOpenWorkoutDraft` is not a convenience -- see its own note.
+   * `save_workout` replaces a day wholesale, so a draft opened without
+   * first reading what is already saved for that date starts empty, and
+   * confirming it deletes whatever was logged earlier that day through
+   * another entry point. Navigating straight to the screen made this
+   * widget a fourth way in that skipped that check.
+   *
+   * Failure leaves you where you are, which is what Home does too: without
+   * knowing what is already on the day there is nothing safe to open.
+   */
+  const openWorkoutDraft = useOpenWorkoutDraft();
+  const openTodaysWorkout = async () => {
+    try {
+      await openWorkoutDraft(todayISO());
+    } catch {
+      return;
+    }
+    navigation.navigate('Workouts', { screen: 'AddWorkout' });
+  };
   const widgetRight = spacing.lg;
 
   // The glass, in two layers.
@@ -315,7 +341,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
         <LogShortcutWidget
           bottom={widgetBottom}
           right={widgetRight}
-          onAddWorkout={() => navigation.navigate('Workouts', { screen: 'AddWorkout' })}
+          onAddWorkout={openTodaysWorkout}
           onLogWater={() => navigation.navigate('Workouts', { screen: 'WaterHistory' })}
         />
       ) : null}
