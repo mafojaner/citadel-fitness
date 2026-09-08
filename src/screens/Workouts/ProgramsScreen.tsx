@@ -372,21 +372,32 @@ export function ProgramsScreen() {
                 </View>
               ) : null}
 
-              <GradientButton
-                label={busy ? 'Loading...' : 'Start session'}
-                loading={busy}
-                disabled={sessionExercises.length === 0}
-                onPress={startSession}
-              />
-
-              {/* What the week is meant to look like. The screen could say
-                  "day 2 of 3" and never say whether those three run back to
-                  back or where the rest days are. */}
-              <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
+              {/* The action and the week it belongs to, as one group with
+                  room around it. They were sitting in the card's own even
+                  gap, which made the button read as one more item in the
+                  list of exercises above it rather than as the thing the
+                  card is for. */}
+              <View style={{ gap: spacing.md, paddingVertical: spacing.sm }}>
+                <GradientButton
+                  label={busy ? 'Loading...' : 'Start session'}
+                  loading={busy}
+                  disabled={sessionExercises.length === 0}
+                  onPress={startSession}
+                />
+                {/* What the week is meant to look like. The screen could say
+                    "day 2 of 3" and never say whether those three run back
+                    to back or where the rest days are. */}
+                <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
+              </View>
 
               {/* Everything that is not "what am I lifting today". Each of
                   these was a permanent block on the old screen. */}
-              <Disclosure label="Programme tools" hint="Jump the cycle, goals, leave" icon="options-outline">
+              <Disclosure
+                label="Programme tools"
+                hint="Jump the cycle, goals, leave"
+                icon="options-outline"
+                contentTone="recessed"
+              >
                 <View style={{ gap: spacing.xs }}>
                   <Text style={[typography.caption, { color: colors.textMuted }]}>
                     Trained out of order? Jump the cycle:
@@ -604,7 +615,15 @@ function ProgramList({
                 stays on every card, since that is the line someone scans to
                 choose between them. */}
             {isSelected ? (
-              <>
+              <View
+                style={{
+                  gap: spacing.md,
+                  paddingVertical: spacing.sm,
+                  marginTop: spacing.xs,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.border,
+                }}
+              >
                 <GradientButton
                   label="Select programme"
                   disabled={busy}
@@ -613,12 +632,8 @@ function ProgramList({
                     onJoin(program.id);
                   }}
                 />
-                <View
-                  style={{ paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}
-                >
-                  <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
-                </View>
-              </>
+                <WeekBlocks week={schedule.week} frequency={schedule.frequency} />
+              </View>
             ) : null}
           </Card>
         );

@@ -11,6 +11,14 @@ interface DisclosureProps {
   icon?: keyof typeof Ionicons.glyphMap;
   /** The glyph's ink. Gives the row the same weight as a card head. */
   tint?: string;
+  /**
+   * The fill behind the revealed content.
+   *
+   * `recessed` for a disclosure that already lives inside a card, where a
+   * second surface-coloured panel would be white on white; `raised` for one
+   * sitting on the page, where the panel is the card.
+   */
+  contentTone?: 'raised' | 'recessed';
   children: ReactNode;
 }
 
@@ -32,7 +40,14 @@ const TURN_MS = 200;
  * the compositor) cannot express. Mounting the children outright and
  * turning the arrow is honest about that rather than half-animating it.
  */
-export function Disclosure({ label, hint, icon, tint, children }: DisclosureProps) {
+export function Disclosure({
+  label,
+  hint,
+  icon,
+  tint,
+  contentTone = 'raised',
+  children,
+}: DisclosureProps) {
   const { colors, spacing, radius, typography } = useTheme();
   const [open, setOpen] = useState(false);
   const [turn] = useState(() => new Animated.Value(0));
@@ -89,7 +104,25 @@ export function Disclosure({ label, hint, icon, tint, children }: DisclosureProp
         </Animated.View>
       </Pressable>
 
-      {open ? <View style={{ gap: spacing.md }}>{children}</View> : null}
+      {/* The contents get a panel of their own rather than spilling loose
+          under the header. Open, the old version left its rows floating
+          against whatever they happened to sit on, so the boundary of the
+          thing you had just opened was wherever its longest line ended.
+          The panel is the boundary. */}
+      {open ? (
+        <View
+          style={{
+            gap: spacing.md,
+            padding: spacing.md,
+            borderRadius: radius.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: contentTone === 'recessed' ? colors.background : colors.surface,
+          }}
+        >
+          {children}
+        </View>
+      ) : null}
     </View>
   );
 }
