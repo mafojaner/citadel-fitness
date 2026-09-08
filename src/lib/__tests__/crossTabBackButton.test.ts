@@ -89,10 +89,16 @@ function nestedNavigates(): NestedNavigate[] {
       const [whole, , body] = match;
       if (!/\bscreen\s*:/.test(body)) continue;
 
-      // The inner `params: { screen: X }` names the real destination; the
-      // outer object's own `screen` is only the tab in that shape.
-      const nested = body.match(/params\s*:\s*\{([\s\S]*?)\}/);
-      const scope = nested ? nested[1] : body;
+      // `params` means two different things and only one of them is a
+      // nested navigator. In `{ screen: tab, params: { screen: X } }` the
+      // inner object addresses a second navigator, and the flag belongs
+      // there. In `{ screen: X, params: { date } }` it is the target
+      // screen's own route params, and the flag belongs in the outer
+      // object -- reading that one as a nesting level looks for the flag
+      // inside a bag of route params and never finds it.
+      const params = body.match(/params\s*:\s*\{([\s\S]*?)\}/);
+      const nested = params && /screen\s*:/.test(params[1]) ? params[1] : null;
+      const scope = nested ?? body;
       const named = scope.match(/screen\s*:\s*['"](\w+)['"]/);
 
       out.push({

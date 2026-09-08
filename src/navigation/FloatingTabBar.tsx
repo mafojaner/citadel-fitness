@@ -25,7 +25,7 @@ import { TIER_LABELS, tierAllows } from '../lib/membership';
 import { motion } from '../theme/motion';
 import { layout } from '../theme/tokens';
 import type { RootStackParamList } from './RootNavigator';
-import { LogShortcutWidget } from '../components/LogShortcutWidget';
+import { LogShortcutWidget, type WheelShortcut } from '../components/LogShortcutWidget';
 import { useOpenWorkoutDraft } from '../hooks/useOpenWorkoutDraft';
 import { todayISO } from '../lib/analytics';
 import { useOnMainScreen } from '../state/routeStore';
@@ -128,6 +128,10 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   // not survive a stack being mounted straight at a pushed screen -- see
   // routeStore.
   const onMainScreen = useOnMainScreen();
+  // The dial carries paid destinations, so it gates them the same way the
+  // desktop rail's shortcut list does rather than inventing a second rule.
+  const tier = useMembershipTier();
+  const openPlans = useOpenPlans();
 
   /**
    * Clear of the bar, and stated once so the closed widget and the one the
@@ -181,6 +185,100 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
     navigation.navigate(tabOwningAddWorkout, { screen: 'AddWorkout', initial: false });
   };
   const widgetRight = spacing.lg;
+
+  /**
+   * What the dial offers, in the order it is turned through.
+   *
+   * The two logging actions come first because they are what the widget is
+   * for and what it opens onto; everything after them is a place, in
+   * roughly the order someone reaches for it.
+   *
+   * Every one of these is a screen the app already registers, opened the
+   * way the app already opens it. That is the whole rule for this control:
+   * it is a shortcut, so it must land exactly where the long way round
+   * lands, with the same state. In practice that means three things --
+   * `useOpenWorkoutDraft` before Add Workout so the day is read before it
+   * can be overwritten; `initial: false` on anything crossing tabs so the
+   * target has its own stack root beneath it; and preferring the current
+   * tab's copy of a route over another tab's. The first two are enforced by
+   * guard tests, the third only by this comment.
+   *
+   * Locked items stay on the ring and go to Plans, which is what every
+   * other locked entry point in the app does -- and what keeps the ring the
+   * same shape before and after an upgrade.
+   */
+  const paid = (featureId: string, run: () => void) => {
+    const feature = APP_FEATURES.find((f) => f.id === featureId);
+    // Compared rather than equality-checked, so a Valhalla member is not
+    // locked out of the Fortress features their plan includes.
+    const unlocked = feature ? tierAllows(tier, feature.tier) : true;
+    return { locked: !unlocked, run: unlocked ? run : openPlans };
+  };
+
+  // Home, Workouts and Search each register the catalogue; Activity and
+  // Learn do not, so from those two it crosses to Workouts -- the same
+  // choice, for the same reason, as Add Workout above.
+  const tabOwningCatalogue = TABS_WITH_ADD_WORKOUT.includes(currentTab) ? currentTab : 'Workouts';
+
+  const wheelShortcuts: WheelShortcut[] = [
+    { key: 'workout', label: 'Add workout', icon: 'barbell', run: openTodaysWorkout },
+    {
+      key: 'water',
+      label: 'Log water',
+      icon: 'water',
+      run: () => navigation.navigate('Workouts', { screen: 'WaterHistory', initial: false }),
+    },
+    {
+      key: 'today',
+      label: "Today's log",
+      icon: 'today',
+      run: () =>
+        navigation.navigate('Workouts', {
+          screen: 'DayDetail',
+          params: { date: todayISO() },
+          initial: false,
+        }),
+    },
+    {
+      key: 'exercises',
+      label: 'Exercises',
+      icon: 'list',
+      run: () =>
+        navigation.navigate(tabOwningCatalogue, { screen: 'ExerciseCatalogue', initial: false }),
+    },
+    {
+      key: 'programs',
+      label: 'Programme',
+      icon: 'calendar-number',
+      ...paid('structured-programs', () =>
+        navigation.navigate('Workouts', { screen: 'Programs', initial: false })
+      ),
+    },
+    {
+      key: 'records',
+      label: 'Records',
+      icon: 'trophy',
+      ...paid('pr-vault', () =>
+        navigation.navigate('Activity', { screen: 'PersonalRecords', initial: false })
+      ),
+    },
+    {
+      key: 'goals',
+      label: 'Goals',
+      icon: 'flag',
+      ...paid('goal-forecasting', () =>
+        navigation.navigate('Activity', { screen: 'GoalForecast', initial: false })
+      ),
+    },
+    {
+      key: 'analytics',
+      label: 'Analytics',
+      icon: 'trending-up',
+      ...paid('advanced-analytics', () =>
+        navigation.navigate('Activity', { screen: 'AdvancedAnalytics', initial: false })
+      ),
+    },
+  ];
 
   // The glass, in two layers.
   //
@@ -364,17 +462,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
     </View>
 
       {onMainScreen ? (
-        <LogShortcutWidget
-          bottom={widgetBottom}
-          right={widgetRight}
-          onAddWorkout={openTodaysWorkout}
-          onLogWater={() =>
-            // Only the Workouts stack has this one, so it always crosses --
-            // but it pushes onto that tab's own screen rather than becoming
-            // it, for the reason above.
-            navigation.navigate('Workouts', { screen: 'WaterHistory', initial: false })
-          }
-        />
+        <LogShortcutWidget bottom={widgetBottom} right={widgetRight} shortcuts={wheelShortcuts} />
       ) : null}
     </>
   );
