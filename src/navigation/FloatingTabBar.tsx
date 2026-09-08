@@ -66,6 +66,12 @@ export const FLOATING_TAB_BAR_CLEARANCE = 86;
 /** Below this width, labels are dropped in favour of icon-only tabs — a phone in portrait, not a tablet or desktop web. */
 const LABEL_BREAKPOINT = 600;
 
+/**
+ * The tabs whose stack registers Add Workout. The widget stays put on
+ * these and crosses to Workouts from the other two.
+ */
+const TABS_WITH_ADD_WORKOUT = ['Home', 'Workouts', 'Search'];
+
 const BAR_MARGIN = 12;
 const ICON_SIZE = 22;
 /**
@@ -138,21 +144,41 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
    * `useOpenWorkoutDraft` is not a convenience -- see its own note.
    * `save_workout` replaces a day wholesale, so a draft opened without
    * first reading what is already saved for that date starts empty, and
-   * confirming it deletes whatever was logged earlier that day through
-   * another entry point. Navigating straight to the screen made this
-   * widget a fourth way in that skipped that check.
+   * confirming it deletes whatever was logged earlier that day.
    *
    * Failure leaves you where you are, which is what Home does too: without
    * knowing what is already on the day there is nothing safe to open.
    */
   const openWorkoutDraft = useOpenWorkoutDraft();
+
+  /**
+   * Opened in the tab you are already on, wherever that tab has the screen.
+   *
+   * This is a shortcut, so it should land on the Add Workout the current
+   * stack already owns rather than throw you into another tab's copy.
+   * Home, Workouts and Search each register one; Activity and Learn do
+   * not, so from those two it has to cross, and Workouts is where it goes.
+   *
+   * `initial: false` is the part that was actually broken. Without it, a
+   * nested navigate into a stack that has not mounted yet does not push --
+   * it makes the target the stack's *initial* route, so Add Workout became
+   * the root with nothing beneath it. `popToTop()` on save then had
+   * nothing to pop, and since it runs right after the draft is cleared,
+   * confirming a workout left you sitting on a blank Add Workout instead
+   * of back where you started. With it, the stack is its own screen with
+   * Add Workout pushed on top, which is what every other entry point
+   * produces.
+   */
+  const currentTab = state.routes[state.index].name;
+  const tabOwningAddWorkout = TABS_WITH_ADD_WORKOUT.includes(currentTab) ? currentTab : 'Workouts';
+
   const openTodaysWorkout = async () => {
     try {
       await openWorkoutDraft(todayISO());
     } catch {
       return;
     }
-    navigation.navigate('Workouts', { screen: 'AddWorkout' });
+    navigation.navigate(tabOwningAddWorkout, { screen: 'AddWorkout', initial: false });
   };
   const widgetRight = spacing.lg;
 
@@ -342,7 +368,12 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           bottom={widgetBottom}
           right={widgetRight}
           onAddWorkout={openTodaysWorkout}
-          onLogWater={() => navigation.navigate('Workouts', { screen: 'WaterHistory' })}
+          onLogWater={() =>
+            // Only the Workouts stack has this one, so it always crosses --
+            // but it pushes onto that tab's own screen rather than becoming
+            // it, for the reason above.
+            navigation.navigate('Workouts', { screen: 'WaterHistory', initial: false })
+          }
         />
       ) : null}
     </>
