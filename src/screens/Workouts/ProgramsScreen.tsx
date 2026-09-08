@@ -12,7 +12,10 @@ import { FadeInView } from '../../components/FadeInView';
 import { GradientButton } from '../../components/GradientButton';
 import { GradientPill } from '../../components/GradientPill';
 import { IconWell } from '../../components/IconWell';
+import { CardioPickerSheet } from '../../components/CardioPickerSheet';
 import { ScreenContainer } from '../../components/ScreenContainer';
+import { SettingsRow } from '../../components/SettingsRow';
+import { SettingsSection } from '../../components/SettingsSection';
 import { TierMark } from '../../components/TierMark';
 import { StatBlock } from '../../components/analytics/StatBlock';
 import { StatGrid } from '../../components/analytics/StatGrid';
@@ -22,6 +25,7 @@ import {
   DEFAULT_CATEGORY_ICON,
   DEFAULT_CATEGORY_INK,
 } from '../../constants/categories';
+import { scheduleFor } from '../../constants/programSchedules';
 import { useArmedAction } from '../../hooks/useArmedAction';
 import { useExercises } from '../../hooks/useExercises';
 import { useOpenActivityScreen } from '../../hooks/useOpenActivityScreen';
@@ -46,8 +50,13 @@ import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsSta
  *
  * Matched by name against the catalogue rather than held as ids, since ids
  * are per-database and this file is not.
+ *
+ * Three, not four. The fourth slot is Custom, which opens the whole
+ * conditioning catalogue -- a fixed shortlist covers the common cases and
+ * none of the real ones, and someone who swims or hikes was being told
+ * their options were rowing or a treadmill.
  */
-const FINISHERS = ['Rowing', 'Skipping (Jump Rope)', 'Incline Treadmill Walk', 'Assault Bike'];
+const FINISHERS = ['Rowing', 'Skipping (Jump Rope)', 'Incline Treadmill Walk'];
 
 const STAGGER_MS = 70;
 
@@ -115,6 +124,7 @@ export function ProgramsScreen() {
   // the next tap was destructive with no warning it had been primed.
   const { armed: confirmingLeave, trigger: triggerLeave } = useArmedAction(leave);
   const loadFromProgram = useWorkoutDraftStore((s) => s.loadFromProgram);
+  const schedule = scheduleFor(enrolled?.slug ?? '');
 
   /**
    * Changes to this session only, never to the programme.
@@ -138,6 +148,7 @@ export function ProgramsScreen() {
     dropped: string[];
     added: ProgramDayExercise[];
   }>({ dayId: null, dropped: [], added: [] });
+  const [picking, setPicking] = useState(false);
 
   const active =
     edits.dayId === dayKey ? edits : { dayId: dayKey, dropped: [], added: [] as ProgramDayExercise[] };
@@ -158,6 +169,20 @@ export function ProgramsScreen() {
   const finishers = FINISHERS.map((name) => exercises.find((e) => e.name === name)).filter(
     (e): e is NonNullable<typeof e> => Boolean(e)
   );
+  // Everything timed, for the Custom sheet. `type` is what separates a row
+  // that wants a duration from one that wants reps, which is the same test
+  // the session list uses to decide what to print.
+  const conditioning = exercises.filter((e) => e.type === 'cardio');
+
+  const asSessionRow = (exercise: (typeof exercises)[number]): ProgramDayExercise => ({
+    exerciseId: exercise.id,
+    exerciseName: exercise.name,
+    position: 99 + added.length,
+    targetSets: 1,
+    targetReps: 1,
+    type: 'cardio',
+    category: exercise.category,
+  });
 
   const startSession = () => {
     if (!today || !enrollment || !enrolled || sessionExercises.length === 0) return;
@@ -285,15 +310,7 @@ export function ProgramsScreen() {
                           onPress={() =>
                             on
                               ? unadd(exercise.id)
-                              : add({
-                                  exerciseId: exercise.id,
-                                  exerciseName: exercise.name,
-                                  position: 99 + added.length,
-                                  targetSets: 1,
-                                  targetReps: 1,
-                                  type: 'cardio',
-                                  category: exercise.category,
-                                })
+                              : add(asSessionRow(exercise))
                           }
                           style={{
                             flexDirection: 'row',
@@ -324,6 +341,32 @@ export function ProgramsScreen() {
                         </AnimatedPressable>
                       );
                     })}
+
+                    {/* The fourth slot. Same shape as its neighbours so it
+                        reads as one of the options rather than as a
+                        settings escape hatch. */}
+                    <AnimatedPressable
+                      scaleTo={0.94}
+                      accessibilityRole="button"
+                      accessibilityLabel="Add other conditioning"
+                      onPress={() => setPicking(true)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6,
+                        paddingHorizontal: spacing.sm,
+                        paddingVertical: 6,
+                        borderRadius: radius.pill,
+                        borderWidth: 1,
+                        borderStyle: 'dashed',
+                        borderColor: colors.textMuted,
+                      }}
+                    >
+                      <Ionicons name="search" size={13} color={colors.textMuted} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary }}>
+                        Custom
+                      </Text>
+                    </AnimatedPressable>
                   </View>
                 </View>
               ) : null}
@@ -334,6 +377,28 @@ export function ProgramsScreen() {
                 disabled={sessionExercises.length === 0}
                 onPress={startSession}
               />
+
+              {/* What the week is meant to look like. The screen could
+                  say "day 2 of 3" and never say whether those three run
+                  back to back or where the rest days are. */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  gap: spacing.sm,
+                  padding: spacing.sm,
+                  borderRadius: radius.md,
+                  backgroundColor: colors.background,
+                }}
+              >
+                <Ionicons name="calendar-outline" size={15} color={colors.textMuted} style={{ marginTop: 1 }} />
+                <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
+                  <Text style={[typography.caption, { color: colors.textPrimary, fontWeight: '700' }]}>
+                    {schedule.frequency}
+                  </Text>
+                  <Text style={[typography.caption, { color: colors.textMuted }]}>{schedule.week}</Text>
+                </View>
+              </View>
 
               <Text style={[typography.caption, { color: colors.textMuted }]}>
                 The cycle moves to day {(today.position % enrolled.days.length) + 1} when you save
@@ -367,16 +432,30 @@ export function ProgramsScreen() {
                   </View>
                 </View>
 
-                <GradientButton
-                  label="Set a target on one of these lifts"
-                  variant="outline"
-                  onPress={() => openActivityScreen('GoalForecast')}
-                />
-                <GradientButton
-                  label={confirmingLeave ? 'Tap again to leave' : 'Leave programme'}
-                  variant="outline"
-                  onPress={triggerLeave}
-                />
+                {/* Rows rather than a stack of outlined buttons. Two
+                    empty rectangles one above the other is the shape of a
+                    form, not of a menu, and they carried more visual weight
+                    than the session they sit under. This is the same list
+                    the account centre is built from. */}
+                <SettingsSection>
+                  <SettingsRow
+                    icon="flag-outline"
+                    title="Set a target"
+                    subtitle="Forecast a lift in this programme"
+                    onPress={() => openActivityScreen('GoalForecast')}
+                  />
+                  <SettingsRow
+                    icon="exit-outline"
+                    danger
+                    title={confirmingLeave ? 'Tap again to leave' : 'Leave programme'}
+                    subtitle={
+                      confirmingLeave
+                        ? 'This clears your place in the cycle'
+                        : 'Keeps your logged workouts'
+                    }
+                    onPress={triggerLeave}
+                  />
+                </SettingsSection>
               </Disclosure>
             </Card>
           </Section>
@@ -441,6 +520,14 @@ export function ProgramsScreen() {
           </Text>
         </Card>
       ) : null}
+
+      <CardioPickerSheet
+        visible={picking}
+        options={conditioning}
+        chosenIds={sessionExercises.map((e) => e.exerciseId)}
+        onPick={(exercise) => add(asSessionRow(exercise))}
+        onClose={() => setPicking(false)}
+      />
     </ScreenContainer>
   );
 }
@@ -456,44 +543,120 @@ function ProgramList({
   busy: boolean;
   onJoin: (id: string) => void;
 }) {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
+  // Switching restarts the cycle, so it asks twice -- and asking on the
+  // card itself is what lets the card be the control, instead of parking an
+  // empty outlined button under every one of them.
+  const [arming, setArming] = useState<string | null>(null);
 
   return (
     <View style={{ gap: spacing.md }}>
       {programs.map((program) => {
         const isCurrent = program.id === enrolledId;
         const movements = program.days.reduce((sum, day) => sum + day.exercises.length, 0);
-        return (
-          <Card key={program.id}>
+        const schedule = scheduleFor(program.slug);
+        const armed = arming === program.id;
+
+        const body = (
+          <Card>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Text
-                style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}
-              >
-                {program.name}
-              </Text>
+              <IconWell icon={schedule.icon} size={34} tint={schedule.tint} />
+              <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
+                <Text
+                  style={[typography.subheading, { color: colors.textPrimary }]}
+                  numberOfLines={1}
+                >
+                  {program.name}
+                </Text>
+                <Text style={[typography.caption, { color: colors.textMuted }]}>
+                  {schedule.frequency} · {program.days.length} session
+                  {program.days.length === 1 ? '' : 's'} · {movements} movements
+                </Text>
+              </View>
               {isCurrent ? (
-                <Ionicons name="checkmark-circle" size={18} color={colors.success} />
-              ) : null}
+                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+              ) : (
+                <Ionicons
+                  name={armed ? 'alert-circle' : 'chevron-forward'}
+                  size={18}
+                  color={armed ? colors.danger : colors.textMuted}
+                />
+              )}
             </View>
+
             <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {program.description}
+              {schedule.suits}
             </Text>
-            {/* The shape of the programme in one line, rather than a chip
-                per day. What someone comparing two of these wants is how
-                many sessions and how much is in them. */}
-            <Text style={[typography.caption, { color: colors.textMuted }]}>
-              {program.days.length} session{program.days.length === 1 ? '' : 's'} ·{' '}
-              {movements} movements · {program.days.map((d) => d.name).join(' / ')}
-            </Text>
-            {!isCurrent ? (
-              <GradientButton
-                label={enrolledId ? 'Switch to this' : 'Start this programme'}
-                variant="outline"
-                disabled={busy}
-                onPress={() => onJoin(program.id)}
-              />
+
+            {/* The days as chips, which is the shape of the split -- three
+                named sessions reads as a split, "3 sessions" reads as a
+                number. */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+              {program.days.map((day) => (
+                <View
+                  key={day.id}
+                  style={{
+                    paddingHorizontal: spacing.sm,
+                    paddingVertical: 4,
+                    borderRadius: radius.pill,
+                    backgroundColor: colors.background,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textSecondary }}>
+                    {day.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: spacing.sm,
+                paddingTop: spacing.sm,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+              }}
+            >
+              <Ionicons name="calendar-outline" size={14} color={colors.textMuted} style={{ marginTop: 2 }} />
+              <Text style={[typography.caption, { color: colors.textMuted, flex: 1, minWidth: 0 }]}>
+                {schedule.week}
+              </Text>
+            </View>
+
+            {armed ? (
+              <Text style={[typography.caption, { color: colors.danger, fontWeight: '700' }]}>
+                Tap again to switch — this restarts the cycle at day one.
+              </Text>
             ) : null}
           </Card>
+        );
+
+        if (isCurrent) return <View key={program.id}>{body}</View>;
+
+        return (
+          <AnimatedPressable
+            key={program.id}
+            scaleTo={0.99}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel={
+              armed
+                ? `Tap again to switch to ${program.name}. This restarts the cycle.`
+                : `${program.name}. ${schedule.frequency}. Select to switch.`
+            }
+            onPress={() => {
+              if (armed) {
+                setArming(null);
+                onJoin(program.id);
+              } else {
+                setArming(program.id);
+              }
+            }}
+          >
+            {body}
+          </AnimatedPressable>
         );
       })}
     </View>
