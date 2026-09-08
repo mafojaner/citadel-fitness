@@ -8,6 +8,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FortressTodayCard } from '../../components/FortressTodayCard';
 import { PaidFeatureCard } from '../../components/PaidFeatureCard';
 import { WeekStripSnapshot } from '../../components/WeekStripSnapshot';
 import { GradientButton } from '../../components/GradientButton';
@@ -132,15 +133,20 @@ export function WorkoutsScreen() {
           week have anything on them. */}
       <WeekStripSnapshot />
 
-      {/* Where the Fortress Today card used to sit. That card and this one
-          were both about the structured programme -- one naming the next
-          session, one offering the feature -- stacked four rows apart on the
-          same screen, which read as the app saying the same thing twice.
-          The offer is the one that survives, since it works whether or not a
-          programme is running. */}
-      <PaidFeatureCard
-        featureId="structured-programs"
-        onOpen={() => navigation.navigate('Programs')}
+      {/* One card where there were two. The Fortress card's programme row
+          now carries the offer as its other state, so a member running a
+          programme sees the next session and one who is not sees what the
+          feature does -- both pointing at the same screen, which is what
+          made two cards read as a duplicate.
+
+          Programs is a plain stack navigate here rather than the tab-level
+          one Home needed: this screen is already inside the Workouts stack
+          that owns that route. The other three still cross to Activity. */}
+      <FortressTodayCard
+        onOpenPrograms={() => navigation.navigate('Programs')}
+        onOpenGoals={() => navigation.navigate('Activity', { screen: 'GoalForecast' })}
+        onOpenRecords={() => navigation.navigate('Activity', { screen: 'PersonalRecords' })}
+        onOpenGroups={() => navigation.navigate('Activity', { screen: 'Groups' })}
       />
 
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}

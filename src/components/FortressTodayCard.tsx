@@ -2,8 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { AnimatedPressable } from './AnimatedPressable';
 import { Card } from './Card';
-import { PremiumHeader, PremiumRow } from './PremiumCard';
+import { featureState } from './PaidFeatureCard';
+import { PremiumHeader, PremiumRow, StatePill } from './PremiumCard';
+import { APP_FEATURES } from '../constants/featureCatalog';
 import { useFortressToday, type FortressToday } from '../hooks/useFortressToday';
+import { useMembershipTier } from '../hooks/useMembership';
+import { useOpenPlans } from '../hooks/useOpenPlans';
 import { iconInk } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
@@ -67,6 +71,14 @@ function ordinal(n: number): string {
 function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] {
   const lines: Line[] = [];
 
+  // The programme row, in whichever of its two states applies.
+  //
+  // These used to be two cards on Workouts -- this one naming the next
+  // session, a Structured programs card offering the feature -- four rows
+  // apart, built from the same header and row, pointing at the same screen.
+  // They were never two cards. They are one row that says what is next when
+  // a programme is running and what the feature is when none is, and the
+  // duplication was the two states having been given a component each.
   if (data.program) {
     const { dayName, programName, position, cycleLength } = data.program;
     lines.push({
@@ -76,6 +88,16 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
       detail: `Day ${position} of ${cycleLength} · ${programName}`,
       onPress: props.onOpenPrograms,
       accessibilityLabel: `Next program session, ${dayName}, day ${position} of ${cycleLength} on ${programName}. Opens programs.`,
+    });
+  } else {
+    const programs = APP_FEATURES.find((f) => f.id === 'structured-programs');
+    lines.push({
+      icon: 'calendar-number',
+      tint: iconInk.ember,
+      title: 'Structured programs',
+      detail: programs?.short ?? 'Fills in your workouts, day by day.',
+      onPress: props.onOpenPrograms,
+      accessibilityLabel: 'Structured programs. Fills in your workouts, day by day. Opens programs.',
     });
   }
 
@@ -130,10 +152,55 @@ function buildLines(data: FortressToday, props: FortressTodayCardProps): Line[] 
 export function FortressTodayCard(props: FortressTodayCardProps) {
   const { colors, spacing } = useTheme();
   const { data } = useFortressToday();
+  const tier = useMembershipTier();
+  const openPlans = useOpenPlans();
 
-  if (!data) return null;
-  const lines = buildLines(data, props);
-  if (lines.length === 0) return null;
+  const programs = APP_FEATURES.find((f) => f.id === 'structured-programs');
+  const state = programs ? featureState(programs, tier, true) : null;
+  const entitled = state?.entitled ?? false;
+
+  // A member without the tier sees the offer rather than nothing.
+  //
+  // This card used to return null below Fortress, which was right while a
+  // separate Structured programs card carried the upsell. Absorbing that
+  // card means absorbing its job: the row is still drawn, it still says
+  // what the feature does, and it goes to Plans instead of Programs.
+  const lines = entitled && data ? buildLines(data, props) : [];
+  if (lines.length === 0 && !state) return null;
+
+  /**
+   * Whether there is anything about *today* to report, as opposed to the
+   * offer the card falls back to.
+   *
+   * Read off the data rather than from `lines.length`, which stopped being
+   * the same question the moment the programme row grew an offer state:
+   * every entitled member has at least one line now, so a length check
+   * headed a pure offer "FORTRESS TODAY" and promised a bulletin that was
+   * not there. Caught by the test below it.
+   */
+  const hasNews =
+    Boolean(data?.program) ||
+    (data?.newRecords ?? 0) > 0 ||
+    Boolean(data?.goal) ||
+    Boolean(data?.group && data.group.memberCount > 1);
+
+  // Nothing to report reduces to the offer itself, which is what the
+  // separate card used to be.
+  const rows: Line[] =
+    lines.length > 0
+      ? lines
+      : [
+          {
+            icon: 'calendar-number',
+            tint: iconInk.ember,
+            title: 'Structured programs',
+            detail: programs?.short ?? 'Fills in your workouts, day by day.',
+            onPress: entitled ? props.onOpenPrograms : openPlans,
+            accessibilityLabel: entitled
+              ? 'Structured programs. Fills in your workouts, day by day. Opens programs.'
+              : 'Structured programs. Fortress feature. Select to learn more.',
+          },
+        ];
 
   return (
     /* An ordinary card, where this used to be an inverted slab -- near-black
@@ -149,9 +216,17 @@ export function FortressTodayCard(props: FortressTodayCardProps) {
       {/* Named as the tier rather than "Your summary": this card exists to
           make the thing being paid for visible, and a neutral heading would
           defeat that. */}
-      <PremiumHeader label="FORTRESS TODAY" />
+      {/* "TODAY" only when there is something about today to report. For a
+          member who has not bought the tier, or who has bought it and has
+          no programme, no record and no group this week, the card is an
+          offer -- and heading an offer "today" promises a bulletin it does
+          not contain. */}
+      <PremiumHeader
+        label={hasNews ? 'FORTRESS TODAY' : 'FORTRESS'}
+        trailing={state ? <StatePill label={state.pillLabel} icon={state.pillIcon} /> : undefined}
+      />
 
-      {lines.map((line, index) => (
+      {rows.map((line, index) => (
         <View key={line.title + line.detail}>
           {index > 0 ? (
             <View

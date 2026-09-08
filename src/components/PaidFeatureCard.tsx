@@ -54,11 +54,12 @@ interface PaidFeatureCardProps {
 /**
  * Where a feature stands for this member, and the pill that says so.
  *
- * Shared, because the card, the standalone link and the grouped list all
- * have to answer it identically -- they are the same offer drawn at three
- * sizes, and three copies of this logic is how they would drift apart.
+ * Shared, because the card, the standalone link, the grouped list and the
+ * Fortress card on Workouts all have to answer it identically -- they are
+ * the same offer drawn at four sizes, and four copies of this logic is how
+ * they would drift apart.
  */
-function featureState(feature: AppFeature, tier: MembershipTier, hasRoute: boolean, status?: string) {
+export function featureState(feature: AppFeature, tier: MembershipTier, hasRoute: boolean, status?: string) {
   // Compared rather than equality-checked: a Valhalla member must not be
   // told a Fortress feature is locked, and a Fortress member must be told
   // the truth about a Valhalla one rather than "coming soon" for something
