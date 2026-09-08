@@ -396,7 +396,6 @@ export function ProgramsScreen() {
                 label="Programme tools"
                 hint="Jump the cycle, goals, leave"
                 icon="options-outline"
-                contentTone="recessed"
               >
                 <View style={{ gap: spacing.xs }}>
                   <Text style={[typography.caption, { color: colors.textMuted }]}>

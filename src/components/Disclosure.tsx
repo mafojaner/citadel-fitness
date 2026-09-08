@@ -11,14 +11,6 @@ interface DisclosureProps {
   icon?: keyof typeof Ionicons.glyphMap;
   /** The glyph's ink. Gives the row the same weight as a card head. */
   tint?: string;
-  /**
-   * The fill behind the revealed content.
-   *
-   * `recessed` for a disclosure that already lives inside a card, where a
-   * second surface-coloured panel would be white on white; `raised` for one
-   * sitting on the page, where the panel is the card.
-   */
-  contentTone?: 'raised' | 'recessed';
   children: ReactNode;
 }
 
@@ -45,7 +37,6 @@ export function Disclosure({
   hint,
   icon,
   tint,
-  contentTone = 'raised',
   children,
 }: DisclosureProps) {
   const { colors, spacing, radius, typography } = useTheme();
@@ -64,14 +55,28 @@ export function Disclosure({
   const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
 
   return (
-    <View style={{ gap: open ? spacing.md : 0 }}>
-      {/* A surface with a tinted disc, not a hairline outline round some
-          muted text. The first version was drawn as quietly as possible so
-          it would not compete with the session above it, and overshot --
-          two of the screen's three controls were the two hardest things on
-          it to see. This is the same object a card head is, at row height:
-          the glyph carries the colour, the label is ink, and the row has a
-          fill of its own so the eye lands on it. */}
+    /* Header and contents in one bordered shape, not two stacked ones.
+       Open, the header sat as its own rounded row with a gap under it and
+       the panel floating below -- so the control and the thing it had just
+       revealed read as two unrelated objects, and the one that looked most
+       like a card was the one with nothing in it. One border round both,
+       and a rule where they meet, makes it a card with a head. */
+    <View
+      style={{
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: colors.border,
+        // Clips the header's press fill to the rounded corners, which it
+        // would otherwise square off now that the radius lives out here.
+        overflow: 'hidden',
+      }}
+    >
+      {/* The same object a card head is, at row height: the glyph carries
+          the colour, the label is ink, and the row has a fill of its own so
+          the eye lands on it. An earlier version was drawn as quietly as
+          possible so as not to compete with the session above it, and
+          overshot -- two of the screen's three controls were the two
+          hardest things on it to see. */}
       <Pressable
         onPress={() => setOpen((v) => !v)}
         accessibilityRole="button"
@@ -82,9 +87,6 @@ export function Disclosure({
           alignItems: 'center',
           gap: spacing.md,
           padding: spacing.md,
-          borderRadius: radius.lg,
-          borderWidth: 1,
-          borderColor: colors.border,
           backgroundColor: pressed ? colors.border : colors.background,
         })}
       >
@@ -104,20 +106,14 @@ export function Disclosure({
         </Animated.View>
       </Pressable>
 
-      {/* The contents get a panel of their own rather than spilling loose
-          under the header. Open, the old version left its rows floating
-          against whatever they happened to sit on, so the boundary of the
-          thing you had just opened was wherever its longest line ended.
-          The panel is the boundary. */}
       {open ? (
         <View
           style={{
             gap: spacing.md,
             padding: spacing.md,
-            borderRadius: radius.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: contentTone === 'recessed' ? colors.background : colors.surface,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+            backgroundColor: colors.background,
           }}
         >
           {children}
