@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Category } from '../types/models';
 
 export interface ProgramDayExercise {
   exerciseId: string;
@@ -6,6 +7,18 @@ export interface ProgramDayExercise {
   position: number;
   targetSets: number;
   targetReps: number;
+  /**
+   * Carried through so the page can tell a run from a set of squats.
+   *
+   * `target_sets` and `target_reps` are the only numbers the table holds,
+   * and neither means anything for cardio -- the conditioning programme
+   * stores 1 x 1 there. Without the type the card would print "1 x 1"
+   * under a rowing interval; with it, that row reads as a duration
+   * instead. The category earns its place separately: it is what tints
+   * each row, the same per-muscle ink the rest of the app uses.
+   */
+  type: 'strength' | 'cardio';
+  category: Category;
 }
 
 export interface ProgramDay {
@@ -35,7 +48,7 @@ interface DbDayExercise {
   position: number;
   target_sets: number;
   target_reps: number;
-  exercises: { name: string } | null;
+  exercises: { name: string; type: string; category: string } | null;
 }
 
 interface DbDay {
@@ -66,7 +79,7 @@ export async function fetchPrograms(): Promise<Program[]> {
   const { data, error } = await supabase
     .from('programs')
     .select(
-      'id, slug, name, description, program_days ( id, position, name, program_day_exercises ( exercise_id, position, target_sets, target_reps, exercises ( name ) ) )'
+      'id, slug, name, description, program_days ( id, position, name, program_day_exercises ( exercise_id, position, target_sets, target_reps, exercises ( name, type, category ) ) )'
     )
     .returns<DbProgram[]>();
 
@@ -92,6 +105,8 @@ export async function fetchPrograms(): Promise<Program[]> {
               position: entry.position,
               targetSets: entry.target_sets,
               targetReps: entry.target_reps,
+              type: (entry.exercises?.type === 'cardio' ? 'cardio' : 'strength') as 'strength' | 'cardio',
+              category: (entry.exercises?.category ?? 'chest') as Category,
             })),
         })),
     }))

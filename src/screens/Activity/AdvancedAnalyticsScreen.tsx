@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { CardHead } from '../../components/CardHead';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorNotice } from '../../components/ErrorNotice';
 import { FadeInView } from '../../components/FadeInView';
@@ -58,32 +59,6 @@ function Section({ index, children }: { index: number; children: ReactNode }) {
     <FadeInView slideDistance={12} duration={Math.min(index * STAGGER_MS, MAX_STAGGER_MS) + 260}>
       {children}
     </FadeInView>
-  );
-}
-
-/** Shared header for a card: a tinted glyph, a title, and the line explaining what it measures. */
-function CardHead({
-  icon,
-  tint,
-  title,
-  detail,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  tint: string;
-  title: string;
-  detail: string;
-}) {
-  const { colors, spacing, typography } = useTheme();
-  return (
-    <View style={{ gap: spacing.xs }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <IconWell icon={icon} size={30} tint={tint} />
-        <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-          {title}
-        </Text>
-      </View>
-      <Text style={[typography.caption, { color: colors.textMuted }]}>{detail}</Text>
-    </View>
   );
 }
 

@@ -1,66 +1,175 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { AnimatedPressable } from '../../components/AnimatedPressable';
 import { Card } from '../../components/Card';
+import { CardHead } from '../../components/CardHead';
+import { Disclosure } from '../../components/Disclosure';
 import { ErrorNotice } from '../../components/ErrorNotice';
+import { FadeInView } from '../../components/FadeInView';
 import { GradientButton } from '../../components/GradientButton';
-import { IconWell } from '../../components/IconWell';
 import { GradientPill } from '../../components/GradientPill';
+import { IconWell } from '../../components/IconWell';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { TierMark } from '../../components/TierMark';
-import { StatChip } from '../../components/StatChip';
+import { StatBlock } from '../../components/analytics/StatBlock';
+import { StatGrid } from '../../components/analytics/StatGrid';
+import {
+  CATEGORY_ICONS,
+  CATEGORY_INK,
+  DEFAULT_CATEGORY_ICON,
+  DEFAULT_CATEGORY_INK,
+} from '../../constants/categories';
 import { useArmedAction } from '../../hooks/useArmedAction';
+import { useExercises } from '../../hooks/useExercises';
 import { useOpenActivityScreen } from '../../hooks/useOpenActivityScreen';
 import { useProgramHistory } from '../../hooks/useProgramHistory';
 import { usePrograms } from '../../hooks/usePrograms';
 import { todayISO } from '../../lib/analytics';
+import type { ProgramDayExercise } from '../../lib/programs';
 import { useWorkoutDraftStore } from '../../state/workoutDraftStore';
 import { useTheme } from '../../theme/useTheme';
 import { iconInk } from '../../theme/tokens';
 import type { WorkoutsStackParamList } from '../../navigation/stacks/WorkoutsStack';
 
 /**
- * A program answers one question — what am I doing today — and then gets
- * out of the way by writing that session straight into the workout draft.
+ * One-tap conditioning, by catalogue name.
  *
- * The cycle advances when that session is *saved*, not when it is loaded.
- * It used to advance on load, on the reasoning that a session started is a
- * session moved past. That reads well and behaves badly: loading a day and
- * not finishing it is completely ordinary — you check what today is and get
- * pulled away — and each of those silently burned a day, with nothing in
- * the interface able to step back. The position now rides along with the
- * draft and is spent when the workout lands. Re-loading the same day before
- * saving is now harmless rather than the thing being guarded against.
+ * The screen had no way to vary a session at all: the programme prescribed
+ * what it prescribed, and someone who wanted to finish with ten minutes on
+ * the rower had to load the day, save it, and log the cardio as a second
+ * workout. These append to the session before it is loaded, which is the
+ * cheapest possible answer to "what if I want to add cardio" -- and cheap
+ * matters, because this is the kind of thing decided on the gym floor.
+ *
+ * Matched by name against the catalogue rather than held as ids, since ids
+ * are per-database and this file is not.
+ */
+const FINISHERS = ['Rowing', 'Skipping (Jump Rope)', 'Incline Treadmill Walk', 'Assault Bike'];
+
+const STAGGER_MS = 70;
+
+function Section({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <FadeInView slideDistance={12} duration={Math.min(index * STAGGER_MS, 350) + 260}>
+      {children}
+    </FadeInView>
+  );
+}
+
+/**
+ * Where you are in the cycle, as one row of segments.
+ *
+ * The old screen said "day 2 of 3" and left the rest to arithmetic. A
+ * programme is a loop, and the useful thing to see is the shape of that
+ * loop with your place marked on it -- how much of it is behind you, what
+ * comes next, and that it wraps.
+ */
+function CycleTrack({ length, position }: { length: number; position: number }) {
+  const { colors, spacing, radius } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', gap: spacing.xs }}>
+      {Array.from({ length }, (_, i) => {
+        const day = i + 1;
+        const isNow = day === position;
+        return (
+          <View
+            key={day}
+            style={{
+              flex: 1,
+              height: 6,
+              borderRadius: radius.pill,
+              backgroundColor: isNow ? iconInk.ember : day < position ? colors.textMuted : colors.border,
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * The programme screen, built around the one question it exists to answer:
+ * what am I lifting today.
+ *
+ * That answer used to share a card with six other things -- the cycle jump,
+ * a goal shortcut, an explanation of when the cycle advances, a leave
+ * button -- none of them ranked against it, and below that a session
+ * history and every programme in the catalogue printed in full. The session
+ * is what someone comes here for every time; the rest is occasional, and
+ * occasional things are behind a line now rather than in the way.
  */
 export function ProgramsScreen() {
-  const { colors, spacing, typography } = useTheme();
+  const { colors, spacing, radius, typography } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<WorkoutsStackParamList>>();
   const openActivityScreen = useOpenActivityScreen();
   const { programs, enrollment, enrolled, today, loading, busy, error, reload, join, leave } =
     usePrograms();
-  // Declared after usePrograms, whose `enrolled` it needs to decide whether
-  // asking for a history is worth a round trip at all.
   const { history, moving, moveTo, reload: reloadHistory } = useProgramHistory(Boolean(enrolled));
-  // Two taps to leave, because one tap throws away your place in the cycle
-  // and this button sits directly under the one you press every session.
-  // The shared hook also disarms after a few seconds -- the first version of
-  // this stayed armed indefinitely, so a tap, a distraction and a return
-  // meant the next tap was destructive with no warning it had been primed.
+  const { exercises } = useExercises();
+  // Two taps to leave, because one tap throws away your place in the cycle.
+  // The shared hook also disarms after a few seconds -- the first version
+  // stayed armed indefinitely, so a tap, a distraction and a return meant
+  // the next tap was destructive with no warning it had been primed.
   const { armed: confirmingLeave, trigger: triggerLeave } = useArmedAction(leave);
   const loadFromProgram = useWorkoutDraftStore((s) => s.loadFromProgram);
 
+  /**
+   * Changes to this session only, never to the programme.
+   *
+   * Programme rows are shared reference data -- every member on Push /
+   * Pull / Legs reads the same ones -- so "not doing that today" and
+   * "finishing on the rower" cannot be writes. They are held here and
+   * folded in at the moment the day is handed to the draft, which is the
+   * only place the distinction stops mattering.
+   */
+  const dayKey = today?.id ?? null;
+  /**
+   * Stamped with the day they belong to, rather than cleared when it
+   * changes. Reading them back through `edits.dayId === dayKey` means a
+   * jump in the cycle drops yesterday's edits with no effect to run, no
+   * cascading render, and no window where the previous day's changes are
+   * briefly applied to the new one.
+   */
+  const [edits, setEdits] = useState<{
+    dayId: string | null;
+    dropped: string[];
+    added: ProgramDayExercise[];
+  }>({ dayId: null, dropped: [], added: [] });
+
+  const active =
+    edits.dayId === dayKey ? edits : { dayId: dayKey, dropped: [], added: [] as ProgramDayExercise[] };
+  const { dropped, added } = active;
+
+  const drop = (exerciseId: string) =>
+    setEdits({ ...active, dayId: dayKey, dropped: [...active.dropped, exerciseId] });
+  const unadd = (exerciseId: string) =>
+    setEdits({ ...active, dayId: dayKey, added: active.added.filter((a) => a.exerciseId !== exerciseId) });
+  const add = (exercise: ProgramDayExercise) =>
+    setEdits({ ...active, dayId: dayKey, added: [...active.added, exercise] });
+
+  const sessionExercises: ProgramDayExercise[] = [
+    ...(today?.exercises ?? []).filter((e) => !dropped.includes(e.exerciseId)),
+    ...added,
+  ];
+
+  const finishers = FINISHERS.map((name) => exercises.find((e) => e.name === name)).filter(
+    (e): e is NonNullable<typeof e> => Boolean(e)
+  );
+
   const startSession = () => {
-    if (!today || !enrollment || !enrolled) return;
+    if (!today || !enrollment || !enrolled || sessionExercises.length === 0) return;
     loadFromProgram(
       todayISO(),
-      today.exercises.map((e) => ({
+      sessionExercises.map((e) => ({
         exerciseId: e.exerciseId,
         targetSets: e.targetSets,
         targetReps: e.targetReps,
       })),
       // Handed to the draft rather than acted on now. Saving the workout is
-      // what spends it; see the note on this screen and on programAdvance.
+      // what spends it; see the note on programAdvance.
       { position: enrollment.nextPosition, cycleLength: enrolled.days.length }
     );
     navigation.navigate('AddWorkout');
@@ -74,140 +183,292 @@ export function ProgramsScreen() {
     );
   }
 
+  let section = 0;
+
   return (
     <ScreenContainer>
       <TierMark />
       {error ? <ErrorNotice message={error} onRetry={reload} /> : null}
 
       {enrolled && today ? (
-        <Card title="Your next session">
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <IconWell icon="calendar-number" size={44} tint={iconInk.ember} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-                {today.name}
-              </Text>
-              <Text style={[typography.caption, { color: colors.textMuted }]}>
-                {enrolled.name} · day {today.position} of {enrolled.days.length}
-              </Text>
-            </View>
-          </View>
+        <>
+          {/* The session. Everything above the fold answers what is being
+              logged, and nothing else competes for that space. */}
+          <Section index={section++}>
+            <Card>
+              <CardHead
+                icon="calendar-number"
+                tint={iconInk.ember}
+                title={today.name}
+                detail={`${enrolled.name} · day ${today.position} of ${enrolled.days.length}`}
+              />
 
-          <View style={{ gap: spacing.xs, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
-            {today.exercises.map((exercise) => (
-              <View
-                key={exercise.exerciseId}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-              >
-                <Text style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
-                  {exercise.exerciseName}
-                </Text>
-                <StatChip
-                  icon="repeat-outline"
-                  value={`${exercise.targetSets} × ${exercise.targetReps}`}
-                />
+              <CycleTrack length={enrolled.days.length} position={today.position} />
+
+              <View style={{ gap: spacing.xs }}>
+                {sessionExercises.map((exercise) => (
+                  <View
+                    key={exercise.exerciseId}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.sm,
+                      paddingVertical: 6,
+                    }}
+                  >
+                    <IconWell
+                      icon={CATEGORY_ICONS[exercise.category] ?? DEFAULT_CATEGORY_ICON}
+                      size={30}
+                      tint={CATEGORY_INK[exercise.category] ?? DEFAULT_CATEGORY_INK}
+                    />
+                    <Text
+                      style={[typography.body, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}
+                      numberOfLines={1}
+                    >
+                      {exercise.exerciseName}
+                    </Text>
+                    {/* Sets and reps mean nothing for a run, and the table
+                        stores 1 x 1 for one. Saying "Duration" is the
+                        honest version of a number that is not there. */}
+                    <Text
+                      style={[
+                        typography.caption,
+                        { color: colors.textMuted, fontWeight: '700', fontVariant: ['tabular-nums'] },
+                      ]}
+                    >
+                      {exercise.type === 'cardio'
+                        ? 'Duration'
+                        : `${exercise.targetSets} × ${exercise.targetReps}`}
+                    </Text>
+                    <Pressable
+                      onPress={() =>
+                        added.some((a) => a.exerciseId === exercise.exerciseId)
+                          ? unadd(exercise.exerciseId)
+                          : drop(exercise.exerciseId)
+                      }
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${exercise.exerciseName} from this session`}
+                      style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+                    >
+                      <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+                    </Pressable>
+                  </View>
+                ))}
+
+                {sessionExercises.length === 0 ? (
+                  <Text style={[typography.body, { color: colors.textSecondary }]}>
+                    Nothing left in this session. Add a finisher below, or put one back by
+                    reopening the day.
+                  </Text>
+                ) : null}
               </View>
-            ))}
-          </View>
 
-          <GradientButton
-            label={busy ? 'Loading...' : 'Load into today’s workout'}
-            loading={busy}
-            onPress={startSession}
-          />
+              {/* Conditioning, one tap. The programme is a starting point,
+                  not a cage -- and this is the variation people actually
+                  want on the day. */}
+              {finishers.length > 0 ? (
+                <View style={{ gap: spacing.xs }}>
+                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                    Add a finisher
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                    {finishers.map((exercise) => {
+                      const on = sessionExercises.some((e) => e.exerciseId === exercise.id);
+                      return (
+                        <AnimatedPressable
+                          key={exercise.id}
+                          scaleTo={0.94}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: on }}
+                          accessibilityLabel={`${on ? 'Remove' : 'Add'} ${exercise.name}`}
+                          onPress={() =>
+                            on
+                              ? unadd(exercise.id)
+                              : add({
+                                  exerciseId: exercise.id,
+                                  exerciseName: exercise.name,
+                                  position: 99 + added.length,
+                                  targetSets: 1,
+                                  targetReps: 1,
+                                  type: 'cardio',
+                                  category: exercise.category,
+                                })
+                          }
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 6,
+                            paddingHorizontal: spacing.sm,
+                            paddingVertical: 6,
+                            borderRadius: radius.pill,
+                            borderWidth: 1,
+                            borderColor: on ? colors.textPrimary : colors.border,
+                            backgroundColor: on ? colors.textPrimary : 'transparent',
+                          }}
+                        >
+                          <Ionicons
+                            name={on ? 'checkmark' : 'add'}
+                            size={13}
+                            color={on ? colors.surface : colors.textMuted}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '700',
+                              color: on ? colors.surface : colors.textPrimary,
+                            }}
+                          >
+                            {exercise.name}
+                          </Text>
+                        </AnimatedPressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ) : null}
 
-          {/* The seam between two Fortress features that had none.
-              Committing to a training block is precisely the moment someone
-              has a number in mind, and goal forecasting sat two tabs away
-              with nothing pointing at it. Offered rather than imposed: a
-              program is a plan for the next few weeks, and not everyone
-              running one wants a target on top of it. */}
-          {/* Move the cycle by hand.
-              The automatic advance handles the normal case; this is for
-              training out of order or coming back from a missed week, where
-              the only control used to be "leave", which throws the whole
-              enrolment away. Every day in the cycle is offered, including
-              the current one, so re-selecting it is a no-op rather than a
-              trap. */}
-          <View style={{ gap: spacing.xs }}>
-            <Text style={[typography.caption, { color: colors.textMuted }]}>
-              Trained out of order? Jump the cycle:
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              {enrolled.days.map((day) => (
-                <GradientPill
-                  key={day.id}
-                  label={day.name}
-                  active={day.position === today.position}
-                  onPress={async () => {
-                    if (moving) return;
-                    await moveTo(day.position);
-                    // Both: the enrolment supplies the next session, the
-                    // history supplies what has been done against it, and a
-                    // jump changes what the first of those says.
-                    reload();
-                    reloadHistory();
-                  }}
-                />
-              ))}
-            </View>
-          </View>
+              <GradientButton
+                label={busy ? 'Loading...' : 'Start session'}
+                loading={busy}
+                disabled={sessionExercises.length === 0}
+                onPress={startSession}
+              />
 
-          <GradientButton
-            label="Set a target on one of these lifts"
-            variant="outline"
-            onPress={() => openActivityScreen('GoalForecast')}
-          />
-          <Text style={[typography.caption, { color: colors.textMuted }]}>
-            The program moves to day {(today.position % enrolled.days.length) + 1} once
-            you save this session, not now — so loading it to look is free.
-          </Text>
-          <GradientButton
-            label={confirmingLeave ? 'Tap again to leave' : 'Leave program'}
-            variant="outline"
-            onPress={triggerLeave}
-          />
-        </Card>
-      ) : null}
-
-      {enrolled && history.length > 0 ? (
-        <Card title="Since you started">
-          {/* Derived from logged workouts, not from a second table counting
-              sessions -- which would drift the first time a workout was
-              edited. It answers "have I actually been doing this", which
-              "day 3 of 3" cannot. */}
-          {history.map((session) => (
-            <View
-              key={session.date}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-            >
-              <Ionicons name="checkmark-circle" size={16} color={colors.success} />
-              <Text style={[typography.body, { flex: 1, minWidth: 0, color: colors.textPrimary }]}>
-                {new Date(`${session.date}T00:00:00`).toLocaleDateString(undefined, {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </Text>
               <Text style={[typography.caption, { color: colors.textMuted }]}>
-                {session.exercises} exercise{session.exercises === 1 ? '' : 's'} · {session.sets} set
-                {session.sets === 1 ? '' : 's'}
+                The cycle moves to day {(today.position % enrolled.days.length) + 1} when you save
+                this session, not now — so opening it to look is free.
               </Text>
-            </View>
-          ))}
-        </Card>
+
+              {/* Everything that is not "what am I lifting today". Each of
+                  these was a permanent block on the old screen. */}
+              <Disclosure label="Programme tools" hint="Jump the cycle, goals, leave" icon="options-outline">
+                <View style={{ gap: spacing.xs }}>
+                  <Text style={[typography.caption, { color: colors.textMuted }]}>
+                    Trained out of order? Jump the cycle:
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                    {enrolled.days.map((day) => (
+                      <GradientPill
+                        key={day.id}
+                        label={day.name}
+                        active={day.position === today.position}
+                        onPress={async () => {
+                          if (moving) return;
+                          await moveTo(day.position);
+                          // Both: the enrolment supplies the next session,
+                          // the history supplies what has been done against
+                          // it, and a jump changes what the first says.
+                          reload();
+                          reloadHistory();
+                        }}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                <GradientButton
+                  label="Set a target on one of these lifts"
+                  variant="outline"
+                  onPress={() => openActivityScreen('GoalForecast')}
+                />
+                <GradientButton
+                  label={confirmingLeave ? 'Tap again to leave' : 'Leave programme'}
+                  variant="outline"
+                  onPress={triggerLeave}
+                />
+              </Disclosure>
+            </Card>
+          </Section>
+
+          {/* What has actually been done against the programme, as figures
+              rather than as a list of dates nobody reads back. */}
+          {history.length > 0 ? (
+            <Section index={section++}>
+              <Card>
+                <CardHead
+                  icon="checkmark-done-outline"
+                  tint={iconInk.mint}
+                  title="Since you started"
+                  detail="Counted from logged workouts, so it answers whether the programme is actually being run."
+                />
+                <StatGrid>
+                  <StatBlock label="Sessions" value={history.length} />
+                  <StatBlock
+                    label="Sets"
+                    value={history.reduce((sum, s) => sum + s.sets, 0)}
+                  />
+                </StatGrid>
+                <Text style={[typography.caption, { color: colors.textMuted }]}>
+                  Last session{' '}
+                  {new Date(`${history[0].date}T00:00:00`).toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+              </Card>
+            </Section>
+          ) : null}
+        </>
       ) : null}
 
-      <Text style={[typography.subheading, { color: colors.textPrimary }]}>
-        {enrolled ? 'Switch program' : 'Choose a program'}
-      </Text>
+      {/* The catalogue. A wall of cards while enrolled, when the only
+          question it answers is one somebody asks rarely. */}
+      <Section index={section++}>
+        {enrolled ? (
+          <Disclosure
+            label="Change programme"
+            hint={`${programs.length} available`}
+            icon="swap-horizontal-outline"
+          >
+            <ProgramList programs={programs} enrolledId={enrolled.id} busy={busy} onJoin={join} />
+          </Disclosure>
+        ) : (
+          <View style={{ gap: spacing.md }}>
+            <Text style={[typography.subheading, { color: colors.textPrimary }]}>
+              Choose a programme
+            </Text>
+            <ProgramList programs={programs} enrolledId={undefined} busy={busy} onJoin={join} />
+          </View>
+        )}
+      </Section>
 
+      {programs.length === 0 ? (
+        <Card>
+          <Text style={[typography.body, { color: colors.textSecondary }]}>
+            No programmes available yet.
+          </Text>
+        </Card>
+      ) : null}
+    </ScreenContainer>
+  );
+}
+
+function ProgramList({
+  programs,
+  enrolledId,
+  busy,
+  onJoin,
+}: {
+  programs: ReturnType<typeof usePrograms>['programs'];
+  enrolledId: string | undefined;
+  busy: boolean;
+  onJoin: (id: string) => void;
+}) {
+  const { colors, spacing, typography } = useTheme();
+
+  return (
+    <View style={{ gap: spacing.md }}>
       {programs.map((program) => {
-        const isCurrent = program.id === enrolled?.id;
+        const isCurrent = program.id === enrolledId;
+        const movements = program.days.reduce((sum, day) => sum + day.exercises.length, 0);
         return (
           <Card key={program.id}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <Text style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}>
+              <Text
+                style={[typography.subheading, { color: colors.textPrimary, flex: 1, minWidth: 0 }]}
+              >
                 {program.name}
               </Text>
               {isCurrent ? (
@@ -217,30 +478,24 @@ export function ProgramsScreen() {
             <Text style={[typography.caption, { color: colors.textSecondary }]}>
               {program.description}
             </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-              {program.days.map((day) => (
-                <StatChip key={day.id} icon="barbell-outline" value={day.name} />
-              ))}
-            </View>
+            {/* The shape of the programme in one line, rather than a chip
+                per day. What someone comparing two of these wants is how
+                many sessions and how much is in them. */}
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              {program.days.length} session{program.days.length === 1 ? '' : 's'} ·{' '}
+              {movements} movements · {program.days.map((d) => d.name).join(' / ')}
+            </Text>
             {!isCurrent ? (
               <GradientButton
-                label={enrolled ? 'Switch to this' : 'Start this program'}
+                label={enrolledId ? 'Switch to this' : 'Start this programme'}
                 variant="outline"
                 disabled={busy}
-                onPress={() => join(program.id)}
+                onPress={() => onJoin(program.id)}
               />
             ) : null}
           </Card>
         );
       })}
-
-      {programs.length === 0 ? (
-        <Card>
-          <Text style={[typography.body, { color: colors.textSecondary }]}>
-            No programs available yet.
-          </Text>
-        </Card>
-      ) : null}
-    </ScreenContainer>
+    </View>
   );
 }
