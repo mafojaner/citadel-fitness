@@ -127,7 +127,7 @@ function BottomPillTabBar({ state, descriptors, navigation }: BottomTabBarProps)
    * screen edges, and this wrapper's own bottom is added back in because
    * the widget is placed inside it.
    */
-  const widgetBottom = insets.bottom + BAR_MARGIN + barHeight + spacing.md;
+  const widgetBottom = insets.bottom + BAR_MARGIN + barHeight + spacing.sm;
   const widgetRight = spacing.lg;
 
   // The glass, in two layers.

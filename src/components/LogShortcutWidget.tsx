@@ -4,9 +4,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 
-export const LOG_WIDGET_SIZE = 56;
+/**
+ * Smaller than the 56 a floating action button conventionally gets. The
+ * convention assumes the button is the screen's whole reason for existing;
+ * here it sits over screens full of their own content, and at 56 it was
+ * covering more of the card behind it than it needed to be noticed.
+ */
+export const LOG_WIDGET_SIZE = 48;
 
-const OPTION_SIZE = 48;
+/**
+ * Only just below the widget. The hierarchy between them is carried by the
+ * fill -- one solid ink disc against outlined ones -- rather than by size,
+ * which leaves this free to stay at the 44 that keeps each row a
+ * comfortable target.
+ */
+const OPTION_SIZE = 44;
 const OPTION_GAP = 14;
 const OPEN_MS = 240;
 const CLOSE_MS = 180;
@@ -118,7 +130,7 @@ export function LogShortcutWidget({ bottom, right, onAddWorkout, onLogWater }: L
       }}
     >
       <Animated.View style={{ transform: [{ rotate }] }}>
-        <Ionicons name="add" size={30} color={colors.ctaText} />
+        <Ionicons name="add" size={26} color={colors.ctaText} />
       </Animated.View>
     </View>
   );
@@ -255,7 +267,7 @@ export function LogShortcutWidget({ bottom, right, onAddWorkout, onLogWater }: L
                       justifyContent: 'center',
                     }}
                   >
-                    <Ionicons name={option.icon} size={22} color={colors.textPrimary} />
+                    <Ionicons name={option.icon} size={20} color={colors.textPrimary} />
                   </View>
                 </Pressable>
               </Animated.View>
