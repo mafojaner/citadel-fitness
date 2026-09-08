@@ -1,15 +1,14 @@
-import { useColorScheme } from 'react-native';
 import { useThemeStore } from '../state/themeStore';
+import { useSystemScheme } from './systemScheme';
 import { darkColors, lightColors, radius, spacing, tierAccents, typography } from './tokens';
 
 export function useTheme() {
-  const systemScheme = useColorScheme();
+  // Not React Native's `useColorScheme`: that one only hears about a change
+  // while the app is in the foreground, and changing the system theme means
+  // leaving the app to do it. See systemScheme.ts.
+  const systemScheme = useSystemScheme();
   const mode = useThemeStore((s) => s.mode);
-  // Narrowed to the two real schemes rather than passed through as
-  // ColorSchemeName: the platform can report 'unspecified', and everything
-  // downstream only ever means light or dark. Anything not explicitly dark
-  // falls to light, which is the same default this had before.
-  const scheme: 'light' | 'dark' = mode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : mode;
+  const scheme: 'light' | 'dark' = mode === 'system' ? systemScheme : mode;
   const colors = scheme === 'dark' ? darkColors : lightColors;
   // Exposed alongside `colors` rather than imported separately, so anything
   // drawing a tier gets the scheme-correct accent without having to
