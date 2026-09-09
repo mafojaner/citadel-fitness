@@ -421,9 +421,26 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
       }
     };
 
+    /**
+     * Pointer events, not mouse events.
+     *
+     * This is what stopped the dial turning in a browser on a phone. A
+     * finger produces touch and pointer events for the whole drag and no
+     * mouse events at all -- the browser synthesises a click only once the
+     * finger lifts. So mouse listeners heard nothing while the finger moved,
+     * the ring sat still, and taps kept working off that synthesised click,
+     * which is exactly the shape of the bug reported: inert ring, working
+     * buttons.
+     *
+     * Pointer events are the one family that covers mouse, touch and pen
+     * together, so there is one path here rather than three.
+     */
+    let activePointer: number | null = null;
     let pressedOnSurface = false;
 
-    const onMouseDown = (event: MouseEvent) => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (activePointer !== null) return;
+      activePointer = event.pointerId;
       pressedOnSurface = event.target === node;
       dragRef.current = {
         x: event.clientX,
@@ -439,17 +456,31 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
       };
     };
 
-    const onMouseMove = (event: MouseEvent) => {
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== activePointer) return;
       const drag = dragRef.current;
-      if (!drag.steering || event.buttons === 0) return;
+      if (!drag.steering) return;
       if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= DRAG_THRESHOLD) {
         return;
+      }
+      if (!drag.moved) {
+        // Claimed once, at the moment it stops being a tap: every later move
+        // is delivered here even if the finger wanders off the element, and
+        // the press on whichever disc it started from is cancelled rather
+        // than firing when it lifts somewhere else.
+        try {
+          node.setPointerCapture(event.pointerId);
+        } catch {
+          // Capture is best-effort; the window listener below still works.
+        }
       }
       drag.moved = true;
       dragMovedRef.current(drag, event.clientX, event.clientY);
     };
 
-    const onMouseUp = () => {
+    const onPointerEnd = (event: PointerEvent) => {
+      if (event.pointerId !== activePointer) return;
+      activePointer = null;
       const drag = dragRef.current;
       drag.steering = false;
       if (drag.moved) {
@@ -457,22 +488,26 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
         settleRef.current();
         return;
       }
-      // A click that went nowhere, on the backdrop itself rather than on a
+      // A press that went nowhere, on the backdrop itself rather than on a
       // shortcut, is the usual way out of an overlay.
       if (pressedOnSurface) closeRef.current();
       pressedOnSurface = false;
     };
 
     node.addEventListener('wheel', onWheel, { passive: false });
-    node.addEventListener('mousedown', onMouseDown);
-    // On the window, so a drag that leaves the overlay still finishes.
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    node.addEventListener('pointerdown', onPointerDown);
+    // On the window, so a drag that leaves the overlay still finishes --
+    // and pointercancel, which is what a browser sends when it decides the
+    // gesture was really a scroll after all.
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerEnd);
+    window.addEventListener('pointercancel', onPointerEnd);
     return () => {
       node.removeEventListener('wheel', onWheel);
-      node.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      node.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerEnd);
+      window.removeEventListener('pointercancel', onPointerEnd);
     };
   }, [visible]);
 
@@ -562,7 +597,14 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
             * finger that landed on an item change its mind and turn the
             * ring instead. */}
         <View
-          style={StyleSheet.absoluteFill}
+          style={[
+            StyleSheet.absoluteFill,
+            // The other half of making a touch drag work in a browser: left
+            // to itself the browser claims the gesture for panning and
+            // sends pointercancel instead of the moves. Web-only because it
+            // is a DOM style; React Native has no equivalent and needs none.
+            Platform.OS === 'web' ? ({ touchAction: 'none' } as object) : null,
+          ]}
           ref={surfaceRef}
           onLayout={(event) => {
             const { width, height } = event.nativeEvent.layout;
