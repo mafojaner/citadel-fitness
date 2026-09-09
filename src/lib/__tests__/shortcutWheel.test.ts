@@ -6,6 +6,7 @@ import {
   arcPoint,
   arcSamples,
   clampOffset,
+  dotPosition,
   nearestDetent,
   offsetFromDrag,
   trackOpacity,
@@ -83,6 +84,34 @@ describe('the track', () => {
     // The other end, and the reason the detent is not hard against the top
     // of the sweep: that fills the arc on open and empties it on arrival.
     expect(visibleAt(7)).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('the position track', () => {
+  it('spans the whole sweep, whatever the ring is showing', () => {
+    // The dots are a scale, not a second ring: the first sits at one end of
+    // the arc and the last at the other, so the row says how much list there
+    // is rather than which part of it is on screen.
+    expect(dotPosition(0, 8)).toBe(0);
+    expect(dotPosition(7, 8)).toBe(1);
+  });
+
+  it('spaces them evenly', () => {
+    const gaps = [1, 2, 3, 4, 5, 6, 7].map(
+      (i) => dotPosition(i, 8) - dotPosition(i - 1, 8)
+    );
+    for (const gap of gaps) expect(gap).toBeCloseTo(gaps[0], 9);
+  });
+
+  it('does not move when the ring does', () => {
+    // Structural, and worth pinning: the moment this takes an offset it
+    // stops being a scale and becomes a copy of the ring beside the ring.
+    expect(dotPosition.length).toBe(2);
+  });
+
+  it('parks a lone dot on the detent rather than dividing by zero', () => {
+    expect(dotPosition(0, 1)).toBe(DETENT);
+    expect(Number.isFinite(dotPosition(0, 1))).toBe(true);
   });
 });
 

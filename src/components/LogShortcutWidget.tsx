@@ -18,6 +18,7 @@ import {
   arcPoint,
   arcSamples,
   clampOffset,
+  dotPosition,
   nearestDetent,
   offsetFromDrag,
   trackOpacity,
@@ -58,6 +59,17 @@ const LABEL_RADIUS = RADIUS + 50;
 const LABEL_MAX_WIDTH = 150;
 /** Keeps the pill off the screen edge whatever angle the detent sits at. */
 const LABEL_MARGIN = 12;
+
+/**
+ * The position track: one dot per shortcut, on its own arc inside the ring.
+ *
+ * Far enough in to be clearly a separate thing from the discs rather than a
+ * decoration on them, and not so far in that it crowds the widget.
+ */
+const DOT_RADIUS = RADIUS - 46;
+const DOT_SIZE = 5;
+/** The aimed dot, which has to read as one of the row and not a sixth item. */
+const DOT_ACTIVE_SCALE = 1.8;
 
 /** Past this a touch is a turn of the ring rather than a tap on an item. */
 const DRAG_THRESHOLD = 6;
@@ -547,6 +559,70 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
               ]}
             />
           </Animated.View>
+
+          {/* The position track.
+              *
+              * A dot per shortcut, spread across the whole sweep, with the
+              * aimed one lit. The text hint below says how to turn the ring
+              * and says it once; this says how much ring there is, and keeps
+              * saying it -- which is the part that is otherwise invisible,
+              * because four discs on an arc look like four shortcuts rather
+              * than the first four of eight.
+              *
+              * Fixed, while the items move through them. A row that slid
+              * along with the ring would be a second copy of the ring rather
+              * than a scale against it.
+              *
+              * Drawn only when there is more list than arc. With five or
+              * fewer the whole set is on screen already, and a track saying
+              * so is a control that answers a question nobody has. */}
+          {count > 5
+            ? Array.from({ length: count }, (_, index) => {
+                const point = arcPoint(dotPosition(index, count), DOT_RADIUS);
+                // Lit by proximity to the detent rather than by a boolean, so
+                // the highlight travels with the ring instead of jumping a
+                // dot at a time -- the same reason the discs scale smoothly.
+                const positions = shortcuts.map((_, i) => i);
+                const litness = spin.interpolate({
+                  inputRange: positions,
+                  outputRange: positions.map((offset) =>
+                    Math.max(0, 1 - Math.abs(index - offset))
+                  ),
+                  extrapolate: 'clamp',
+                });
+
+                return (
+                  <Animated.View
+                    key={`dot-${index}`}
+                    pointerEvents="none"
+                    style={{
+                      position: 'absolute',
+                      right: right + LOG_WIDGET_SIZE / 2 - DOT_SIZE / 2 - point.x,
+                      bottom: bottom + LOG_WIDGET_SIZE / 2 - DOT_SIZE / 2 - point.y,
+                      width: DOT_SIZE,
+                      height: DOT_SIZE,
+                      borderRadius: DOT_SIZE / 2,
+                      backgroundColor: colors.ctaFill,
+                      opacity: Animated.multiply(
+                        progress,
+                        litness.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.28, 1],
+                        })
+                      ),
+                      transform: [
+                        {
+                          scale: litness.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, DOT_ACTIVE_SCALE],
+                          }),
+                        },
+                      ],
+                    }}
+                  />
+                );
+              })
+            : null}
 
           {/* The readout, at the detent, which does not move. One label at a
               time is what makes labels possible on an arc at all.

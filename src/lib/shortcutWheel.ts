@@ -75,6 +75,22 @@ export function trackPosition(index: number, offset: number): number {
 }
 
 /**
+ * Where the position dot for `index` sits, as a track position.
+ *
+ * Spread across the whole sweep rather than sitting under the items they
+ * stand for. The items move and the dots do not: the point of the track is
+ * to show how much list there is and where in it you are, and a row that
+ * slid along with the ring would show neither.
+ *
+ * A single shortcut gets its dot at the detent, though nothing renders the
+ * track at that point -- one dot is not a scale.
+ */
+export function dotPosition(index: number, count: number): number {
+  if (count <= 1) return DETENT;
+  return index / (count - 1);
+}
+
+/**
  * How solid an item is at track position `t`: 1 across the visible arc,
  * ramping to 0 just past each end.
  *

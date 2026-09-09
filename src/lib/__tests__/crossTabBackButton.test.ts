@@ -96,8 +96,17 @@ function nestedNavigates(): NestedNavigate[] {
       // screen's own route params, and the flag belongs in the outer
       // object -- reading that one as a nesting level looks for the flag
       // inside a bag of route params and never finds it.
+      //
+      // The inner object is recognised by the bare word, not by `screen:`,
+      // because the helpers that build these calls pass the name through a
+      // variable and write it as shorthand: `params: { screen }`. Requiring
+      // the colon read that as route params, fell through to the outer
+      // object, found the tab name there, decided a tab is a root and
+      // waved it past -- so the one call in the app that always crosses
+      // tabs was the one call this test could not see. `\b` on both sides
+      // so a `screenName` param is not mistaken for it.
       const params = body.match(/params\s*:\s*\{([\s\S]*?)\}/);
-      const nested = params && /screen\s*:/.test(params[1]) ? params[1] : null;
+      const nested = params && /\bscreen\b/.test(params[1]) ? params[1] : null;
       const scope = nested ?? body;
       const named = scope.match(/screen\s*:\s*['"](\w+)['"]/);
 
