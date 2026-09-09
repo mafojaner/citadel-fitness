@@ -225,13 +225,29 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     []
   );
 
-  /** The widget's centre in screen coordinates, which the drag steers about. */
+  /**
+   * The size of the overlay itself, which is the space touches are reported
+   * in -- not the window's.
+   *
+   * They are not the same box. The Modal is `statusBarTranslucent`, so on
+   * Android it draws behind the status bar and reports `pageY` from the top
+   * of the screen, while `useWindowDimensions` returns the app window,
+   * which does not include it. Steering about a centre computed from the
+   * window is then steering about a point tens of pixels from the widget,
+   * on the one platform where the difference exists.
+   *
+   * Falls back to the window for the first frame, before layout has
+   * happened -- a gesture cannot start before the overlay is on screen
+   * anyway.
+   */
+  const [surface, setSurface] = useState({ width: screenWidth, height: screenHeight });
+
   const centre = useMemo(
     () => ({
-      x: screenWidth - right - LOG_WIDGET_SIZE / 2,
-      y: screenHeight - bottom - LOG_WIDGET_SIZE / 2,
+      x: surface.width - right - LOG_WIDGET_SIZE / 2,
+      y: surface.height - bottom - LOG_WIDGET_SIZE / 2,
     }),
-    [screenWidth, screenHeight, right, bottom]
+    [surface.width, surface.height, right, bottom]
   );
 
   /**
@@ -289,17 +305,15 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     };
   });
 
-  /** Records the touch down without claiming it, so a tap still reaches an item. */
+  /** Records where the touch went down, so a drag can be told from a tap. */
   const onTouchStart = (event: GestureResponderEvent) => {
     const { pageX, pageY } = event.nativeEvent;
-    // Too near the middle and a small movement of the finger is a large
-    // change of angle, so the ring would bolt on the first frame.
     dragRef.current = {
       x: pageX,
       y: pageY,
       angle: angleAt(pageX, pageY),
       offset: offsetRef.current,
-      steering: Math.hypot(pageX - centre.x, pageY - centre.y) > DEAD_ZONE,
+      steering: false,
       moved: false,
     };
     return false;
@@ -315,13 +329,46 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
   const onMoveShouldSetResponderCapture = (event: GestureResponderEvent) => {
     const { pageX, pageY } = event.nativeEvent;
     const drag = dragRef.current;
-    return drag.steering && Math.hypot(pageX - drag.x, pageY - drag.y) > DRAG_THRESHOLD;
+    return Math.hypot(pageX - drag.x, pageY - drag.y) > DRAG_THRESHOLD;
+  };
+
+  /**
+   * The origin the turn is measured from, fixed at the moment the ring
+   * actually takes the gesture.
+   *
+   * Not at touch-down, which is a different instant and sometimes a
+   * different handler: a finger that lands on a shortcut and then drags is
+   * granted here, well after it went down, and measuring from where it
+   * started would make the ring jump to catch up. This also means the turn
+   * does not depend on the capture handler above having run at all.
+   */
+  const onResponderGrant = (event: GestureResponderEvent) => {
+    const { pageX, pageY } = event.nativeEvent;
+    const drag = dragRef.current;
+    drag.angle = angleAt(pageX, pageY);
+    drag.offset = offsetRef.current;
+    // Too near the middle and a small movement of the finger is a large
+    // change of angle, so the ring would bolt on the first frame. Not a
+    // veto on the whole gesture though -- a finger that starts near the
+    // widget and travels out to the ring is still turning it, and the
+    // origin is simply taken from where it crosses out.
+    drag.steering = Math.hypot(pageX - centre.x, pageY - centre.y) > DEAD_ZONE;
   };
 
   const onResponderMove = (event: GestureResponderEvent) => {
     const drag = dragRef.current;
-    if (!drag.steering) return;
     const { pageX, pageY } = event.nativeEvent;
+
+    if (!drag.steering) {
+      // Waiting for the finger to leave the dead zone. Re-based here rather
+      // than extrapolated from inside it, where the angle means very little.
+      if (Math.hypot(pageX - centre.x, pageY - centre.y) <= DEAD_ZONE) return;
+      drag.steering = true;
+      drag.angle = angleAt(pageX, pageY);
+      drag.offset = offsetRef.current;
+      return;
+    }
+
     drag.moved = true;
     setTurned(true);
     turnTo(offsetFromDrag(drag.offset, drag.angle, angleAt(pageX, pageY), count));
@@ -517,12 +564,19 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
         <View
           style={StyleSheet.absoluteFill}
           ref={surfaceRef}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            setSurface((current) =>
+              current.width === width && current.height === height ? current : { width, height }
+            );
+          }}
           {...(Platform.OS === 'web'
             ? null
             : {
                 onStartShouldSetResponder: () => true,
                 onStartShouldSetResponderCapture: onTouchStart,
                 onMoveShouldSetResponderCapture,
+                onResponderGrant,
                 onResponderMove,
                 onResponderRelease: onResponderEnd,
                 onResponderTerminate: onResponderEnd,
