@@ -60,13 +60,29 @@ describe('the track', () => {
     expect(trackPosition(0, 1)).toBeLessThan(DETENT);
   });
 
-  it('shows about five at once', () => {
+  const visibleAt = (offset: number, count = 8) =>
+    Array.from({ length: count }, (_, index) => index).filter(
+      (index) => trackOpacity(trackPosition(index, offset)) > 0
+    ).length;
+
+  it('shows five through the middle', () => {
     // The number the radius was chosen for. Fewer and the wheel is a fan;
     // more and the discs touch.
-    const onTrack = [0, 1, 2, 3, 4, 5, 6, 7].filter(
-      (index) => trackOpacity(trackPosition(index, 2)) > 0
-    );
-    expect(onTrack.length).toBe(5);
+    expect(visibleAt(3)).toBe(5);
+  });
+
+  it('shows four from the moment it opens', () => {
+    // The state that was actually wrong, and the one nobody sees in a test
+    // that only checks the middle of the list: with the detent centred, the
+    // half of the arc before the first item was empty, so opening the dial
+    // showed three shortcuts and looked like the whole of it.
+    expect(visibleAt(0)).toBe(4);
+  });
+
+  it('does not leave the last item alone on an empty ring', () => {
+    // The other end, and the reason the detent is not hard against the top
+    // of the sweep: that fills the arc on open and empties it on arrival.
+    expect(visibleAt(7)).toBeGreaterThanOrEqual(2);
   });
 });
 

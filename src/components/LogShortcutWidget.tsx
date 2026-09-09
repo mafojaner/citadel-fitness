@@ -5,6 +5,7 @@ import {
   Animated,
   Easing,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -34,20 +35,29 @@ import { useTheme } from '../theme/useTheme';
 export const LOG_WIDGET_SIZE = 48;
 
 /** Big enough to stay a comfortable target once it is one of several on a ring. */
-const OPTION_SIZE = 44;
+const OPTION_SIZE = 42;
 
 /**
  * How far the ring sits from the widget's centre.
  *
  * Set by how many items should be legible at once rather than by taste: the
  * usable sweep is a quarter turn, and five discs plus their gaps need about
- * this much arc to sit along it without touching.
+ * this much arc to sit along it without touching. Wider than the first
+ * version, which fitted three.
  */
-const RADIUS = 132;
+const RADIUS = 156;
 
-/** The label sits just outside the ring, on the detent's own line. */
-const LABEL_RADIUS = RADIUS + 34;
-const LABEL_MAX_WIDTH = 158;
+/**
+ * The label sits outside the ring, on the detent's own line.
+ *
+ * Well outside it: at the first radius the pill was close enough to the
+ * aimed disc to read as attached to it, which made the ring look like one
+ * labelled item and four unlabelled ones rather than a dial with a readout.
+ */
+const LABEL_RADIUS = RADIUS + 50;
+const LABEL_MAX_WIDTH = 150;
+/** Keeps the pill off the screen edge whatever angle the detent sits at. */
+const LABEL_MARGIN = 12;
 
 /** Past this a touch is a turn of the ring rather than a tap on an item. */
 const DRAG_THRESHOLD = 6;
@@ -107,7 +117,7 @@ interface LogShortcutWidgetProps {
  * at a time, at the detent, which never moves.
  */
 export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidgetProps) {
-  const { colors, radius, typography, scheme } = useTheme();
+  const { colors, radius, scheme } = useTheme();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [open, setOpen] = useState(false);
   // Kept mounted through the closing animation, so the ring fades out
@@ -129,6 +139,14 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
   // Which item is at the detent. Text cannot be driven by Animated, so it
   // is written here -- once per detent crossed, not per frame.
   const [aimed, setAimed] = useState(0);
+  /**
+   * Whether the ring has been turned since it was opened.
+   *
+   * The hint below it is worth saying once and not worth saying twice: an
+   * instruction that stays on screen after it has been followed is a label
+   * for something the reader has already learnt.
+   */
+  const [turned, setTurned] = useState(false);
 
   const count = shortcuts.length;
 
@@ -144,6 +162,7 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     [spin, count]
   );
 
+  /** Springs to the nearest item once the finger, or the wheel, lets go. */
   const settle = useCallback(() => {
     const detent = nearestDetent(offsetRef.current, count);
     offsetRef.current = detent;
@@ -179,6 +198,7 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     // last gesture left it -- muscle memory is most of what makes a shortcut
     // faster than navigating.
     turnTo(0);
+    setTurned(false);
     setVisible(true);
     setOpen(true);
   }, [turnTo]);
@@ -215,6 +235,48 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
 
   const angleAt = (x: number, y: number) => Math.atan2(y - centre.y, x - centre.x);
 
+  /** Nudged one detent at a time, for anything that cannot swipe an arc. */
+  const step = useCallback(
+    (delta: number) => {
+      offsetRef.current = clampOffset(nearestDetent(offsetRef.current, count) + delta, count);
+      setTurned(true);
+      settle();
+    },
+    [settle, count]
+  );
+
+  /**
+   * The current versions of what the web listeners call.
+   *
+   * They are attached once per opening and would otherwise close over the
+   * first render's callbacks -- which is how a dial ends up turning against
+   * a stale item count. Keeping them in refs is the alternative to
+   * re-attaching four listeners on every render.
+   */
+  const centreRef = useRef(centre);
+  const angleAtRef = useRef(angleAt);
+  const stepRef = useRef(step);
+  const settleRef = useRef(settle);
+  const closeRef = useRef(close);
+  const dragMovedRef = useRef(
+    (drag: { offset: number; angle: number }, x: number, y: number) => {
+      setTurned(true);
+      turnTo(offsetFromDrag(drag.offset, drag.angle, angleAt(x, y), count));
+    }
+  );
+
+  useEffect(() => {
+    centreRef.current = centre;
+    angleAtRef.current = angleAt;
+    stepRef.current = step;
+    settleRef.current = settle;
+    closeRef.current = close;
+    dragMovedRef.current = (drag, x, y) => {
+      setTurned(true);
+      turnTo(offsetFromDrag(drag.offset, drag.angle, angleAt(x, y), count));
+    };
+  });
+
   /** Records the touch down without claiming it, so a tap still reaches an item. */
   const onTouchStart = (event: GestureResponderEvent) => {
     const { pageX, pageY } = event.nativeEvent;
@@ -249,6 +311,7 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     if (!drag.steering) return;
     const { pageX, pageY } = event.nativeEvent;
     drag.moved = true;
+    setTurned(true);
     turnTo(offsetFromDrag(drag.offset, drag.angle, angleAt(pageX, pageY), count));
   };
 
@@ -259,6 +322,101 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
    * until it moves, and the backdrop is no longer a separate pressable it
    * could land on instead -- see the note on the container below.
    */
+  /**
+   * The overlay's own node, on web only, so the desktop inputs can be real
+   * DOM listeners rather than responder props.
+   *
+   * The responder system is built for touch. It works with a mouse, but a
+   * dial is not a thing a mouse does well by dragging in the first place --
+   * on a desktop the gesture for turning a wheel is turning a wheel. Rather
+   * than hope a synthesised mouse-drag lands correctly, web gets its own
+   * two handlers, and native keeps the responder props it was written for.
+   */
+  const surfaceRef = useRef<View | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !visible) return;
+    const node = surfaceRef.current as unknown as HTMLElement | null;
+    if (!node) return;
+
+    /**
+     * A notch of wheel is an item.
+     *
+     * Accumulated rather than applied continuously because the two devices
+     * that produce these events could not be less alike: a mouse wheel
+     * sends one large delta per detent, a trackpad sends a stream of small
+     * ones. Summing until a threshold is crossed turns both into the same
+     * discrete step, which is also what a dial with detents should feel
+     * like from either.
+     */
+    let wheelAccumulator = 0;
+    const WHEEL_NOTCH = 40;
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      wheelAccumulator += event.deltaY;
+      while (Math.abs(wheelAccumulator) >= WHEEL_NOTCH) {
+        const direction = wheelAccumulator > 0 ? 1 : -1;
+        wheelAccumulator -= direction * WHEEL_NOTCH;
+        stepRef.current(direction);
+      }
+    };
+
+    let pressedOnSurface = false;
+
+    const onMouseDown = (event: MouseEvent) => {
+      pressedOnSurface = event.target === node;
+      dragRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        angle: angleAtRef.current(event.clientX, event.clientY),
+        offset: offsetRef.current,
+        // Too near the middle and a small movement of the pointer is a
+        // large change of angle, so the ring would bolt on the first frame.
+        steering:
+          Math.hypot(event.clientX - centreRef.current.x, event.clientY - centreRef.current.y) >
+          DEAD_ZONE,
+        moved: false,
+      };
+    };
+
+    const onMouseMove = (event: MouseEvent) => {
+      const drag = dragRef.current;
+      if (!drag.steering || event.buttons === 0) return;
+      if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= DRAG_THRESHOLD) {
+        return;
+      }
+      drag.moved = true;
+      dragMovedRef.current(drag, event.clientX, event.clientY);
+    };
+
+    const onMouseUp = () => {
+      const drag = dragRef.current;
+      drag.steering = false;
+      if (drag.moved) {
+        drag.moved = false;
+        settleRef.current();
+        return;
+      }
+      // A click that went nowhere, on the backdrop itself rather than on a
+      // shortcut, is the usual way out of an overlay.
+      if (pressedOnSurface) closeRef.current();
+      pressedOnSurface = false;
+    };
+
+    node.addEventListener('wheel', onWheel, { passive: false });
+    node.addEventListener('mousedown', onMouseDown);
+    // On the window, so a drag that leaves the overlay still finishes.
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      node.removeEventListener('wheel', onWheel);
+      node.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [visible]);
+
   const onResponderEnd = () => {
     const drag = dragRef.current;
     drag.steering = false;
@@ -270,14 +428,6 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
     close();
   };
 
-  /** Nudged one detent at a time, for anything that cannot swipe an arc. */
-  const step = useCallback(
-    (delta: number) => {
-      offsetRef.current = clampOffset(nearestDetent(offsetRef.current, count) + delta, count);
-      settle();
-    },
-    [settle, count]
-  );
 
   // A plus that becomes a cross. The same glyph rotated is one object
   // changing state; swapping to a different icon would be two.
@@ -354,13 +504,18 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
             * ring instead. */}
         <View
           style={StyleSheet.absoluteFill}
-          onStartShouldSetResponder={() => true}
-          onStartShouldSetResponderCapture={onTouchStart}
-          onMoveShouldSetResponderCapture={onMoveShouldSetResponderCapture}
-          onResponderMove={onResponderMove}
-          onResponderRelease={onResponderEnd}
-          onResponderTerminate={onResponderEnd}
-          onResponderTerminationRequest={() => false}
+          ref={surfaceRef}
+          {...(Platform.OS === 'web'
+            ? null
+            : {
+                onStartShouldSetResponder: () => true,
+                onStartShouldSetResponderCapture: onTouchStart,
+                onMoveShouldSetResponderCapture,
+                onResponderMove,
+                onResponderRelease: onResponderEnd,
+                onResponderTerminate: onResponderEnd,
+                onResponderTerminationRequest: () => false,
+              })}
           accessibilityRole="adjustable"
           accessibilityLabel="Shortcut dial"
           accessibilityValue={{ text: aimedShortcut ? aimedShortcut.label : '' }}
@@ -393,16 +548,26 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
             />
           </Animated.View>
 
-          {/* The label, at the detent, which does not move. One at a time is
-              what makes labels possible on an arc at all. */}
+          {/* The readout, at the detent, which does not move. One label at a
+              time is what makes labels possible on an arc at all.
+              *
+              * Clamped off the screen edge rather than trusted to the
+              * geometry: the detent sits near the top of the sweep, which
+              * puts this nearly straight above a widget that is already
+              * inset from the right, and on a narrow phone the pill's own
+              * width is most of what is left. */}
           <Animated.View
             pointerEvents="none"
             style={{
               position: 'absolute',
-              right: right + LOG_WIDGET_SIZE / 2 - labelPoint.x - LABEL_MAX_WIDTH / 2,
+              right: Math.max(
+                LABEL_MARGIN,
+                right + LOG_WIDGET_SIZE / 2 - labelPoint.x - LABEL_MAX_WIDTH / 2
+              ),
               bottom: bottom + LOG_WIDGET_SIZE / 2 - labelPoint.y,
               width: LABEL_MAX_WIDTH,
               alignItems: 'center',
+              gap: 6,
               opacity: progress,
               transform: [{ scale: progress }],
             }}
@@ -411,29 +576,52 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 6,
+                gap: 5,
                 backgroundColor: colors.surface,
                 borderRadius: radius.pill,
-                paddingHorizontal: 14,
-                paddingVertical: 7,
+                paddingHorizontal: 11,
+                paddingVertical: 5,
                 borderWidth: 1,
                 borderColor: colors.border,
                 maxWidth: LABEL_MAX_WIDTH,
               }}
             >
               {aimedShortcut?.locked ? (
-                <Ionicons name="lock-closed" size={12} color={colors.textMuted} />
+                <Ionicons name="lock-closed" size={11} color={colors.textMuted} />
               ) : null}
+              {/* Smaller than the app's body text. This is a readout on a
+                  control, not a heading -- at body size it was the loudest
+                  thing on the overlay and competing with the ring it
+                  describes. */}
               <Text
-                style={[
-                  typography.body,
-                  { color: colors.textPrimary, fontWeight: '700', flexShrink: 1 },
-                ]}
+                style={{
+                  color: colors.textPrimary,
+                  fontWeight: '700',
+                  fontSize: 12,
+                  flexShrink: 1,
+                }}
                 numberOfLines={1}
               >
                 {aimedShortcut?.label ?? ''}
               </Text>
             </View>
+
+            {/* Said once, and only while there is anything left to reach.
+                An instruction that stays on screen after it has been
+                followed is a label for something already learnt. */}
+            {!turned && count > 1 ? (
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: '600',
+                  letterSpacing: 0.3,
+                }}
+                numberOfLines={1}
+              >
+                {Platform.OS === 'web' ? 'Scroll for more' : 'Swipe around for more'}
+              </Text>
+            ) : null}
           </Animated.View>
 
           {shortcuts.map((shortcut, index) => {
@@ -463,7 +651,8 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
               extrapolate: 'clamp',
             });
 
-            const off = Math.abs(index - aimed) > 2;
+            const isAimed = index === aimed;
+            const off = Math.abs(index - aimed) > 3;
 
             return (
               <Animated.View
@@ -500,9 +689,9 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
                     width: OPTION_SIZE,
                     height: OPTION_SIZE,
                     borderRadius: OPTION_SIZE / 2,
-                    backgroundColor: index === aimed ? colors.ctaFill : colors.surface,
+                    backgroundColor: isAimed ? colors.ctaFill : colors.surface,
                     borderWidth: 1,
-                    borderColor: index === aimed ? colors.ctaFill : colors.border,
+                    borderColor: isAimed ? colors.ctaFill : colors.border,
                     alignItems: 'center',
                     justifyContent: 'center',
                     opacity: pressed ? 0.8 : 1,
@@ -511,7 +700,7 @@ export function LogShortcutWidget({ bottom, right, shortcuts }: LogShortcutWidge
                   <Ionicons
                     name={shortcut.icon}
                     size={20}
-                    color={index === aimed ? colors.ctaText : colors.textPrimary}
+                    color={isAimed ? colors.ctaText : colors.textPrimary}
                   />
                   {shortcut.locked ? (
                     <View

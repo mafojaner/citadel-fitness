@@ -21,22 +21,33 @@ export const TRACK_SWEEP_DEGREES = 90;
 /**
  * Where the aimed item sits, as a position on the track.
  *
- * The middle, so items queue on both sides of it: what you have just passed
- * stays visible on one side and what is coming next on the other, which is
- * what makes a dial legible as a dial rather than as a list that happens to
- * be curved. It is fixed -- the items rotate through it, the way a scroll
+ * One step in from the top, which is a compromise and worth naming as one.
+ *
+ * A list has two ends and the arc holds five, so wherever the detent sits,
+ * one end of the list runs out before the arc does. Centred, the aimed item
+ * has two behind it and two ahead -- lovely in the middle, and only three
+ * shortcuts on screen the moment it opens, which is where everyone starts.
+ * Hard against the top it opens with all five, and then the last item
+ * arrives alone on an otherwise empty ring, which reads as broken rather
+ * than as finished.
+ *
+ * One step in is the balance: four on open, five through the middle, two at
+ * the end, and every shortcut can still be brought to the detent and named.
+ *
+ * Fixed wherever it sits: the items rotate through it, the way a scroll
  * wheel's selection line does not move.
  */
-export const DETENT = 0.5;
+export const DETENT = 0.34;
 
 /**
  * Track distance between neighbouring items, as a fraction of the sweep.
  *
- * At the radius the widget uses this is a little over one disc plus a gap,
- * which puts five items across the quadrant with the outermost two fading
- * at the ends.
+ * At the radius the widget uses this is one disc plus a small gap, which
+ * puts five of them across the quadrant with a sixth fading off the end.
+ * Tightening it further would pack more on and start them touching; the
+ * remaining ones are what the scrolling is for.
  */
-export const STEP = 0.26;
+export const STEP = 0.2;
 
 /** Beyond this either side of the track the item has faded out entirely. */
 const FADE_EDGE = 0.06;
